@@ -3,22 +3,14 @@ using UnityEngine;
 /// <summary>
 /// Component attached to animal prefabs. Represents an animal in the game world.
 /// </summary>
-[RequireComponent(typeof(SpriteRenderer))]
 public class Animal : MonoBehaviour
 {
     [Header("Animal Info")]
     [HideInInspector] [SerializeField] private int _animalId;
     [HideInInspector] [SerializeField] private Vector2Int _gridPosition;
 
-    private SpriteRenderer _spriteRenderer;
-
     public int AnimalId => _animalId;
     public Vector2Int GridPosition => _gridPosition;
-
-    private void Awake()
-    {
-        _spriteRenderer = GetComponent<SpriteRenderer>();
-    }
 
     /// <summary>
     /// Initializes the animal with an ID and grid position.
@@ -57,15 +49,5 @@ public class Animal : MonoBehaviour
         }
     }
 
-    /// <summary>
-    /// Sets the animal's sprite.
-    /// </summary>
-    public void SetSprite(Sprite sprite)
-    {
-        if (_spriteRenderer != null)
-        {
-            _spriteRenderer.sprite = sprite;
-        }
-    }
 }
 
