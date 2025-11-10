@@ -267,12 +267,12 @@ MonoBehaviour:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 2940051}
-  m_Enabled: 0
+  m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 6428b420f6185da49b196c0d44915f0d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _edgeScrollZone: 175
+  _edgeScrollZone: 0
   _minScrollSpeed: 2
   _maxScrollSpeed: 10
   _gridMargin: 2
