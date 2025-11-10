@@ -15,7 +15,7 @@ using NaughtyAttributes;
 ///   - 'G' or 'g' = Grass
 ///   - '#' = Obstacle
 /// - Use "---" as separator between tilemap and animal information
-/// - After separator, use "ANIMALS:" header followed by animal entries as: animalId x y (one per line)
+/// - After separator, use "ANIMALS:" header followed by animal entries as: animalName x y (one per line)
 /// </summary>
 public class LevelLoader : MonoBehaviour
 {
@@ -230,18 +230,18 @@ public class LevelLoader : MonoBehaviour
                 // 2. We haven't found ANIMALS: header yet (backward compatibility - parse all data after separator)
                 if (inAnimalsSection || !foundAnimalsHeader)
                 {
-                    // Parse animal line: animalId x y
+                    // Parse animal line: animalName x y
                     // Note: y-coordinate from file needs to be inverted to match grid coordinates
                     string[] parts = line.Split(new[] { ' ', '\t' }, System.StringSplitOptions.RemoveEmptyEntries);
                     if (parts.Length >= 3)
                     {
-                        if (int.TryParse(parts[0], out int animalId) &&
-                            int.TryParse(parts[1], out int x) &&
+                        string animalName = parts[0];
+                        if (int.TryParse(parts[1], out int x) &&
                             int.TryParse(parts[2], out int fileY))
                         {
                             // Convert file y-coordinate to grid y-coordinate (invert)
                             int gridY = tileHeight - 1 - fileY;
-                            levelData.Animals.Add((animalId, x, gridY));
+                            levelData.Animals.Add((animalName, x, gridY));
                         }
                         else
                         {

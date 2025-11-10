@@ -1,0 +1,19 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: accb84d4a93c289478c7f27d580ddaa2, type: 3}
+  m_Name: Giraffe
+  m_EditorClassIdentifier: 
+  animalName: Giraffe
+  idleSprite: {fileID: -1393417331, guid: 5a5c2f258bc139e4594a427728523e72, type: 3}
+  maxHunger: 5
+  maxHydration: 5
+  prefab: {fileID: 3156725246720460949, guid: 750ac2677486b4e4da6a38dfd4be2b45, type: 3}

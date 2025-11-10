@@ -17,11 +17,11 @@
 ####################
 ---
 // Animal Placement:
-//   Format: animalId x y
-//   - animalId: Unique identifier for the animal type
+//   Format: animalName x y
+//   - animalName: Name of the animal type (must match an AnimalData name in the database)
 //   - x: X coordinate (0 = left, increases to the right)
 //   - y: Y coordinate (0 = bottom, increases upward)
 ANIMALS:
-0 3 3
-1 8 3
-2 3 6
+Bird 3 3
+Giraffe 8 3
+Giraffe 3 6

@@ -3,14 +3,15 @@ using UnityEngine;
 
 /// <summary>
 /// Manages animal instantiation and lifecycle. Handles creating animals from level data.
+/// Loads AnimalData ScriptableObjects from Resources/Animals/ folder.
 /// </summary>
 public class AnimalManager : Singleton<AnimalManager>
 {
     [Header("Animal Settings")]
-    [SerializeField] private GameObject _animalPrefab;
     [SerializeField] private Transform _animalParent;
 
     private List<Animal> _animals = new List<Animal>();
+    private Dictionary<string, AnimalData> _animalDataDictionary = new Dictionary<string, AnimalData>();
 
     protected override void Awake()
     {
@@ -22,6 +23,63 @@ public class AnimalManager : Singleton<AnimalManager>
             GameObject parentObj = new GameObject("Animals");
             _animalParent = parentObj.transform;
         }
+
+        // Load all AnimalData from Resources/Animals/ folder
+        LoadAnimalData();
+    }
+
+    /// <summary>
+    /// Loads all AnimalData ScriptableObjects from the Resources/Animals/ folder.
+    /// </summary>
+    private void LoadAnimalData()
+    {
+        AnimalData[] animalDataArray = Resources.LoadAll<AnimalData>("Animals");
+        
+        if (animalDataArray == null || animalDataArray.Length == 0)
+        {
+            Debug.LogWarning("AnimalManager: No AnimalData found in Resources/Animals/ folder! Please create AnimalData ScriptableObjects and place them in Resources/Animals/.");
+            return;
+        }
+
+        _animalDataDictionary.Clear();
+
+        foreach (AnimalData animalData in animalDataArray)
+        {
+            if (animalData == null)
+            {
+                continue;
+            }
+
+            if (string.IsNullOrEmpty(animalData.animalName))
+            {
+                Debug.LogWarning($"AnimalManager: Found AnimalData with null or empty name: {animalData.name}");
+                continue;
+            }
+
+            if (_animalDataDictionary.ContainsKey(animalData.animalName))
+            {
+                Debug.LogWarning($"AnimalManager: Duplicate animal name '{animalData.animalName}' found. Keeping first occurrence.");
+                continue;
+            }
+
+            _animalDataDictionary[animalData.animalName] = animalData;
+        }
+
+        Debug.Log($"AnimalManager: Loaded {_animalDataDictionary.Count} animal data entries from Resources/Animals/");
+    }
+
+    /// <summary>
+    /// Gets an AnimalData by name. Returns null if not found.
+    /// </summary>
+    private AnimalData GetAnimalData(string animalName)
+    {
+        if (_animalDataDictionary.TryGetValue(animalName, out AnimalData data))
+        {
+            return data;
+        }
+
+        Debug.LogWarning($"AnimalManager: Animal data not found for name '{animalName}'");
+        return null;
     }
 
     /// <summary>
@@ -40,16 +98,23 @@ public class AnimalManager : Singleton<AnimalManager>
     }
 
     /// <summary>
-    /// Spawns an animal at the specified grid position.
+    /// Spawns an animal at the specified grid position by name.
     /// </summary>
-    /// <param name="animalId">Unique ID for the animal</param>
+    /// <param name="animalName">Name of the animal type to spawn</param>
     /// <param name="gridPosition">Grid position to spawn at</param>
-    /// <returns>The spawned Animal component, or null if prefab is not set</returns>
-    public Animal SpawnAnimal(int animalId, Vector2Int gridPosition)
+    /// <returns>The spawned Animal component, or null if animal data or prefab is not found</returns>
+    public Animal SpawnAnimal(string animalName, Vector2Int gridPosition)
     {
-        if (_animalPrefab == null)
+        AnimalData animalData = GetAnimalData(animalName);
+        if (animalData == null)
         {
-            Debug.LogError("AnimalManager: Animal prefab is not assigned!");
+            Debug.LogError($"AnimalManager: Animal data not found for '{animalName}'! Make sure the AnimalData ScriptableObject exists in Resources/Animals/ folder.");
+            return null;
+        }
+
+        if (animalData.prefab == null)
+        {
+            Debug.LogError($"AnimalManager: Prefab is not assigned for animal '{animalName}'!");
             return null;
         }
 
@@ -59,19 +124,19 @@ public class AnimalManager : Singleton<AnimalManager>
             return null;
         }
 
-        // Instantiate the animal
-        GameObject animalObj = Instantiate(_animalPrefab, _animalParent);
+        // Instantiate the animal using the prefab from AnimalData
+        GameObject animalObj = Instantiate(animalData.prefab, _animalParent);
         Animal animal = animalObj.GetComponent<Animal>();
         
         if (animal == null)
         {
-            Debug.LogError("AnimalManager: Animal prefab does not have an Animal component!");
+            Debug.LogError($"AnimalManager: Animal prefab for '{animalName}' does not have an Animal component!");
             Destroy(animalObj);
             return null;
         }
 
-        // Initialize the animal
-        animal.Initialize(animalId, gridPosition);
+        // Initialize the animal with its data
+        animal.Initialize(animalData, gridPosition);
         _animals.Add(animal);
 
         return animal;
@@ -80,20 +145,20 @@ public class AnimalManager : Singleton<AnimalManager>
     /// <summary>
     /// Spawns multiple animals from level data.
     /// </summary>
-    public void SpawnAnimalsFromLevelData(List<(int animalId, int x, int y)> animals)
+    public void SpawnAnimalsFromLevelData(List<(string animalName, int x, int y)> animals)
     {
         ClearAllAnimals();
 
-        foreach (var (animalId, x, y) in animals)
+        foreach (var (animalName, x, y) in animals)
         {
             Vector2Int gridPos = new Vector2Int(x, y);
             if (EnvironmentManager.Instance != null && EnvironmentManager.Instance.IsValidPosition(gridPos))
             {
-                SpawnAnimal(animalId, gridPos);
+                SpawnAnimal(animalName, gridPos);
             }
             else
             {
-                Debug.LogWarning($"AnimalManager: Animal {animalId} at ({x}, {y}) is out of bounds!");
+                Debug.LogWarning($"AnimalManager: Animal '{animalName}' at ({x}, {y}) is out of bounds!");
             }
         }
     }
@@ -107,11 +172,23 @@ public class AnimalManager : Singleton<AnimalManager>
     }
 
     /// <summary>
-    /// Gets an animal by its ID.
+    /// Gets an animal by its name.
     /// </summary>
-    public Animal GetAnimalById(int animalId)
+    /// <param name="animalName">Name of the animal to find</param>
+    /// <returns>The first Animal with the given name, or null if not found</returns>
+    public Animal GetAnimalByName(string animalName)
     {
-        return _animals.Find(a => a != null && a.AnimalId == animalId);
+        return _animals.Find(a => a != null && a.AnimalData != null && a.AnimalData.animalName == animalName);
+    }
+
+    /// <summary>
+    /// Gets all animals of a specific type by name.
+    /// </summary>
+    /// <param name="animalName">Name of the animal type to find</param>
+    /// <returns>List of all Animals with the given name</returns>
+    public List<Animal> GetAnimalsByName(string animalName)
+    {
+        return _animals.FindAll(a => a != null && a.AnimalData != null && a.AnimalData.animalName == animalName);
     }
 }
 
