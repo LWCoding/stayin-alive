@@ -72,6 +72,7 @@ public class Animal : MonoBehaviour
     private bool _hasLastDragEndGridPosition;
     private bool _lastPathfindingSuccessful;
     private bool _hasLastPathfindingResult;
+    private bool _isBeingDestroyed = false;
 
     public AnimalData AnimalData => _animalData;
     public Vector2Int GridPosition => _gridPosition;
@@ -768,7 +769,13 @@ public class Animal : MonoBehaviour
     /// </summary>
     private void OnPathComplete(Path path)
     {
-        if (path == null || path.error || _pathLineRenderer == null)
+        // Safety check: if this animal is being destroyed, ignore the callback
+        if (_isBeingDestroyed || _pathLineRenderer == null)
+        {
+            return;
+        }
+
+        if (path == null || path.error)
         {
             ClearPathLine();
             return;
@@ -785,6 +792,12 @@ public class Animal : MonoBehaviour
         if (axisAlignedPoints.Count == 0)
         {
             ClearPathLine();
+            return;
+        }
+
+        // Additional safety check before accessing renderer
+        if (_pathLineRenderer == null || _pathLineRenderer.gameObject == null)
+        {
             return;
         }
 
@@ -869,9 +882,34 @@ public class Animal : MonoBehaviour
 
     private void OnDestroy()
     {
+        // Mark as being destroyed to prevent callbacks from executing
+        _isBeingDestroyed = true;
+
+        // Cancel any pending path requests
+        if (_seeker != null)
+        {
+            _seeker.CancelCurrentPathRequest();
+        }
+
+        // Stop any running coroutines
+        if (_positionLerpCoroutine != null)
+        {
+            StopCoroutine(_positionLerpCoroutine);
+            _positionLerpCoroutine = null;
+        }
+
+        // Clear and disable path line renderers
+        ClearPathLine();
+        if (_lineRenderer != null)
+        {
+            _lineRenderer.enabled = false;
+        }
+
+        // Clean up AnimalManager references
         if (AnimalManager.Instance != null)
         {
             AnimalManager.Instance.ClearSelectedAnimal(this);
+            AnimalManager.Instance.RemoveAnimal(this);
         }
     }
 }

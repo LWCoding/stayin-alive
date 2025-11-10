@@ -73,6 +73,9 @@ public class TimeManager : Singleton<TimeManager>
 
 			animal.TakeTurn();
 		}
+
+		// After all animals have taken their turn, clear selection so no animal keeps brighter pathing
+		AnimalManager.Instance.ClearSelection();
 	}
 }
 

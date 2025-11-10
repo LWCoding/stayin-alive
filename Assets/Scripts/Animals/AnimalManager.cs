@@ -169,11 +169,24 @@ public class AnimalManager : Singleton<AnimalManager>
     }
 
     /// <summary>
-    /// Gets all animals in the scene.
+    /// Gets all animals in the scene. Filters out null references (destroyed animals).
     /// </summary>
     public List<Animal> GetAllAnimals()
     {
-        return new List<Animal>(_animals);
+        // Filter out null references in case any animals were destroyed but not yet removed
+        List<Animal> validAnimals = new List<Animal>();
+        for (int i = _animals.Count - 1; i >= 0; i--)
+        {
+            if (_animals[i] == null)
+            {
+                _animals.RemoveAt(i);
+            }
+            else
+            {
+                validAnimals.Add(_animals[i]);
+            }
+        }
+        return validAnimals;
     }
 
     /// <summary>
@@ -244,6 +257,17 @@ public class AnimalManager : Singleton<AnimalManager>
         {
             _currentlySelectedAnimal.SetSelectionState(false);
             _currentlySelectedAnimal = null;
+        }
+    }
+
+    /// <summary>
+    /// Removes an animal from the animals list. Called when an animal is destroyed.
+    /// </summary>
+    public void RemoveAnimal(Animal animal)
+    {
+        if (animal != null && _animals != null)
+        {
+            _animals.Remove(animal);
         }
     }
 }
