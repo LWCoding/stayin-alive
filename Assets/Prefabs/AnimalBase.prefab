@@ -143,7 +143,6 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 6401602468827057776}
-  - component: {fileID: -3584453668310626281}
   - component: {fileID: 6659037512251393770}
   - component: {fileID: 6585510747085078474}
   - component: {fileID: 4534309395414353278}
@@ -172,28 +171,6 @@ Transform:
   - {fileID: 3520583858774128861}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &-3584453668310626281
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 2195891697856963084}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 44918241ca8f4e149ac96eb370be479a, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  _animalData: {fileID: 0}
-  _gridPosition: {x: 0, y: 0}
-  _hungerText: {fileID: 6817473169546572623}
-  _thirstText: {fileID: 5525003057165608079}
-  _isControllable: 1
-  _selectionTintColor: {r: 1, g: 0, b: 0.013530254, a: 1}
-  _selectionTintStrength: 0.35
-  _pathPossibleColor: {r: 1, g: 0.92156863, b: 0.015686275, a: 1}
-  _pathImpossibleColor: {r: 1, g: 0, b: 0, a: 1}
-  _pathLineRenderer: {fileID: 5772971099539949022}
 --- !u!95 &6659037512251393770
 Animator:
   serializedVersion: 5

@@ -37,7 +37,7 @@ public class TimeManager : Singleton<TimeManager>
 		}
 
 		AdvanceTime();
-		StartCoroutine(ReenableButtonAfterDelay(1f));
+		StartCoroutine(ReenableButtonAfterDelay(0.75f));
 	}
 
 	private IEnumerator ReenableButtonAfterDelay(float delaySeconds)

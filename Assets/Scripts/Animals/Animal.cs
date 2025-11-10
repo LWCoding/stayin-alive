@@ -91,7 +91,7 @@ public class Animal : MonoBehaviour
     /// Called by TimeManager after movement each turn.
     /// Checks the tile type first - animals on food/water tiles don't lose hunger/thirst.
     /// </summary>
-    public void ApplyTurnNeedsAndTileRestoration()
+    public virtual void ApplyTurnNeedsAndTileRestoration()
     {
         // Check what tile the animal is on AFTER moving
         TileType currentTile = TileType.Empty; // Default
@@ -135,7 +135,7 @@ public class Animal : MonoBehaviour
     /// <summary>
     /// Executes this animal's turn: moves one step along planned path (if applicable) and applies needs/restoration.
     /// </summary>
-    public void TakeTurn()
+    public virtual void TakeTurn()
     {
         if (_isControllable)
         {
@@ -148,19 +148,28 @@ public class Animal : MonoBehaviour
     /// <summary>
     /// If a destination is set and the path was previously validated, move exactly one grid step along the path.
     /// </summary>
-    private void AdvanceOneStepAlongPlannedPath()
+    protected void AdvanceOneStepAlongPlannedPath()
     {
         if (!HasDestination || LastPathfindingSuccessful != true)
         {
             return;
         }
+        MoveOneStepTowards(_lastDragEndGridPosition);
+    }
+
+    /// <summary>
+    /// Computes an A* path from current grid to the destination and moves one grid step along it if possible.
+    /// </summary>
+    /// <param name="destinationGrid">Target grid position to move towards.</param>
+    protected void MoveOneStepTowards(Vector2Int destinationGrid)
+    {
         if (EnvironmentManager.Instance == null || AstarPath.active == null)
         {
             return;
         }
 
         Vector2Int startGrid = _gridPosition;
-        Vector2Int destGrid = _lastDragEndGridPosition;
+        Vector2Int destGrid = destinationGrid;
 
         Vector3 startWorld = ConvertGridToWorldPosition(startGrid);
         Vector3 destWorld = ConvertGridToWorldPosition(destGrid);

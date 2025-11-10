@@ -25,3 +25,4 @@ ANIMALS:
 Bird 3 3
 Lion 8 3
 Giraffe 3 6
+Bird 12 2
