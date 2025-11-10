@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using Pathfinding;
 using UnityEngine.UI;
+using System.Collections;
 
 /// <summary>
 /// Manages turn-based time progression. Each call to AdvanceTime() makes animals take a turn.
@@ -16,7 +17,7 @@ public class TimeManager : Singleton<TimeManager>
 	{
 		if (_advanceTurnButton != null)
 		{
-			_advanceTurnButton.onClick.AddListener(AdvanceTime);
+			_advanceTurnButton.onClick.AddListener(OnAdvanceButtonClicked);
 		}
 	}
 
@@ -24,7 +25,27 @@ public class TimeManager : Singleton<TimeManager>
 	{
 		if (_advanceTurnButton != null)
 		{
-			_advanceTurnButton.onClick.RemoveListener(AdvanceTime);
+			_advanceTurnButton.onClick.RemoveListener(OnAdvanceButtonClicked);
+		}
+	}
+
+	private void OnAdvanceButtonClicked()
+	{
+		if (_advanceTurnButton != null)
+		{
+			_advanceTurnButton.interactable = false;
+		}
+
+		AdvanceTime();
+		StartCoroutine(ReenableButtonAfterDelay(1f));
+	}
+
+	private IEnumerator ReenableButtonAfterDelay(float delaySeconds)
+	{
+		yield return new WaitForSeconds(delaySeconds);
+		if (_advanceTurnButton != null)
+		{
+			_advanceTurnButton.interactable = true;
 		}
 	}
 

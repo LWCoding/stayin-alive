@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Collections;
 using UnityEngine;
 using TMPro;
 using Pathfinding;
@@ -41,14 +42,27 @@ public class Animal : MonoBehaviour
     [SerializeField] private Color _pathImpossibleColor = Color.red;
     private LineRenderer _lineRenderer;
 
-    [Header("Path Line (Selected)")]
-    [Tooltip("LineRenderer used to show the planned A* path when selected")]
+    [Header("Path Line")]
+    [Tooltip("LineRenderer used to show the planned A* path")]
     [SerializeField] private LineRenderer _pathLineRenderer;
+    [Tooltip("Color of the path line")]
+    [SerializeField] private Color _pathLineColor = Color.yellow;
+    [Tooltip("Opacity of the path line when this animal is selected (0-1)")]
+    [Range(0f, 1f)]
+    [SerializeField] private float _selectedPathOpacity = 1f;
+    [Tooltip("Opacity of the path line when this animal is not selected (0-1)")]
+    [Range(0f, 1f)]
+    [SerializeField] private float _defaultPathOpacity = 0.3f;
     private Seeker _seeker;
 
     [Header("Input")]
     [Tooltip("Minimum world-space distance the cursor must move while held down before a drag begins")]
     [SerializeField] private float _dragStartThreshold = 0.5f;
+
+    [Header("Movement")]
+    [Tooltip("Seconds to interpolate when moving one grid cell")]
+    [SerializeField] private float _moveDurationSeconds = 0.5f;
+    private Coroutine _positionLerpCoroutine;
 
     private bool _isDragging = false;
     private bool _isPointerDown = false;
@@ -75,34 +89,46 @@ public class Animal : MonoBehaviour
     /// <summary>
     /// Applies per-turn needs decay, handles death, and restores from resource tiles.
     /// Called by TimeManager after movement each turn.
+    /// Checks the tile type first - animals on food/water tiles don't lose hunger/thirst.
     /// </summary>
     public void ApplyTurnNeedsAndTileRestoration()
     {
-        // Decay needs
-        AddHunger(-1);
-        AddThirst(-1);
+        // Check what tile the animal is on AFTER moving
+        TileType currentTile = TileType.Empty; // Default
+        if (EnvironmentManager.Instance != null)
+        {
+            currentTile = EnvironmentManager.Instance.GetTileType(_gridPosition);
+        }
+
+        // Only decay hunger if NOT on a Grass tile (animals can eat on Grass)
+        if (currentTile != TileType.Grass)
+        {
+            AddHunger(-1);
+        }
+        else
+        {
+            // On Grass tile - restore hunger to max instead of decaying
+            int maxHunger = _animalData != null ? _animalData.maxHunger : 100;
+            SetHunger(maxHunger);
+        }
+
+        // Only decay thirst if NOT on a Water tile (animals can drink on Water)
+        if (currentTile != TileType.Water)
+        {
+            AddThirst(-1);
+        }
+        else
+        {
+            // On Water tile - restore thirst to max instead of decaying
+            int maxHydration = _animalData != null ? _animalData.maxHydration : 100;
+            SetThirst(maxHydration);
+        }
 
         // Death if either is zero or below
         if (_currentHunger <= 0 || _currentThirst <= 0)
         {
             Destroy(gameObject);
             return;
-        }
-
-        // Tile-based restoration (after decay)
-        if (EnvironmentManager.Instance != null)
-        {
-            TileType tile = EnvironmentManager.Instance.GetTileType(_gridPosition);
-            if (tile == TileType.Water)
-            {
-                int maxHydration = _animalData != null ? _animalData.maxHydration : 100;
-                SetThirst(maxHydration);
-            }
-            else if (tile == TileType.Grass)
-            {
-                int maxHunger = _animalData != null ? _animalData.maxHunger : 100;
-                SetHunger(maxHunger);
-            }
         }
     }
 
@@ -219,6 +245,9 @@ public class Animal : MonoBehaviour
                 _pathLineRenderer.startWidth = 0.08f;
                 _pathLineRenderer.endWidth = 0.08f;
             }
+            // Set initial color
+            _pathLineRenderer.startColor = _pathLineColor;
+            _pathLineRenderer.endColor = _pathLineColor;
         }
     }
 
@@ -271,7 +300,19 @@ public class Animal : MonoBehaviour
     public void SetGridPosition(Vector2Int gridPosition)
     {
         _gridPosition = gridPosition;
-        UpdateWorldPosition();
+        Vector3 targetWorld;
+        if (EnvironmentManager.Instance != null)
+        {
+            targetWorld = EnvironmentManager.Instance.GridToWorldPosition(_gridPosition);
+        }
+        else
+        {
+            targetWorld = new Vector3(_gridPosition.x, _gridPosition.y, transform.position.z);
+        }
+        StartMoveToWorldPosition(targetWorld, _moveDurationSeconds);
+        
+        // Refresh path line if we have a valid destination (path start has changed)
+        TryRequestAndDrawPathFromState();
     }
 
     /// <summary>
@@ -290,6 +331,44 @@ public class Animal : MonoBehaviour
             // Fallback: use grid position directly
             transform.position = new Vector3(_gridPosition.x, _gridPosition.y, 0);
         }
+    }
+    
+    /// <summary>
+    /// Smoothly interpolates the transform to target world position over the given duration.
+    /// Stops any previous interpolation in progress.
+    /// </summary>
+    private void StartMoveToWorldPosition(Vector3 targetWorldPosition, float durationSeconds)
+    {
+        // Preserve current z in case target is computed at different z
+        targetWorldPosition.z = transform.position.z;
+        if (_positionLerpCoroutine != null)
+        {
+            StopCoroutine(_positionLerpCoroutine);
+        }
+        _positionLerpCoroutine = StartCoroutine(LerpPositionCoroutine(targetWorldPosition, durationSeconds));
+    }
+
+    private IEnumerator LerpPositionCoroutine(Vector3 targetWorldPosition, float durationSeconds)
+    {
+        Vector3 start = transform.position;
+        if (durationSeconds <= 0f)
+        {
+            transform.position = targetWorldPosition;
+            _positionLerpCoroutine = null;
+            yield break;
+        }
+
+        float elapsed = 0f;
+        while (elapsed < durationSeconds)
+        {
+            elapsed += Time.deltaTime;
+            float t = Mathf.Clamp01(elapsed / durationSeconds);
+            transform.position = Vector3.Lerp(start, targetWorldPosition, t);
+            yield return null;
+        }
+
+        transform.position = targetWorldPosition;
+        _positionLerpCoroutine = null;
     }
 
     /// <summary>
@@ -444,8 +523,8 @@ public class Animal : MonoBehaviour
 
         StopDragging();
 
-        // If selected and path is possible, request and draw the A* path; otherwise clear
-        if (_isSelected && pathPossible)
+        // If path is possible, request and draw the A* path; otherwise clear
+        if (pathPossible)
         {
             RequestAndDrawPath(_gridPosition, destinationGridPos);
         }
@@ -523,13 +602,17 @@ public class Animal : MonoBehaviour
             Color tinted = Color.Lerp(_originalSpriteColor, _selectionTintColor, _selectionTintStrength);
             tinted.a = _originalSpriteColor.a;
             _spriteRenderer.color = tinted;
-            TryRequestAndDrawPathFromState();
         }
         else
         {
             _spriteRenderer.color = _originalSpriteColor;
-            ClearPathLine();
         }
+        
+        // Update path line opacity based on selection state
+        UpdatePathLineOpacity();
+        
+        // Request/refresh path if we have a valid destination
+        TryRequestAndDrawPathFromState();
     }
     
     /// <summary>
@@ -639,15 +722,15 @@ public class Animal : MonoBehaviour
     }
 
     /// <summary>
-    /// If selected and we have a valid destination and feasibility, request and draw the path.
+    /// If we have a valid destination and feasibility, request and draw the path.
     /// </summary>
     private void TryRequestAndDrawPathFromState()
     {
-        if (_isSelected && _hasLastDragEndGridPosition && _hasLastPathfindingResult && _lastPathfindingSuccessful)
+        if (_hasLastDragEndGridPosition && _hasLastPathfindingResult && _lastPathfindingSuccessful)
         {
             RequestAndDrawPath(_gridPosition, _lastDragEndGridPosition);
         }
-        else
+        else if (!_hasLastDragEndGridPosition || !_hasLastPathfindingResult || !_lastPathfindingSuccessful)
         {
             ClearPathLine();
         }
@@ -701,7 +784,28 @@ public class Animal : MonoBehaviour
         {
             _pathLineRenderer.SetPosition(i, axisAlignedPoints[i]);
         }
-        _pathLineRenderer.enabled = _isSelected; // only show when selected
+        
+        // Always enable the path line and update opacity based on selection
+        _pathLineRenderer.enabled = true;
+        UpdatePathLineOpacity();
+    }
+
+    /// <summary>
+    /// Updates the path line opacity based on selection state.
+    /// </summary>
+    private void UpdatePathLineOpacity()
+    {
+        if (_pathLineRenderer == null)
+        {
+            return;
+        }
+
+        float opacity = _isSelected ? _selectedPathOpacity : _defaultPathOpacity;
+        Color pathColor = _pathLineColor;
+        pathColor.a = opacity;
+        
+        _pathLineRenderer.startColor = pathColor;
+        _pathLineRenderer.endColor = pathColor;
     }
 
     /// <summary>
