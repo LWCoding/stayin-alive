@@ -23,5 +23,5 @@
 //   - y: Y coordinate (0 = bottom, increases upward)
 ANIMALS:
 Bird 3 3
-Giraffe 8 3
+Lion 8 3
 Giraffe 3 6

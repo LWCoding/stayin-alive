@@ -8,6 +8,10 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 0}
     m_Modifications:
+    - target: {fileID: -3584453668310626281, guid: 373ac555e5fbaf34c84fc9ea003210dd, type: 3}
+      propertyPath: _isControllable
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 2195891697856963084, guid: 373ac555e5fbaf34c84fc9ea003210dd, type: 3}
       propertyPath: m_Name
       value: Lion

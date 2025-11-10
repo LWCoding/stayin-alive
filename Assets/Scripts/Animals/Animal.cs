@@ -20,6 +20,9 @@ public class Animal : MonoBehaviour
     private int _currentHunger;
     private int _currentThirst;
 
+    [SerializeField] [Tooltip("Whether this animal can be controlled by the player")]
+    private bool _isControllable = true;
+
     private bool _isDragging = false;
     private Camera _mainCamera;
     private LineRenderer _lineRenderer;
@@ -28,6 +31,11 @@ public class Animal : MonoBehaviour
     public Vector2Int GridPosition => _gridPosition;
     public int CurrentHunger => _currentHunger;
     public int CurrentThirst => _currentThirst;
+    public bool IsControllable
+    {
+        get => _isControllable;
+        set => _isControllable = value;
+    }
 
     private void Awake()
     {
@@ -197,6 +205,11 @@ public class Animal : MonoBehaviour
     /// </summary>
     private void OnMouseDown()
     {
+        if (!_isControllable)
+        {
+            return;
+        }
+
         StartDragging();
     }
 
