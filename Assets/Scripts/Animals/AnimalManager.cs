@@ -12,6 +12,9 @@ public class AnimalManager : Singleton<AnimalManager>
 
     private List<Animal> _animals = new List<Animal>();
     private Dictionary<string, AnimalData> _animalDataDictionary = new Dictionary<string, AnimalData>();
+    private Animal _currentlySelectedAnimal;
+
+    public Animal CurrentlySelectedAnimal => _currentlySelectedAnimal;
 
     protected override void Awake()
     {
@@ -87,6 +90,8 @@ public class AnimalManager : Singleton<AnimalManager>
     /// </summary>
     public void ClearAllAnimals()
     {
+        ClearSelection();
+
         foreach (Animal animal in _animals)
         {
             if (animal != null)
@@ -189,6 +194,57 @@ public class AnimalManager : Singleton<AnimalManager>
     public List<Animal> GetAnimalsByName(string animalName)
     {
         return _animals.FindAll(a => a != null && a.AnimalData != null && a.AnimalData.animalName == animalName);
+    }
+
+    /// <summary>
+    /// Sets the currently selected animal and updates selection visuals.
+    /// </summary>
+    public void SetSelectedAnimal(Animal animal)
+    {
+        if (_currentlySelectedAnimal == animal)
+        {
+            if (_currentlySelectedAnimal != null)
+            {
+                _currentlySelectedAnimal.SetSelectionState(true);
+            }
+            return;
+        }
+
+        if (_currentlySelectedAnimal != null)
+        {
+            _currentlySelectedAnimal.SetSelectionState(false);
+        }
+
+        _currentlySelectedAnimal = animal;
+
+        if (_currentlySelectedAnimal != null)
+        {
+            _currentlySelectedAnimal.SetSelectionState(true);
+        }
+    }
+
+    /// <summary>
+    /// Clears the selection state if the specified animal is selected.
+    /// </summary>
+    public void ClearSelectedAnimal(Animal animal)
+    {
+        if (animal != null && animal == _currentlySelectedAnimal)
+        {
+            _currentlySelectedAnimal.SetSelectionState(false);
+            _currentlySelectedAnimal = null;
+        }
+    }
+
+    /// <summary>
+    /// Clears any selected animal.
+    /// </summary>
+    public void ClearSelection()
+    {
+        if (_currentlySelectedAnimal != null)
+        {
+            _currentlySelectedAnimal.SetSelectionState(false);
+            _currentlySelectedAnimal = null;
+        }
     }
 }
 

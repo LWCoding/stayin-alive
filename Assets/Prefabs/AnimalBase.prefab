@@ -187,6 +187,11 @@ MonoBehaviour:
   _gridPosition: {x: 0, y: 0}
   _hungerText: {fileID: 6817473169546572623}
   _thirstText: {fileID: 5525003057165608079}
+  _isControllable: 1
+  _selectionTintColor: {r: 1, g: 0, b: 0.013530254, a: 1}
+  _selectionTintStrength: 0.35
+  _pathPossibleColor: {r: 1, g: 0.92156863, b: 0.015686275, a: 1}
+  _pathImpossibleColor: {r: 1, g: 0, b: 0, a: 1}
 --- !u!95 &6659037512251393770
 Animator:
   serializedVersion: 5

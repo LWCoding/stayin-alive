@@ -24,6 +24,16 @@ public class Animal : MonoBehaviour
     [SerializeField] [Tooltip("Whether this animal can be controlled by the player")]
     private bool _isControllable = true;
 
+    [Header("Selection Visuals")]
+    [Tooltip("Color blended with the base sprite color when this animal is selected")]
+    [SerializeField] private Color _selectionTintColor = new Color(1f, 0.92f, 0.7f, 1f);
+    [Range(0f, 1f)]
+    [SerializeField] private float _selectionTintStrength = 0.35f;
+    private SpriteRenderer _spriteRenderer;
+    private Color _originalSpriteColor;
+    private bool _hasOriginalColor;
+    private bool _isSelected;
+
     [Header("Drag Destination")]
     [Tooltip("Color of the line when pathfinding is possible")]
     [SerializeField] private Color _pathPossibleColor = Color.yellow;
@@ -54,6 +64,17 @@ public class Animal : MonoBehaviour
     private void Awake()
     {
         _mainCamera = Camera.main;
+        _spriteRenderer = GetComponent<SpriteRenderer>();
+        if (_spriteRenderer == null)
+        {
+            _spriteRenderer = GetComponentInChildren<SpriteRenderer>();
+        }
+
+        if (_spriteRenderer != null)
+        {
+            _originalSpriteColor = _spriteRenderer.color;
+            _hasOriginalColor = true;
+        }
 
         if (_lineRenderer == null)
         {
@@ -65,18 +86,6 @@ public class Animal : MonoBehaviour
                 lineObj.transform.localPosition = Vector3.zero;
                 _lineRenderer = lineObj.AddComponent<LineRenderer>();
             }
-        }
-
-        if (_lineRenderer != null)
-        {
-            _lineRenderer.material = new Material(Shader.Find("Sprites/Default"));
-            _lineRenderer.startWidth = 0.1f;
-            _lineRenderer.endWidth = 0.1f;
-            _lineRenderer.positionCount = 2;
-            _lineRenderer.useWorldSpace = true;
-            _lineRenderer.enabled = false;
-            _lineRenderer.startColor = _pathPossibleColor;
-            _lineRenderer.endColor = _pathPossibleColor;
         }
     }
 
@@ -97,6 +106,9 @@ public class Animal : MonoBehaviour
         
         // Apply sprite if available
         ApplySprite();
+
+        // Ensure selection visuals are reset
+        SetSelectionState(false);
         
         // Update UI to show initial values
         UpdateHungerThirstUI();
@@ -114,10 +126,9 @@ public class Animal : MonoBehaviour
             return;
         }
 
-        SpriteRenderer spriteRenderer = GetComponent<SpriteRenderer>();
-        if (spriteRenderer != null)
+        if (_spriteRenderer != null)
         {
-            spriteRenderer.sprite = _animalData.idleSprite;
+            _spriteRenderer.sprite = _animalData.idleSprite;
         }
     }
 
@@ -224,6 +235,8 @@ public class Animal : MonoBehaviour
     /// </summary>
     private void OnMouseDown()
     {
+        SelectThisAnimal();
+
         if (!_isControllable)
         {
             return;
@@ -326,6 +339,42 @@ public class Animal : MonoBehaviour
         if (!_hasLastDragEndGridPosition)
         {
             _hasLastPathfindingResult = false;
+        }
+    }
+
+    private void SelectThisAnimal()
+    {
+        if (AnimalManager.Instance != null)
+        {
+            AnimalManager.Instance.SetSelectedAnimal(this);
+        }
+        else
+        {
+            SetSelectionState(true);
+        }
+    }
+
+    /// <summary>
+    /// Applies or removes the selection tint on this animal.
+    /// </summary>
+    public void SetSelectionState(bool isSelected)
+    {
+        if (_spriteRenderer == null)
+        {
+            return;
+        }
+
+        _isSelected = isSelected;
+
+        if (_isSelected)
+        {
+            Color tinted = Color.Lerp(_originalSpriteColor, _selectionTintColor, _selectionTintStrength);
+            tinted.a = _originalSpriteColor.a;
+            _spriteRenderer.color = tinted;
+        }
+        else
+        {
+            _spriteRenderer.color = _originalSpriteColor;
         }
     }
     
@@ -433,6 +482,14 @@ public class Animal : MonoBehaviour
         }
 
         return PathUtilities.IsPathPossible(startNNInfo.node, destNNInfo.node);
+    }
+
+    private void OnDestroy()
+    {
+        if (AnimalManager.Instance != null)
+        {
+            AnimalManager.Instance.ClearSelectedAnimal(this);
+        }
     }
 }
 
