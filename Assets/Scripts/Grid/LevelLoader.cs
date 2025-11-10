@@ -7,13 +7,15 @@ using NaughtyAttributes;
 /// Component that loads and parses level files from text format.
 /// Handles loading the environment and spawning animals.
 /// Level file format:
+/// - Lines starting with "//" are comments and are ignored
 /// - Each line represents a row (y-coordinate) for tiles
 /// - Each character represents a tile type:
 ///   - ' ' or '.' = Empty
 ///   - 'W' or 'w' = Water
 ///   - 'G' or 'g' = Grass
 ///   - '#' = Obstacle
-/// - After an empty line or "ANIMALS:" header, list animals as: animalId x y (one per line)
+/// - Use "---" as separator between tilemap and animal information
+/// - After separator, use "ANIMALS:" header followed by animal entries as: animalId x y (one per line)
 /// </summary>
 public class LevelLoader : MonoBehaviour
 {
@@ -126,83 +128,74 @@ public class LevelLoader : MonoBehaviour
     }
 
     /// <summary>
+    /// Checks if a line is a comment (starts with "//" after trimming).
+    /// </summary>
+    private bool IsCommentLine(string line)
+    {
+        return !string.IsNullOrEmpty(line) && line.TrimStart().StartsWith("//");
+    }
+
+    /// <summary>
     /// Parses level data from an array of lines.
     /// </summary>
     private LevelData ParseLevelData(string[] lines)
     {
         LevelData levelData = new LevelData();
-        bool inAnimalsSection = false;
-        int tileSectionEndLine = 0;
+        int separatorLine = -1;
 
-        // First pass: find where tile section ends and animals section begins
+        // First pass: find the separator line ("---")
         for (int i = 0; i < lines.Length; i++)
         {
             string line = lines[i].Trim();
-            
-            if (string.IsNullOrEmpty(line))
-            {
-                if (i > 0 && !inAnimalsSection)
-                {
-                    // Empty line after tiles marks the start of animals section
-                    inAnimalsSection = true;
-                    tileSectionEndLine = i;
-                }
+            // Skip comments when looking for separator
+            if (IsCommentLine(line))
                 continue;
-            }
-
-            if (line.ToUpper().StartsWith("ANIMALS:"))
+                
+            if (line == "---")
             {
-                inAnimalsSection = true;
-                tileSectionEndLine = i;
-                continue;
-            }
-
-            if (!inAnimalsSection)
-            {
-                tileSectionEndLine = i + 1;
+                separatorLine = i;
+                break;
             }
         }
 
-        // First pass: determine grid dimensions
+        // If no separator found, use all lines as tiles (for backward compatibility)
+        int tileSectionEndLine = separatorLine >= 0 ? separatorLine : lines.Length;
+
+        // First pass: collect all non-empty, non-comment tile lines and determine dimensions
+        List<string> tileLines = new List<string>();
         int maxWidth = 0;
-        int tileHeight = 0;
-        for (int y = 0; y < tileSectionEndLine; y++)
+        
+        for (int i = 0; i < tileSectionEndLine; i++)
         {
-            string line = lines[y].TrimEnd();
-            if (!string.IsNullOrEmpty(line))
-            {
-                maxWidth = Mathf.Max(maxWidth, line.Length);
-            }
-            tileHeight = y + 1;
+            string line = lines[i].TrimEnd();
+            // Skip empty lines and comment lines in tile section
+            if (string.IsNullOrEmpty(line) || IsCommentLine(line))
+                continue;
+            
+            tileLines.Add(line);
+            maxWidth = Mathf.Max(maxWidth, line.Length);
         }
 
-        // Second pass: populate all tiles (including empty ones)
+        int tileHeight = tileLines.Count;
+
+        // Second pass: populate tiles (only actual tiles, no padding)
         // Note: Invert y-coordinate because text files are read top-to-bottom,
         // but Unity's grid has y=0 at the bottom
         for (int fileY = 0; fileY < tileHeight; fileY++)
         {
-            string line = fileY < lines.Length ? lines[fileY].TrimEnd() : "";
-            int lineLength = string.IsNullOrEmpty(line) ? 0 : line.Length;
+            string line = tileLines[fileY];
+            int lineLength = line.Length;
             
             // Convert file line index to grid y-coordinate (invert)
             int gridY = tileHeight - 1 - fileY;
 
-            for (int x = 0; x < maxWidth; x++)
+            // Only parse tiles that exist in the file (no padding with empty tiles)
+            for (int x = 0; x < lineLength; x++)
             {
-                TileType tileType;
-                if (x < lineLength)
-                {
-                    // Parse tile from file
-                    char c = line[x];
-                    tileType = ParseTileType(c);
-                }
-                else
-                {
-                    // Position beyond line length - fill with empty
-                    tileType = TileType.Empty;
-                }
+                char c = line[x];
+                TileType tileType = ParseTileType(c);
                 
-                // Add all tiles, including empty ones
+                // Add all tiles including empty ones that are explicitly in the file
                 levelData.Tiles.Add((x, gridY, tileType));
             }
         }
@@ -210,39 +203,50 @@ public class LevelLoader : MonoBehaviour
         levelData.Width = maxWidth;
         levelData.Height = tileHeight;
 
-        // Parse animals section
-        inAnimalsSection = false;
-        for (int i = tileSectionEndLine; i < lines.Length; i++)
+        // Parse animals section (after separator)
+        if (separatorLine >= 0)
         {
-            string line = lines[i].Trim();
+            bool inAnimalsSection = false;
+            bool foundAnimalsHeader = false;
             
-            if (string.IsNullOrEmpty(line))
-                continue;
-
-            if (line.ToUpper().StartsWith("ANIMALS:"))
+            for (int i = separatorLine + 1; i < lines.Length; i++)
             {
-                inAnimalsSection = true;
-                continue;
-            }
+                string line = lines[i].Trim();
+                
+                // Skip empty lines and comments
+                if (string.IsNullOrEmpty(line) || IsCommentLine(line))
+                    continue;
 
-            if (inAnimalsSection || i > tileSectionEndLine)
-            {
-                // Parse animal line: animalId x y
-                // Note: y-coordinate from file needs to be inverted to match grid coordinates
-                string[] parts = line.Split(new[] { ' ', '\t' }, System.StringSplitOptions.RemoveEmptyEntries);
-                if (parts.Length >= 3)
+                // Check for ANIMALS: header
+                if (line.ToUpper().StartsWith("ANIMALS:"))
                 {
-                    if (int.TryParse(parts[0], out int animalId) &&
-                        int.TryParse(parts[1], out int x) &&
-                        int.TryParse(parts[2], out int fileY))
+                    inAnimalsSection = true;
+                    foundAnimalsHeader = true;
+                    continue;
+                }
+
+                // Parse animal lines if:
+                // 1. We've seen ANIMALS: header (inAnimalsSection is true), OR
+                // 2. We haven't found ANIMALS: header yet (backward compatibility - parse all data after separator)
+                if (inAnimalsSection || !foundAnimalsHeader)
+                {
+                    // Parse animal line: animalId x y
+                    // Note: y-coordinate from file needs to be inverted to match grid coordinates
+                    string[] parts = line.Split(new[] { ' ', '\t' }, System.StringSplitOptions.RemoveEmptyEntries);
+                    if (parts.Length >= 3)
                     {
-                        // Convert file y-coordinate to grid y-coordinate (invert)
-                        int gridY = tileHeight - 1 - fileY;
-                        levelData.Animals.Add((animalId, x, gridY));
-                    }
-                    else
-                    {
-                        Debug.LogWarning($"LevelLoader: Could not parse animal line: {line}");
+                        if (int.TryParse(parts[0], out int animalId) &&
+                            int.TryParse(parts[1], out int x) &&
+                            int.TryParse(parts[2], out int fileY))
+                        {
+                            // Convert file y-coordinate to grid y-coordinate (invert)
+                            int gridY = tileHeight - 1 - fileY;
+                            levelData.Animals.Add((animalId, x, gridY));
+                        }
+                        else
+                        {
+                            Debug.LogWarning($"LevelLoader: Could not parse animal line: {line}");
+                        }
                     }
                 }
             }

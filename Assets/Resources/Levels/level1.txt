@@ -1,3 +1,10 @@
+// Level 1
+// 
+// Tile Legend:
+//   ' ' (space) = Empty tile
+//   '#' = Obstacle/Wall
+//   'G' = Grass
+//   'W' = Water
 ####################
 #                  #
 #  GGGG    WWWW    #
@@ -8,9 +15,13 @@
 #     GGGGGGGG     #
 #                  #
 ####################
-
+---
+// Animal Placement:
+//   Format: animalId x y
+//   - animalId: Unique identifier for the animal type
+//   - x: X coordinate (0 = left, increases to the right)
+//   - y: Y coordinate (0 = bottom, increases upward)
 ANIMALS:
 0 3 3
 1 8 3
 2 3 6
-
