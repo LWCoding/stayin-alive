@@ -6,11 +6,11 @@
 //   'G' = Grass
 //   'W' = Water
 ####################
-#                  #
-#  GGGG    WWWW    #
-#  GGGG    WWWW    #
-#  GGGG    WWWW    #
-#                  #
+#        #         #
+#  GGGG  # WWWW    #
+#  GGGG  # WWWW    #
+#  GGGG  # WWWW    #
+#        ###       #
 #     GGGGGGGG     #
 #     GGGGGGGG     #
 #                  #

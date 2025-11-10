@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using UnityEngine;
 using TMPro;
 using Pathfinding;
@@ -41,6 +42,11 @@ public class Animal : MonoBehaviour
     [SerializeField] private Color _pathImpossibleColor = Color.red;
     private LineRenderer _lineRenderer;
 
+    [Header("Path Line (Selected)")]
+    [Tooltip("LineRenderer used to show the planned A* path when selected")]
+    [SerializeField] private LineRenderer _pathLineRenderer;
+    private Seeker _seeker;
+
     private bool _isDragging = false;
     private Camera _mainCamera;
     private Vector2Int _lastDragEndGridPosition;
@@ -76,6 +82,13 @@ public class Animal : MonoBehaviour
             _hasOriginalColor = true;
         }
 
+        // Ensure Seeker exists for A* requests
+        _seeker = GetComponent<Seeker>();
+        if (_seeker == null)
+        {
+            _seeker = gameObject.AddComponent<Seeker>();
+        }
+
         if (_lineRenderer == null)
         {
             _lineRenderer = GetComponent<LineRenderer>();
@@ -85,6 +98,32 @@ public class Animal : MonoBehaviour
                 lineObj.transform.SetParent(transform);
                 lineObj.transform.localPosition = Vector3.zero;
                 _lineRenderer = lineObj.AddComponent<LineRenderer>();
+            }
+        }
+
+        // Setup path line (separate renderer, hidden by default)
+        if (_pathLineRenderer == null)
+        {
+            // Avoid reusing the destination line; create a new child
+            GameObject pathObj = new GameObject("PathLine");
+            pathObj.transform.SetParent(transform);
+            pathObj.transform.localPosition = Vector3.zero;
+            _pathLineRenderer = pathObj.AddComponent<LineRenderer>();
+        }
+        if (_pathLineRenderer != null)
+        {
+            _pathLineRenderer.positionCount = 0;
+            _pathLineRenderer.enabled = false;
+            _pathLineRenderer.useWorldSpace = true;
+            // Reasonable defaults if none set in inspector
+            if (_pathLineRenderer.sharedMaterial == null)
+            {
+                _pathLineRenderer.material = new Material(Shader.Find("Sprites/Default"));
+            }
+            if (_pathLineRenderer.startWidth <= 0f)
+            {
+                _pathLineRenderer.startWidth = 0.08f;
+                _pathLineRenderer.endWidth = 0.08f;
             }
         }
     }
@@ -297,6 +336,16 @@ public class Animal : MonoBehaviour
         Debug.Log($"Animal '{name}' path to {destinationGridPos} is {(pathPossible ? "possible" : "not possible")}.");
 
         StopDragging();
+
+        // If selected and path is possible, request and draw the A* path; otherwise clear
+        if (_isSelected && pathPossible)
+        {
+            RequestAndDrawPath(_gridPosition, destinationGridPos);
+        }
+        else
+        {
+            ClearPathLine();
+        }
     }
 
     /// <summary>
@@ -315,6 +364,9 @@ public class Animal : MonoBehaviour
             _lineRenderer.endColor = _pathPossibleColor;
             UpdateDestinationLine();
         }
+
+        // While dragging we clear any previously planned path
+        ClearPathLine();
     }
 
     /// <summary>
@@ -364,10 +416,12 @@ public class Animal : MonoBehaviour
             Color tinted = Color.Lerp(_originalSpriteColor, _selectionTintColor, _selectionTintStrength);
             tinted.a = _originalSpriteColor.a;
             _spriteRenderer.color = tinted;
+            TryRequestAndDrawPathFromState();
         }
         else
         {
             _spriteRenderer.color = _originalSpriteColor;
+            ClearPathLine();
         }
     }
     
@@ -475,6 +529,122 @@ public class Animal : MonoBehaviour
         }
 
         return PathUtilities.IsPathPossible(startNNInfo.node, destNNInfo.node);
+    }
+
+    /// <summary>
+    /// If selected and we have a valid destination and feasibility, request and draw the path.
+    /// </summary>
+    private void TryRequestAndDrawPathFromState()
+    {
+        if (_isSelected && _hasLastDragEndGridPosition && _hasLastPathfindingResult && _lastPathfindingSuccessful)
+        {
+            RequestAndDrawPath(_gridPosition, _lastDragEndGridPosition);
+        }
+        else
+        {
+            ClearPathLine();
+        }
+    }
+
+    /// <summary>
+    /// Requests an A* path and draws it when complete.
+    /// </summary>
+    private void RequestAndDrawPath(Vector2Int startGrid, Vector2Int destGrid)
+    {
+        if (_seeker == null || AstarPath.active == null)
+        {
+            ClearPathLine();
+            return;
+        }
+
+        Vector3 startWorld = ConvertGridToWorldPosition(startGrid);
+        Vector3 endWorld = ConvertGridToWorldPosition(destGrid);
+
+        _seeker.CancelCurrentPathRequest();
+        _seeker.StartPath(startWorld, endWorld, OnPathComplete);
+    }
+
+    /// <summary>
+    /// Callback for Seeker path completion. Draws the points on the path line.
+    /// </summary>
+    private void OnPathComplete(Path path)
+    {
+        if (path == null || path.error || _pathLineRenderer == null)
+        {
+            ClearPathLine();
+            return;
+        }
+
+        var pts = path.vectorPath;
+        if (pts == null || pts.Count == 0)
+        {
+            ClearPathLine();
+            return;
+        }
+
+        List<Vector3> axisAlignedPoints = BuildAxisAlignedPath(pts);
+        if (axisAlignedPoints.Count == 0)
+        {
+            ClearPathLine();
+            return;
+        }
+
+        _pathLineRenderer.positionCount = axisAlignedPoints.Count;
+        for (int i = 0; i < axisAlignedPoints.Count; i++)
+        {
+            _pathLineRenderer.SetPosition(i, axisAlignedPoints[i]);
+        }
+        _pathLineRenderer.enabled = _isSelected; // only show when selected
+    }
+
+    /// <summary>
+    /// Hides and clears the path line.
+    /// </summary>
+    private void ClearPathLine()
+    {
+        if (_pathLineRenderer != null)
+        {
+            _pathLineRenderer.enabled = false;
+            _pathLineRenderer.positionCount = 0;
+        }
+    }
+
+    /// <summary>
+    /// Converts the raw path points into a list of axis-aligned world positions (no diagonals).
+    /// </summary>
+    private List<Vector3> BuildAxisAlignedPath(IReadOnlyList<Vector3> rawPoints)
+    {
+        List<Vector3> axisPoints = new List<Vector3>();
+        if (rawPoints == null || rawPoints.Count == 0)
+        {
+            return axisPoints;
+        }
+
+        Vector2Int currentGrid = ConvertWorldToGridPosition(rawPoints[0]);
+        axisPoints.Add(ConvertGridToWorldPosition(currentGrid));
+
+        for (int i = 1; i < rawPoints.Count; i++)
+        {
+            Vector2Int targetGrid = ConvertWorldToGridPosition(rawPoints[i]);
+            if (targetGrid == currentGrid)
+            {
+                continue;
+            }
+
+            while (currentGrid.x != targetGrid.x)
+            {
+                currentGrid.x += targetGrid.x > currentGrid.x ? 1 : -1;
+                axisPoints.Add(ConvertGridToWorldPosition(currentGrid));
+            }
+
+            while (currentGrid.y != targetGrid.y)
+            {
+                currentGrid.y += targetGrid.y > currentGrid.y ? 1 : -1;
+                axisPoints.Add(ConvertGridToWorldPosition(currentGrid));
+            }
+        }
+
+        return axisPoints;
     }
 
     private void OnDestroy()
