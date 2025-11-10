@@ -11,8 +11,8 @@
 #  GGGG  # WWWW    #
 #  GGGG  # WWWW    #
 #        ###       #
-#     GGGGGGGG     #
-#     GGGGGGGG     #
+#  WW   GGGGGG     #
+#  WW   GGGGGG     #
 #                  #
 ####################
 ---

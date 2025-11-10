@@ -32,7 +32,6 @@ public class Animal : MonoBehaviour
     [SerializeField] private float _selectionTintStrength = 0.35f;
     private SpriteRenderer _spriteRenderer;
     private Color _originalSpriteColor;
-    private bool _hasOriginalColor;
     private bool _isSelected;
 
     [Header("Drag Destination")]
@@ -73,6 +72,96 @@ public class Animal : MonoBehaviour
         set => _isControllable = value;
     }
 
+    /// <summary>
+    /// Applies per-turn needs decay, handles death, and restores from resource tiles.
+    /// Called by TimeManager after movement each turn.
+    /// </summary>
+    public void ApplyTurnNeedsAndTileRestoration()
+    {
+        // Decay needs
+        AddHunger(-1);
+        AddThirst(-1);
+
+        // Death if either is zero or below
+        if (_currentHunger <= 0 || _currentThirst <= 0)
+        {
+            Destroy(gameObject);
+            return;
+        }
+
+        // Tile-based restoration (after decay)
+        if (EnvironmentManager.Instance != null)
+        {
+            TileType tile = EnvironmentManager.Instance.GetTileType(_gridPosition);
+            if (tile == TileType.Water)
+            {
+                int maxHydration = _animalData != null ? _animalData.maxHydration : 100;
+                SetThirst(maxHydration);
+            }
+            else if (tile == TileType.Grass)
+            {
+                int maxHunger = _animalData != null ? _animalData.maxHunger : 100;
+                SetHunger(maxHunger);
+            }
+        }
+    }
+
+    /// <summary>
+    /// Executes this animal's turn: moves one step along planned path (if applicable) and applies needs/restoration.
+    /// </summary>
+    public void TakeTurn()
+    {
+        if (_isControllable)
+        {
+            AdvanceOneStepAlongPlannedPath();
+        }
+
+        ApplyTurnNeedsAndTileRestoration();
+    }
+
+    /// <summary>
+    /// If a destination is set and the path was previously validated, move exactly one grid step along the path.
+    /// </summary>
+    private void AdvanceOneStepAlongPlannedPath()
+    {
+        if (!HasDestination || LastPathfindingSuccessful != true)
+        {
+            return;
+        }
+        if (EnvironmentManager.Instance == null || AstarPath.active == null)
+        {
+            return;
+        }
+
+        Vector2Int startGrid = _gridPosition;
+        Vector2Int destGrid = _lastDragEndGridPosition;
+
+        Vector3 startWorld = ConvertGridToWorldPosition(startGrid);
+        Vector3 destWorld = ConvertGridToWorldPosition(destGrid);
+
+        var path = ABPath.Construct(startWorld, destWorld, null);
+        AstarPath.StartPath(path, true);
+        path.BlockUntilCalculated();
+
+        if (path.error || path.vectorPath == null || path.vectorPath.Count == 0)
+        {
+            return;
+        }
+
+        List<Vector3> axisAligned = BuildAxisAlignedPath(path.vectorPath);
+        if (axisAligned.Count < 2)
+        {
+            return;
+        }
+
+        Vector2Int nextGrid = ConvertWorldToGridPosition(axisAligned[1]);
+        if (EnvironmentManager.Instance.IsValidPosition(nextGrid) &&
+            EnvironmentManager.Instance.IsWalkable(nextGrid))
+        {
+            SetGridPosition(nextGrid);
+        }
+    }
+
     private void Awake()
     {
         _mainCamera = Camera.main;
@@ -85,7 +174,6 @@ public class Animal : MonoBehaviour
         if (_spriteRenderer != null)
         {
             _originalSpriteColor = _spriteRenderer.color;
-            _hasOriginalColor = true;
         }
 
         // Ensure Seeker exists for A* requests

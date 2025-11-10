@@ -14,6 +14,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   animalName: Giraffe
   idleSprite: {fileID: -1393417331, guid: 5a5c2f258bc139e4594a427728523e72, type: 3}
-  maxHunger: 5
-  maxHydration: 5
+  maxHunger: 10
+  maxHydration: 10
   prefab: {fileID: 3156725246720460949, guid: 750ac2677486b4e4da6a38dfd4be2b45, type: 3}

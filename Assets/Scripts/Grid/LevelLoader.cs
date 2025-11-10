@@ -131,8 +131,7 @@ public class LevelLoader : MonoBehaviour
                 node.Walkable = walk;
             });
 
-            // Recompute connected components after changing walkability
-            AstarPath.active.FloodFill();
+			// Connected components are handled by the hierarchical graph automatically in recent versions
         }
 
         // Ensure any pending work is completed
