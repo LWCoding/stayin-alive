@@ -229,10 +229,6 @@ public class Animal : MonoBehaviour
         }
     }
 
-    /// <summary>
-    /// Called when the mouse button is pressed down on this animal.
-    /// Requires a Collider2D component on the GameObject for this to work.
-    /// </summary>
     private void OnMouseDown()
     {
         SelectThisAnimal();
@@ -245,9 +241,6 @@ public class Animal : MonoBehaviour
         StartDragging();
     }
 
-    /// <summary>
-    /// Called when the mouse button is released.
-    /// </summary>
     private void OnMouseUp()
     {
         HandleMouseRelease();
