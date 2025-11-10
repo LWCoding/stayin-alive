@@ -1,0 +1,16 @@
+####################
+#                  #
+#  GGGG    WWWW    #
+#  GGGG    WWWW    #
+#  GGGG    WWWW    #
+#                  #
+#     GGGGGGGG     #
+#     GGGGGGGG     #
+#                  #
+####################
+
+ANIMALS:
+0 3 3
+1 8 3
+2 3 6
+

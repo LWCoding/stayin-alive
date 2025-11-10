@@ -2,8 +2,8 @@ using UnityEngine;
 using UnityEngine.Tilemaps;
 
 /// <summary>
-/// Handles drawing the grid state from GridManager onto a Unity Tilemap.
-/// This script reads the state from GridManager and updates the visual representation.
+/// Handles drawing the grid state from EnvironmentManager onto a Unity Tilemap.
+/// This script reads the state from EnvironmentManager and updates the visual representation.
 /// </summary>
 [RequireComponent(typeof(Tilemap))]
 public class GridDrawer : MonoBehaviour
@@ -19,7 +19,7 @@ public class GridDrawer : MonoBehaviour
     [SerializeField] private bool _drawOnStart = true;
 
     private Tilemap _tilemap;
-    private GridManager _gridManager;
+    private EnvironmentManager _environmentManager;
 
     private void Awake()
     {
@@ -28,20 +28,18 @@ public class GridDrawer : MonoBehaviour
 
     private void Start()
     {
-        _gridManager = GridManager.Instance;
+        _environmentManager = EnvironmentManager.Instance;
         
-        if (_gridManager == null)
+        if (_environmentManager == null)
         {
-            Debug.LogError("GridDrawer: GridManager instance not found! Make sure GridManager exists in the scene.");
+            Debug.LogError("GridDrawer: EnvironmentManager instance not found! Make sure EnvironmentManager exists in the scene.");
             return;
         }
 
         // Subscribe to grid change events
         if (_updateOnGridChange)
         {
-            _gridManager.OnTileTypeChanged += OnTileTypeChanged;
-            _gridManager.OnCellOccupied += OnCellOccupied;
-            _gridManager.OnCellCleared += OnCellCleared;
+            _environmentManager.OnTileTypeChanged += OnTileTypeChanged;
         }
 
         // Draw the initial grid state
@@ -54,11 +52,9 @@ public class GridDrawer : MonoBehaviour
     private void OnDestroy()
     {
         // Unsubscribe from events
-        if (_gridManager != null)
+        if (_environmentManager != null)
         {
-            _gridManager.OnTileTypeChanged -= OnTileTypeChanged;
-            _gridManager.OnCellOccupied -= OnCellOccupied;
-            _gridManager.OnCellCleared -= OnCellCleared;
+            _environmentManager.OnTileTypeChanged -= OnTileTypeChanged;
         }
     }
 
@@ -67,13 +63,13 @@ public class GridDrawer : MonoBehaviour
     /// </summary>
     public void DrawEntireGrid()
     {
-        if (_gridManager == null)
+        if (_environmentManager == null)
         {
-            Debug.LogError("GridDrawer: GridManager instance not found!");
+            Debug.LogError("GridDrawer: EnvironmentManager instance not found!");
             return;
         }
 
-        Vector2Int gridSize = _gridManager.GetGridSize();
+        Vector2Int gridSize = _environmentManager.GetGridSize();
         
         for (int x = 0; x < gridSize.x; x++)
         {
@@ -97,12 +93,12 @@ public class GridDrawer : MonoBehaviour
     /// </summary>
     public void DrawCell(int x, int y)
     {
-        if (_gridManager == null)
+        if (_environmentManager == null)
         {
             return;
         }
 
-        GridCell cell = _gridManager.GetCell(x, y);
+        GridCell cell = _environmentManager.GetCell(x, y);
         if (cell == null)
         {
             return;
@@ -138,26 +134,6 @@ public class GridDrawer : MonoBehaviour
     /// </summary>
     private void OnTileTypeChanged(Vector2Int position, TileType newType)
     {
-        DrawCell(position);
-    }
-
-    /// <summary>
-    /// Event handler for when a cell becomes occupied.
-    /// You can extend this to draw animal sprites or indicators.
-    /// </summary>
-    private void OnCellOccupied(Vector2Int position, int animalId)
-    {
-        // For now, just redraw the cell
-        // In the future, you might want to draw animal sprites here
-        DrawCell(position);
-    }
-
-    /// <summary>
-    /// Event handler for when a cell is cleared.
-    /// </summary>
-    private void OnCellCleared(Vector2Int position)
-    {
-        // Redraw the cell to remove any visual indicators
         DrawCell(position);
     }
 

@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using UnityEngine;
-using NaughtyAttributes;
 
 /// <summary>
 /// Manages the state of the game environment (grid). Stores tile types and positions.
@@ -20,21 +19,6 @@ public class EnvironmentManager : Singleton<EnvironmentManager>
     // Events for when the grid changes (useful for updating visuals)
     public Action<Vector2Int, TileType> OnTileTypeChanged;
 
-    [Header("Level Loading")]
-    [InfoBox("Enter level file name (without .txt extension) from Levels/ folder, or full path to level file.")]
-    [SerializeField] private string _levelFileName = "";
-    
-    [Button("Load Level")]
-    private void LoadLevel()
-    {
-        if (string.IsNullOrEmpty(_levelFileName))
-        {
-            Debug.LogWarning("EnvironmentManager: Level file name is empty!");
-            return;
-        }
-
-        LoadLevelFromFile(_levelFileName);
-    }
 
     protected override void Awake()
     {
@@ -287,41 +271,5 @@ public class EnvironmentManager : Singleton<EnvironmentManager>
         }
     }
 
-    /// <summary>
-    /// Loads a level from a file and applies it to the grid.
-    /// </summary>
-    /// <param name="levelFileName">Level file name (without .txt) from Levels/ folder, or full path to level file</param>
-    public void LoadLevelFromFile(string levelFileName)
-    {
-        // Try loading from Resources/Levels folder first
-        string resourcePath = $"Levels/{levelFileName}";
-        LevelData levelData = LevelLoader.LoadLevelFromResources(resourcePath);
-
-        // If not found in Resources, try as file path
-        if (levelData == null)
-        {
-            levelData = LevelLoader.LoadLevelFromFile(levelFileName);
-        }
-
-        if (levelData == null)
-        {
-            Debug.LogError($"EnvironmentManager: Failed to load level '{levelFileName}'");
-            return;
-        }
-
-        // Initialize grid with level dimensions
-        InitializeGrid(levelData.Width, levelData.Height);
-
-        // Apply tiles to the grid
-        foreach (var (x, y, tileType) in levelData.Tiles)
-        {
-            if (IsValidPosition(x, y))
-            {
-                SetTileType(x, y, tileType);
-            }
-        }
-
-        Debug.Log($"EnvironmentManager: Successfully loaded level '{levelFileName}' with {levelData.Tiles.Count} tiles and {levelData.Animals.Count} animals");
-    }
 }
 

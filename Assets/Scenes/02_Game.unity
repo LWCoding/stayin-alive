@@ -290,6 +290,51 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &456767372
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 456767373}
+  - component: {fileID: 456767374}
+  m_Layer: 0
+  m_Name: LevelManager
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &456767373
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 456767372}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 631379535}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &456767374
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 456767372}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ceffbdf28e9a6de469b9c2fcfd6859f6, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  _levelFileName: level1
 --- !u!1 &513084877
 GameObject:
   m_ObjectHideFlags: 0
@@ -350,7 +395,9 @@ Transform:
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
+  - {fileID: 456767373}
   - {fileID: 1444719985}
+  - {fileID: 2028315360}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &861405191
@@ -395,7 +442,7 @@ GameObject:
   - component: {fileID: 915587717}
   - component: {fileID: 915587716}
   m_Layer: 0
-  m_Name: WorldGrid
+  m_Name: EnvironmentGrid
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -490,7 +537,39 @@ Transform:
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 915587717}
+  - {fileID: 1388064711}
   m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &1388064710
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1388064711}
+  m_Layer: 0
+  m_Name: AnimalContainer
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &1388064711
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1388064710}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 1322588354}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1444719984
 GameObject:
@@ -503,7 +582,7 @@ GameObject:
   - component: {fileID: 1444719985}
   - component: {fileID: 1444719986}
   m_Layer: 0
-  m_Name: GridManager
+  m_Name: EnvironmentManager
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -533,11 +612,10 @@ MonoBehaviour:
   m_GameObject: {fileID: 1444719984}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 465c7c1eccebb614aaf4e239f62b1295, type: 3}
+  m_Script: {fileID: 11500000, guid: 21e4daf3d36786f498e35846e5f9f842, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _gridWidth: 20
-  _gridHeight: 20
+  _gridComponent: {fileID: 915587716}
 --- !u!1 &1748890606
 GameObject:
   m_ObjectHideFlags: 0
@@ -610,8 +688,8 @@ TilemapRenderer:
   m_AutoUVMaxDistance: 0.5
   m_AutoUVMaxAngle: 89
   m_LightmapParameters: {fileID: 0}
-  m_SortingLayerID: 0
-  m_SortingLayer: 0
+  m_SortingLayerID: -1005287323
+  m_SortingLayer: -1
   m_SortingOrder: 0
   m_ChunkSize: {x: 32, y: 32, z: 32}
   m_ChunkCullingBounds: {x: 0, y: 0, z: 0}
@@ -673,7 +751,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   _emptyTile: {fileID: 11400000, guid: 3d88d5ab1e68a2f4c8cca3487cb5a30c, type: 2}
   _waterTile: {fileID: 11400000, guid: 98275d2b0faa9ff4988f394e4fcc070a, type: 2}
-  _grassTile: {fileID: 0}
+  _grassTile: {fileID: 11400000, guid: e6c41526ec08fc949ba2801a472005a9, type: 2}
   _obstacleTile: {fileID: 11400000, guid: 872b1e52ba833394fa53c37ab4d630e0, type: 2}
   _updateOnGridChange: 1
   _drawOnStart: 1
@@ -745,7 +823,7 @@ MonoBehaviour:
   m_Intensity: 1
   m_LightVolumeIntensity: 1
   m_LightVolumeIntensityEnabled: 0
-  m_ApplyToSortingLayers: 00000000
+  m_ApplyToSortingLayers: 00000000658814c4
   m_LightCookieSprite: {fileID: 0}
   m_DeprecatedPointLightCookieSprite: {fileID: 0}
   m_LightOrder: 0
@@ -821,6 +899,52 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &2028315359
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 2028315360}
+  - component: {fileID: 2028315361}
+  m_Layer: 0
+  m_Name: AnimalManager
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &2028315360
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2028315359}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 631379535}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &2028315361
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2028315359}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 8092f91dfbcf4764d9de191319b845ce, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  _animalPrefab: {fileID: 2195891697856963084, guid: 373ac555e5fbaf34c84fc9ea003210dd, type: 3}
+  _animalParent: {fileID: 1388064711}
 --- !u!1660057539 &9223372036854775807
 SceneRoots:
   m_ObjectHideFlags: 0
