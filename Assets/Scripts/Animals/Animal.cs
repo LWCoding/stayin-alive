@@ -47,7 +47,13 @@ public class Animal : MonoBehaviour
     [SerializeField] private LineRenderer _pathLineRenderer;
     private Seeker _seeker;
 
+    [Header("Input")]
+    [Tooltip("Minimum world-space distance the cursor must move while held down before a drag begins")]
+    [SerializeField] private float _dragStartThreshold = 0.5f;
+
     private bool _isDragging = false;
+    private bool _isPointerDown = false;
+    private Vector3 _pointerDownWorldPos;
     private Camera _mainCamera;
     private Vector2Int _lastDragEndGridPosition;
     private bool _hasLastDragEndGridPosition;
@@ -277,16 +283,29 @@ public class Animal : MonoBehaviour
             return;
         }
 
-        StartDragging();
+        _isPointerDown = true;
+        _pointerDownWorldPos = GetDestinationPosition();
     }
 
     private void OnMouseUp()
     {
+        _isPointerDown = false;
         HandleMouseRelease();
     }
 
     private void Update()
     {
+        if (_isPointerDown && !_isDragging)
+        {
+            Vector3 currentWorldPos = GetDestinationPosition();
+            float planarDistance = Vector2.Distance(new Vector2(_pointerDownWorldPos.x, _pointerDownWorldPos.y),
+                                                    new Vector2(currentWorldPos.x, currentWorldPos.y));
+            if (planarDistance >= _dragStartThreshold)
+            {
+                StartDragging();
+            }
+        }
+
         if (_isDragging)
         {
             UpdateDestinationLine();
