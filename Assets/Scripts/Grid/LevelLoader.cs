@@ -99,18 +99,46 @@ public class LevelLoader : MonoBehaviour
             Debug.LogWarning("LevelLoader: AnimalManager instance not found! Animals will not be spawned.");
         }
 
-        // Re-scan A* Pathfinding graph to account for new obstacles and walkable areas
-        if (AstarPath.active != null)
-        {
-            AstarPath.active.Scan();
-            Debug.Log("LevelLoader: A* Pathfinding graph re-scanned after level load.");
-        }
-        else
-        {
-            Debug.LogWarning("LevelLoader: AstarPath.active is null. A* Pathfinding graph was not re-scanned.");
-        }
+        // Force-refresh A* Pathfinding graph and sync walkability with EnvironmentManager
+        RefreshAStarGraphs();
 
         Debug.Log($"LevelLoader: Successfully loaded level '{levelFileName}' with {levelData.Tiles.Count} tiles and {levelData.Animals.Count} animals");
+    }
+
+    /// <summary>
+    /// Forces A* graphs to rebuild and aligns GridGraph node walkability with EnvironmentManager.
+    /// </summary>
+    private void RefreshAStarGraphs()
+    {
+        if (AstarPath.active == null)
+        {
+            Debug.LogWarning("LevelLoader: AstarPath.active is null. A* Pathfinding graph was not re-scanned.");
+            return;
+        }
+
+        // Full scan first to (re)create nodes according to current graph settings
+        AstarPath.active.Scan();
+
+        // If we have a GridGraph, explicitly set node walkability from EnvironmentManager
+        var gridGraph = AstarPath.active.data?.gridGraph;
+        if (gridGraph != null && EnvironmentManager.Instance != null)
+        {
+            gridGraph.GetNodes((GraphNode node) =>
+            {
+                Vector3 world = (Vector3)node.position;
+                Vector2Int grid = EnvironmentManager.Instance.WorldToGridPosition(world);
+                bool walk = EnvironmentManager.Instance.IsValidPosition(grid) && EnvironmentManager.Instance.IsWalkable(grid);
+                node.Walkable = walk;
+            });
+
+            // Recompute connected components after changing walkability
+            AstarPath.active.FloodFill();
+        }
+
+        // Ensure any pending work is completed
+        AstarPath.active.FlushWorkItems();
+        AstarPath.active.FlushGraphUpdates();
+        Debug.Log("LevelLoader: A* Pathfinding graph force-refreshed and nodes synced with EnvironmentManager.");
     }
 
     /// <summary>
