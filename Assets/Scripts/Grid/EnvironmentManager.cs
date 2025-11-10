@@ -18,6 +18,9 @@ public class EnvironmentManager : Singleton<EnvironmentManager>
 
     // Events for when the grid changes (useful for updating visuals)
     public Action<Vector2Int, TileType> OnTileTypeChanged;
+    
+    // Event for when the grid is initialized (useful for camera setup, etc.)
+    public Action<int, int> OnGridInitialized;
 
 
     protected override void Awake()
@@ -53,6 +56,9 @@ public class EnvironmentManager : Singleton<EnvironmentManager>
                 _grid[x, y] = new GridCell(TileType.Empty, x, y);
             }
         }
+        
+        // Notify listeners that the grid has been initialized
+        OnGridInitialized?.Invoke(width, height);
     }
 
     /// <summary>
