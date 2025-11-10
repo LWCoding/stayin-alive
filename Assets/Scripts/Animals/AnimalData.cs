@@ -17,10 +17,10 @@ public class AnimalData : ScriptableObject
 
     [Header("Stats")]
     [Tooltip("Maximum hunger value for this animal")]
-    public int maxHunger = 100;
+    public int maxHunger;
 
     [Tooltip("Maximum hydration value for this animal")]
-    public int maxHydration = 100;
+    public int maxHydration;
 
     [Header("Prefab")]
     [Tooltip("Prefab to instantiate when spawning this animal")]

@@ -20,10 +20,33 @@ public class Animal : MonoBehaviour
     private int _currentHunger;
     private int _currentThirst;
 
+    private bool _isDragging = false;
+    private Camera _mainCamera;
+    private LineRenderer _lineRenderer;
+
     public AnimalData AnimalData => _animalData;
     public Vector2Int GridPosition => _gridPosition;
     public int CurrentHunger => _currentHunger;
     public int CurrentThirst => _currentThirst;
+
+    private void Awake()
+    {
+        _mainCamera = Camera.main;
+        
+        // Setup line renderer if not assigned
+        if (_lineRenderer == null)
+        {
+            _lineRenderer = GetComponent<LineRenderer>();
+            if (_lineRenderer == null)
+            {
+                // Create a child object for the line renderer
+                GameObject lineObj = new GameObject("DestinationLine");
+                lineObj.transform.SetParent(transform);
+                lineObj.transform.localPosition = Vector3.zero;
+                _lineRenderer = lineObj.AddComponent<LineRenderer>();
+            }
+        }
+    }
 
     /// <summary>
     /// Initializes the animal with AnimalData and grid position.
@@ -166,6 +189,93 @@ public class Animal : MonoBehaviour
         {
             _thirstText.text = _currentThirst.ToString();
         }
+    }
+
+    /// <summary>
+    /// Called when the mouse button is pressed down on this animal.
+    /// Requires a Collider2D component on the GameObject for this to work.
+    /// </summary>
+    private void OnMouseDown()
+    {
+        StartDragging();
+    }
+
+    /// <summary>
+    /// Called when the mouse button is released.
+    /// </summary>
+    private void OnMouseUp()
+    {
+        if (_isDragging)
+        {
+            StopDragging();
+        }
+    }
+
+    private void Update()
+    {
+        // Update the line while dragging (even if mouse is outside the collider)
+        if (_isDragging)
+        {
+            UpdateDestinationLine();
+            
+            // Check for mouse button release (fallback in case OnMouseUp doesn't fire)
+            if (Input.GetMouseButtonUp(0))
+            {
+                StopDragging();
+            }
+        }
+    }
+
+    /// <summary>
+    /// Starts the dragging operation.
+    /// </summary>
+    private void StartDragging()
+    {
+        _isDragging = true;
+        if (_lineRenderer != null)
+        {
+            _lineRenderer.enabled = true;
+        }
+    }
+
+    /// <summary>
+    /// Stops the dragging operation and clears the line.
+    /// </summary>
+    private void StopDragging()
+    {
+        _isDragging = false;
+        if (_lineRenderer != null)
+        {
+            _lineRenderer.enabled = false;
+        }
+    }
+
+    /// <summary>
+    /// Updates the destination line to show from animal position to mouse position.
+    /// </summary>
+    private void UpdateDestinationLine()
+    {
+        if (_lineRenderer == null || _mainCamera == null)
+        {
+            return;
+        }
+
+        // Get animal's world position
+        Vector3 animalPos = transform.position;
+        
+        // Account for bottom pivot by adding vertical offset of 0.5 units
+        Vector3 lineStartPos = animalPos + Vector3.up * 0.5f;
+        
+        // Convert mouse position to world position
+        // For orthographic cameras, Z distance doesn't affect the result, but we set it for consistency
+        Vector3 mouseScreenPos = Input.mousePosition;
+        mouseScreenPos.z = _mainCamera.WorldToScreenPoint(animalPos).z;
+        Vector3 mouseWorldPos = _mainCamera.ScreenToWorldPoint(mouseScreenPos);
+        mouseWorldPos.z = animalPos.z; // Use the same Z as the animal
+
+        // Update line renderer positions
+        _lineRenderer.SetPosition(0, lineStartPos);
+        _lineRenderer.SetPosition(1, mouseWorldPos);
     }
 }
 
