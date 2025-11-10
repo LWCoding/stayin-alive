@@ -1,5 +1,6 @@
 using UnityEngine;
 using TMPro;
+using Pathfinding;
 
 /// <summary>
 /// Component attached to animal prefabs. Represents an animal in the game world.
@@ -23,14 +24,27 @@ public class Animal : MonoBehaviour
     [SerializeField] [Tooltip("Whether this animal can be controlled by the player")]
     private bool _isControllable = true;
 
+    [Header("Drag Destination")]
+    [Tooltip("Color of the line when pathfinding is possible")]
+    [SerializeField] private Color _pathPossibleColor = Color.yellow;
+    [Tooltip("Color of the line when pathfinding is impossible")]
+    [SerializeField] private Color _pathImpossibleColor = Color.red;
+    private LineRenderer _lineRenderer;
+
     private bool _isDragging = false;
     private Camera _mainCamera;
-    private LineRenderer _lineRenderer;
+    private Vector2Int _lastDragEndGridPosition;
+    private bool _hasLastDragEndGridPosition;
+    private bool _lastPathfindingSuccessful;
+    private bool _hasLastPathfindingResult;
 
     public AnimalData AnimalData => _animalData;
     public Vector2Int GridPosition => _gridPosition;
     public int CurrentHunger => _currentHunger;
     public int CurrentThirst => _currentThirst;
+    public bool HasDestination => _hasLastDragEndGridPosition;
+    public Vector2Int LastDestinationGridPosition => _lastDragEndGridPosition;
+    public bool? LastPathfindingSuccessful => _hasLastPathfindingResult ? _lastPathfindingSuccessful : (bool?)null;
     public bool IsControllable
     {
         get => _isControllable;
@@ -40,19 +54,29 @@ public class Animal : MonoBehaviour
     private void Awake()
     {
         _mainCamera = Camera.main;
-        
-        // Setup line renderer if not assigned
+
         if (_lineRenderer == null)
         {
             _lineRenderer = GetComponent<LineRenderer>();
             if (_lineRenderer == null)
             {
-                // Create a child object for the line renderer
                 GameObject lineObj = new GameObject("DestinationLine");
                 lineObj.transform.SetParent(transform);
                 lineObj.transform.localPosition = Vector3.zero;
                 _lineRenderer = lineObj.AddComponent<LineRenderer>();
             }
+        }
+
+        if (_lineRenderer != null)
+        {
+            _lineRenderer.material = new Material(Shader.Find("Sprites/Default"));
+            _lineRenderer.startWidth = 0.1f;
+            _lineRenderer.endWidth = 0.1f;
+            _lineRenderer.positionCount = 2;
+            _lineRenderer.useWorldSpace = true;
+            _lineRenderer.enabled = false;
+            _lineRenderer.startColor = _pathPossibleColor;
+            _lineRenderer.endColor = _pathPossibleColor;
         }
     }
 
@@ -69,11 +93,6 @@ public class Animal : MonoBehaviour
         {
             _currentHunger = _animalData.maxHunger;
             _currentThirst = _animalData.maxHydration;
-        }
-        else
-        {
-            _currentHunger = 100;
-            _currentThirst = 100;
         }
         
         // Apply sprite if available
@@ -218,25 +237,60 @@ public class Animal : MonoBehaviour
     /// </summary>
     private void OnMouseUp()
     {
-        if (_isDragging)
-        {
-            StopDragging();
-        }
+        HandleMouseRelease();
     }
 
     private void Update()
     {
-        // Update the line while dragging (even if mouse is outside the collider)
         if (_isDragging)
         {
             UpdateDestinationLine();
-            
-            // Check for mouse button release (fallback in case OnMouseUp doesn't fire)
+
             if (Input.GetMouseButtonUp(0))
             {
-                StopDragging();
+                HandleMouseRelease();
             }
         }
+    }
+
+    /// <summary>
+    /// Handles the end of a drag to record the destination and evaluate pathfinding.
+    /// </summary>
+    private void HandleMouseRelease()
+    {
+        if (!_isDragging)
+        {
+            return;
+        }
+
+        Vector3 destinationWorldPos = GetDestinationPosition();
+        Vector2Int destinationGridPos = ConvertWorldToGridPosition(destinationWorldPos);
+
+        _lastDragEndGridPosition = destinationGridPos;
+        _hasLastDragEndGridPosition = true;
+
+        bool pathPossible = false;
+        if (EnvironmentManager.Instance == null || EnvironmentManager.Instance.IsValidPosition(destinationGridPos))
+        {
+            pathPossible = CheckPathfindingPossible(_gridPosition, destinationGridPos);
+        }
+
+        _lastPathfindingSuccessful = pathPossible;
+        _hasLastPathfindingResult = true;
+
+        if (_lineRenderer != null)
+        {
+            _lineRenderer.startColor = pathPossible ? _pathPossibleColor : _pathImpossibleColor;
+            _lineRenderer.endColor = _lineRenderer.startColor;
+
+            Vector3 startPos = transform.position + Vector3.up * 0.5f;
+            _lineRenderer.SetPosition(0, startPos);
+            _lineRenderer.SetPosition(1, destinationWorldPos);
+        }
+
+        Debug.Log($"Animal '{name}' path to {destinationGridPos} is {(pathPossible ? "possible" : "not possible")}.");
+
+        StopDragging();
     }
 
     /// <summary>
@@ -245,50 +299,140 @@ public class Animal : MonoBehaviour
     private void StartDragging()
     {
         _isDragging = true;
+        _hasLastDragEndGridPosition = false;
+        _hasLastPathfindingResult = false;
+
         if (_lineRenderer != null)
         {
             _lineRenderer.enabled = true;
+            _lineRenderer.startColor = _pathPossibleColor;
+            _lineRenderer.endColor = _pathPossibleColor;
+            UpdateDestinationLine();
         }
     }
 
     /// <summary>
-    /// Stops the dragging operation and clears the line.
+    /// Stops the dragging operation and clears drag state.
     /// </summary>
     private void StopDragging()
     {
         _isDragging = false;
+
         if (_lineRenderer != null)
         {
             _lineRenderer.enabled = false;
         }
+
+        if (!_hasLastDragEndGridPosition)
+        {
+            _hasLastPathfindingResult = false;
+        }
+    }
+    
+    /// <summary>
+    /// Gets the current destination position (mouse world position).
+    /// </summary>
+    private Vector3 GetDestinationPosition()
+    {
+        if (_mainCamera == null)
+        {
+            _mainCamera = Camera.main;
+            if (_mainCamera == null)
+            {
+                return transform.position;
+            }
+        }
+
+        Vector3 animalPos = transform.position;
+        Vector3 mouseScreenPos = Input.mousePosition;
+        mouseScreenPos.z = _mainCamera.WorldToScreenPoint(animalPos).z;
+        Vector3 mouseWorldPos = _mainCamera.ScreenToWorldPoint(mouseScreenPos);
+        mouseWorldPos.z = animalPos.z;
+
+        return mouseWorldPos;
     }
 
     /// <summary>
-    /// Updates the destination line to show from animal position to mouse position.
+    /// Converts a world position to a grid position.
+    /// </summary>
+    private Vector2Int ConvertWorldToGridPosition(Vector3 worldPosition)
+    {
+        if (EnvironmentManager.Instance != null)
+        {
+            return EnvironmentManager.Instance.WorldToGridPosition(worldPosition);
+        }
+
+        return new Vector2Int(Mathf.RoundToInt(worldPosition.x), Mathf.RoundToInt(worldPosition.y));
+    }
+
+    /// <summary>
+    /// Converts a grid position to a world position.
+    /// </summary>
+    private Vector3 ConvertGridToWorldPosition(Vector2Int gridPosition)
+    {
+        if (EnvironmentManager.Instance != null)
+        {
+            return EnvironmentManager.Instance.GridToWorldPosition(gridPosition);
+        }
+
+        return new Vector3(gridPosition.x, gridPosition.y, transform.position.z);
+    }
+
+    /// <summary>
+    /// Updates the drag line to follow the current mouse position.
     /// </summary>
     private void UpdateDestinationLine()
     {
-        if (_lineRenderer == null || _mainCamera == null)
+        if (_lineRenderer == null)
         {
             return;
         }
 
-        // Get animal's world position
         Vector3 animalPos = transform.position;
-        
-        // Account for bottom pivot by adding vertical offset of 0.5 units
         Vector3 lineStartPos = animalPos + Vector3.up * 0.5f;
-        
-        // Convert mouse position to world position
-        // For orthographic cameras, Z distance doesn't affect the result, but we set it for consistency
-        Vector3 mouseScreenPos = Input.mousePosition;
-        mouseScreenPos.z = _mainCamera.WorldToScreenPoint(animalPos).z;
-        Vector3 mouseWorldPos = _mainCamera.ScreenToWorldPoint(mouseScreenPos);
-        mouseWorldPos.z = animalPos.z; // Use the same Z as the animal
+        Vector3 mouseWorldPos = GetDestinationPosition();
 
-        // Update line renderer positions
         _lineRenderer.SetPosition(0, lineStartPos);
         _lineRenderer.SetPosition(1, mouseWorldPos);
+    }
+
+    /// <summary>
+    /// Determines if pathfinding is possible between two grid positions.
+    /// </summary>
+    private bool CheckPathfindingPossible(Vector2Int startGridPosition, Vector2Int destinationGridPosition)
+    {
+        // If we have environment data, both start and destination must be walkable
+        if (EnvironmentManager.Instance != null)
+        {
+            if (!EnvironmentManager.Instance.IsValidPosition(startGridPosition) ||
+                !EnvironmentManager.Instance.IsValidPosition(destinationGridPosition))
+            {
+                return false;
+            }
+            if (!EnvironmentManager.Instance.IsWalkable(startGridPosition) ||
+                !EnvironmentManager.Instance.IsWalkable(destinationGridPosition))
+            {
+                return false;
+            }
+        }
+
+        if (AstarPath.active == null)
+        {
+            return false;
+        }
+
+        Vector3 startWorld = ConvertGridToWorldPosition(startGridPosition);
+        Vector3 destinationWorld = ConvertGridToWorldPosition(destinationGridPosition);
+
+        NNInfo startNNInfo = AstarPath.active.GetNearest(startWorld, NNConstraint.Default);
+        NNInfo destNNInfo = AstarPath.active.GetNearest(destinationWorld, NNConstraint.Default);
+
+        if (startNNInfo.node == null || destNNInfo.node == null)
+        {
+            return false;
+        }
+
+        return PathUtilities.IsPathPossible(startNNInfo.node, destNNInfo.node);
     }
 }
 

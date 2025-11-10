@@ -1,7 +1,7 @@
 using System.Collections.Generic;
-using System.IO;
 using UnityEngine;
 using NaughtyAttributes;
+using Pathfinding;
 
 /// <summary>
 /// Component that loads and parses level files from text format.
@@ -20,7 +20,7 @@ using NaughtyAttributes;
 public class LevelLoader : MonoBehaviour
 {
     [Header("Level Loading")]
-    [InfoBox("Enter level file name (without .txt extension) from Levels/ folder, or full path to level file.")]
+    [InfoBox("Enter level file name (without .txt extension) from Resources/Levels/ folder.")]
     [SerializeField] private string _levelFileName = "";
     
     [Button("Load Level")]
@@ -33,25 +33,6 @@ public class LevelLoader : MonoBehaviour
         }
 
         LoadAndApplyLevel(_levelFileName);
-    }
-
-    /// <summary>
-    /// Loads a level from a text file and returns level data including tiles and animals.
-    /// </summary>
-    /// <param name="filePath">Path to the level file (relative to Assets folder or Resources folder)</param>
-    /// <returns>LevelData containing tiles, animals, and dimensions, or null if file not found</returns>
-    public LevelData LoadLevelFromFile(string filePath)
-    {
-        string fullPath = GetFullPath(filePath);
-        
-        if (!File.Exists(fullPath))
-        {
-            Debug.LogError($"LevelLoader: File not found at path: {fullPath}");
-            return null;
-        }
-
-        string[] allLines = File.ReadAllLines(fullPath);
-        return ParseLevelData(allLines);
     }
 
     /// <summary>
@@ -76,22 +57,16 @@ public class LevelLoader : MonoBehaviour
     /// <summary>
     /// Loads a level and applies it to the environment and spawns animals.
     /// </summary>
-    /// <param name="levelFileName">Level file name (without .txt) from Levels/ folder, or full path to level file</param>
+    /// <param name="levelFileName">Level file name (without .txt) from Resources/Levels/ folder</param>
     public void LoadAndApplyLevel(string levelFileName)
     {
-        // Try loading from Resources/Levels folder first
+        // Load from Resources/Levels folder
         string resourcePath = $"Levels/{levelFileName}";
         LevelData levelData = LoadLevelFromResources(resourcePath);
 
-        // If not found in Resources, try as file path
         if (levelData == null)
         {
-            levelData = LoadLevelFromFile(levelFileName);
-        }
-
-        if (levelData == null)
-        {
-            Debug.LogError($"LevelLoader: Failed to load level '{levelFileName}'");
+            Debug.LogError($"LevelLoader: Failed to load level '{levelFileName}' from Resources/Levels/");
             return;
         }
 
@@ -122,6 +97,17 @@ public class LevelLoader : MonoBehaviour
         else
         {
             Debug.LogWarning("LevelLoader: AnimalManager instance not found! Animals will not be spawned.");
+        }
+
+        // Re-scan A* Pathfinding graph to account for new obstacles and walkable areas
+        if (AstarPath.active != null)
+        {
+            AstarPath.active.Scan();
+            Debug.Log("LevelLoader: A* Pathfinding graph re-scanned after level load.");
+        }
+        else
+        {
+            Debug.LogWarning("LevelLoader: AstarPath.active is null. A* Pathfinding graph was not re-scanned.");
         }
 
         Debug.Log($"LevelLoader: Successfully loaded level '{levelFileName}' with {levelData.Tiles.Count} tiles and {levelData.Animals.Count} animals");
@@ -276,24 +262,4 @@ public class LevelLoader : MonoBehaviour
         }
     }
 
-    /// <summary>
-    /// Gets the full file path, handling both absolute paths and paths relative to Assets folder.
-    /// </summary>
-    private string GetFullPath(string filePath)
-    {
-        if (Path.IsPathRooted(filePath))
-        {
-            return filePath;
-        }
-
-        // Try relative to Assets folder
-        string assetsPath = Path.Combine(Application.dataPath, filePath);
-        if (File.Exists(assetsPath))
-        {
-            return assetsPath;
-        }
-
-        // Try as-is (might be absolute path already)
-        return filePath;
-    }
 }

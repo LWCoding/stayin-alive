@@ -185,6 +185,21 @@ public class EnvironmentManager : Singleton<EnvironmentManager>
     }
 
     /// <summary>
+    /// Converts a world position into a grid position.
+    /// </summary>
+    public Vector2Int WorldToGridPosition(Vector3 worldPosition)
+    {
+        if (_gridComponent != null)
+        {
+            Vector3Int cellPosition = _gridComponent.WorldToCell(worldPosition);
+            return new Vector2Int(cellPosition.x, cellPosition.y);
+        }
+
+        // Fallback if no grid component
+        return new Vector2Int(Mathf.RoundToInt(worldPosition.x), Mathf.RoundToInt(worldPosition.y));
+    }
+
+    /// <summary>
     /// Checks if a position is valid (within grid bounds).
     /// </summary>
     public bool IsValidPosition(Vector2Int position)
