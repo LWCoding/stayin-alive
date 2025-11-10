@@ -11,8 +11,11 @@ public class EdgeScrollCamera : MonoBehaviour
     [Tooltip("Width of the edge detection zone in pixels")]
     [SerializeField] private float _edgeScrollZone = 10f;
     
-    [Tooltip("Speed at which the camera moves when mouse is at edge")]
-    [SerializeField] private float _scrollSpeed = 5f;
+    [Tooltip("Minimum scroll speed (when mouse is at the boundary of the scroll zone)")]
+    [SerializeField] private float _minScrollSpeed = 2f;
+    
+    [Tooltip("Maximum scroll speed (when mouse is at the very edge of the screen)")]
+    [SerializeField] private float _maxScrollSpeed = 10f;
     
     [Header("Camera Bounds")]
     [Tooltip("Margin in tiles beyond the grid edges (default: 2)")]
@@ -257,40 +260,60 @@ public class EdgeScrollCamera : MonoBehaviour
         }
         
         Vector3 moveDirection = Vector3.zero;
+        Vector3 scrollSpeed = Vector3.zero;
         
-        // Check if mouse is at screen edges
+        // Safety check: ensure edge scroll zone is valid
+        if (_edgeScrollZone <= 0f)
+        {
+            return;
+        }
+        
+        // Check if mouse is at screen edges and calculate speed based on proximity to edge
         // Left edge
         if (mousePosition.x <= _edgeScrollZone)
         {
-            moveDirection.x -= 1f;
+            moveDirection.x = -1f;
+            // Calculate normalized distance from edge (0 = at boundary, 1 = at edge)
+            // Clamp to prevent division issues
+            float normalizedDistance = Mathf.Clamp01(1f - (mousePosition.x / _edgeScrollZone));
+            scrollSpeed.x = Mathf.Lerp(_minScrollSpeed, _maxScrollSpeed, normalizedDistance);
         }
         // Right edge
         else if (mousePosition.x >= Screen.width - _edgeScrollZone)
         {
-            moveDirection.x += 1f;
+            moveDirection.x = 1f;
+            // Calculate normalized distance from edge (0 = at boundary, 1 = at edge)
+            float distanceFromEdge = Screen.width - mousePosition.x;
+            float normalizedDistance = Mathf.Clamp01(1f - (distanceFromEdge / _edgeScrollZone));
+            scrollSpeed.x = Mathf.Lerp(_minScrollSpeed, _maxScrollSpeed, normalizedDistance);
         }
         
         // Bottom edge
         if (mousePosition.y <= _edgeScrollZone)
         {
-            moveDirection.y -= 1f;
+            moveDirection.y = -1f;
+            // Calculate normalized distance from edge (0 = at boundary, 1 = at edge)
+            float normalizedDistance = Mathf.Clamp01(1f - (mousePosition.y / _edgeScrollZone));
+            scrollSpeed.y = Mathf.Lerp(_minScrollSpeed, _maxScrollSpeed, normalizedDistance);
         }
         // Top edge
         else if (mousePosition.y >= Screen.height - _edgeScrollZone)
         {
-            moveDirection.y += 1f;
+            moveDirection.y = 1f;
+            // Calculate normalized distance from edge (0 = at boundary, 1 = at edge)
+            float distanceFromEdge = Screen.height - mousePosition.y;
+            float normalizedDistance = Mathf.Clamp01(1f - (distanceFromEdge / _edgeScrollZone));
+            scrollSpeed.y = Mathf.Lerp(_minScrollSpeed, _maxScrollSpeed, normalizedDistance);
         }
         
-        // Normalize diagonal movement
-        if (moveDirection.magnitude > 1f)
-        {
-            moveDirection.Normalize();
-        }
-        
-        // Move camera
+        // Move camera with individual speeds for each axis
         if (moveDirection.magnitude > 0f)
         {
-            Vector3 movement = moveDirection * _scrollSpeed * Time.deltaTime;
+            Vector3 movement = new Vector3(
+                moveDirection.x * scrollSpeed.x * Time.deltaTime,
+                moveDirection.y * scrollSpeed.y * Time.deltaTime,
+                0f
+            );
             transform.position += movement;
         }
     }
