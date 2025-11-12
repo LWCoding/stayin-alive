@@ -7,20 +7,20 @@
 //   'W' = Water
 #######################
 #                     #
+#   GGGGGG            #
+#     GGGGGG          #
+#    GGGGGG           #
+#             WWWWW   #
+#            WWWWWW   #
+#             WWW     #
+#  WW                 #
 #                     #
-#                     #
-#                     #
-#                     #
-#                     #
-#                     #
-#                     #
-#                     #
-#                     #
-#                     #
-#                     #
-#                     #
-#                     #
-#                     #
+#         GGGGG       #
+#           GGGGGG    #
+#           GGGGG     #
+#        GGGGGG       #
+#        WWWWWW       #
+#           WGWGWGWGWGWGWGWGWGWGWGWGWGWG       #
 #######################
 ---
 // Animal Placement:
@@ -30,12 +30,13 @@
 //   - y: Y coordinate (0 = bottom, increases upward)
 //   - count: Optional number of animals in this group (defaults to 1 if not specified)
 ANIMALS:
-Hedgehog 7 7 4
+Hedgehog 10 7 4
 Hawk 5 15
-Wolf 12 12
+Wolf 15 12
 Wolf 14 14
 Rabbit 8 6 2
-Rabbit 9 9 2
+Rabbit 11 9 2
+Rabbit 6 6 2
 Rabbit 5 5 2
 // Item Placement:
 //   Format: itemName x y
@@ -44,11 +45,11 @@ Rabbit 5 5 2
 //   - y: Y coordinate (0 = bottom, increases upward)
 ITEMS:
 Food 8 12
-Food 12 8
+Food 16 8
 Food 3 8
 // Den Placement:
 //   Format: x y
 //   - x: X coordinate (0 = left, increases to the right)
 //   - y: Y coordinate (0 = bottom, increases upward)
 DENS:
-7 7
+10 7
