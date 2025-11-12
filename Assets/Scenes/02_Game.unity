@@ -229,7 +229,7 @@ Camera:
   far clip plane: 1000
   field of view: 34
   orthographic: 1
-  orthographic size: 6
+  orthographic size: 6.5
   m_Depth: -1
   m_CullingMask:
     serializedVersion: 2
@@ -2820,7 +2820,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _emptyTile: {fileID: 11400000, guid: 3d88d5ab1e68a2f4c8cca3487cb5a30c, type: 2}
-  _waterTile: {fileID: 11400000, guid: 98275d2b0faa9ff4988f394e4fcc070a, type: 2}
+  _waterTile: {fileID: 11400000, guid: 16cb841d64520d3408e569488f4a5e1e, type: 2}
   _grassTile: {fileID: 11400000, guid: 4d613257fb476ef44b2156696f2d09e4, type: 2}
   _obstacleTile: {fileID: 11400000, guid: f6d0db93c8b3f6b4489ce47b8f740b11, type: 2}
   _updateOnGridChange: 1

@@ -164,7 +164,7 @@ public class Animal : MonoBehaviour
         // Spawn blood particle effects when taking damage
         if (ParticleEffectManager.Instance != null)
         {
-            ParticleEffectManager.Instance.SpawnParticleEffect("Blood", transform.position, 1);
+            ParticleEffectManager.Instance.SpawnParticleEffect("Blood", transform.position, 2);
         }
 
         if (_animalCount <= 0)
@@ -486,7 +486,7 @@ public class Animal : MonoBehaviour
         // Set follower sprite sorting order to be one less than the main sprite
         if (followerSpriteRenderer != null && _spriteRenderer != null)
         {
-            followerSpriteRenderer.sortingOrder = _spriteRenderer.sortingOrder - 1;
+            followerSpriteRenderer.sortingOrder = _spriteRenderer.sortingOrder + 1;
         }
 
         _followers.Add(followerObj);

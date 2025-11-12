@@ -154,6 +154,18 @@ PrefabInstance:
       propertyPath: m_SpriteTilingProperty.oldSize.y
       value: 1.1377778
       objectReference: {fileID: 0}
+    - target: {fileID: 5689901072742794150, guid: 373ac555e5fbaf34c84fc9ea003210dd, type: 3}
+      propertyPath: m_SortingLayer
+      value: 3
+      objectReference: {fileID: 0}
+    - target: {fileID: 5689901072742794150, guid: 373ac555e5fbaf34c84fc9ea003210dd, type: 3}
+      propertyPath: m_SortingOrder
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 5689901072742794150, guid: 373ac555e5fbaf34c84fc9ea003210dd, type: 3}
+      propertyPath: m_SortingLayerID
+      value: 1489856089
+      objectReference: {fileID: 0}
     - target: {fileID: 6401602468827057776, guid: 373ac555e5fbaf34c84fc9ea003210dd, type: 3}
       propertyPath: m_LocalPosition.x
       value: 0
@@ -232,6 +244,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   _animalData: {fileID: 0}
   _gridPosition: {x: 0, y: 0}
+  _spriteRenderer: {fileID: 0}
   _moveDurationSeconds: 0.5
   _animalCount: 1
   _countText: {fileID: 3449117633645797971}
