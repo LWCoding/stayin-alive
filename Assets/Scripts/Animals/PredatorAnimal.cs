@@ -48,6 +48,12 @@ public class PredatorAnimal : Animal
                 continue;
             }
 
+            // Skip controllable animals that are in a den
+            if (other.IsControllable && Den.IsControllableAnimalInDen(other))
+            {
+                continue;
+            }
+
             Vector2Int otherPos = other.GridPosition;
             int distance = Mathf.Abs(otherPos.x - myPos.x) + Mathf.Abs(otherPos.y - myPos.y); // Manhattan distance
             if (distance < bestDistance)
@@ -77,6 +83,12 @@ public class PredatorAnimal : Animal
             }
             if (other.GridPosition == GridPosition)
             {
+                // Skip controllable animals that are in a den (they are safe)
+                if (other.IsControllable && Den.IsControllableAnimalInDen(other))
+                {
+                    continue;
+                }
+                
                 // Reduce the prey's animal count by one
                 other.ReduceAnimalCount();
                 

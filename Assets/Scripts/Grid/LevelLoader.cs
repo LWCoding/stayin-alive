@@ -18,6 +18,7 @@ using Pathfinding;
 /// - After separator, use "ANIMALS:" header followed by animal entries as: animalName x y [count] (one per line)
 ///   - count is optional and defaults to 1 if not specified
 /// - Use "ITEMS:" header followed by item entries as: itemName x y (one per line)
+/// - Use "DENS:" header followed by den entries as: x y (one per line)
 /// </summary>
 public class LevelLoader : MonoBehaviour
 {
@@ -111,6 +112,16 @@ public class LevelLoader : MonoBehaviour
             Debug.LogWarning("LevelLoader: ItemTilemapManager instance not found! Items will not be spawned.");
         }
 
+        // Spawn dens using InteractableManager
+        if (InteractableManager.Instance != null)
+        {
+            InteractableManager.Instance.SpawnDensFromLevelData(levelData.Dens);
+        }
+        else
+        {
+            Debug.LogWarning("LevelLoader: InteractableManager instance not found! Dens will not be spawned.");
+        }
+
         // Initialize fog of war to cover entire level with black tiles
         // This must happen after level tiles are loaded to ensure fog overlaps on top
         if (FogOfWarManager.Instance != null)
@@ -123,7 +134,7 @@ public class LevelLoader : MonoBehaviour
         // Force-refresh A* Pathfinding graph and sync walkability with EnvironmentManager
         RefreshAStarGraphs();
 
-        Debug.Log($"LevelLoader: Successfully loaded level '{levelFileName}' with {levelData.Tiles.Count} tiles, {levelData.Animals.Count} animals, and {levelData.Items.Count} items");
+        Debug.Log($"LevelLoader: Successfully loaded level '{levelFileName}' with {levelData.Tiles.Count} tiles, {levelData.Animals.Count} animals, {levelData.Items.Count} items, and {levelData.Dens.Count} dens");
     }
 
     /// <summary>
@@ -237,13 +248,15 @@ public class LevelLoader : MonoBehaviour
         levelData.Width = maxWidth;
         levelData.Height = tileHeight;
 
-        // Parse animals and items sections (after separator)
+        // Parse animals, items, and dens sections (after separator)
         if (separatorLine >= 0)
         {
             bool inAnimalsSection = false;
             bool inItemsSection = false;
+            bool inDensSection = false;
             bool foundAnimalsHeader = false;
             bool foundItemsHeader = false;
+            bool foundDensHeader = false;
             
             for (int i = separatorLine + 1; i < lines.Length; i++)
             {
@@ -258,6 +271,7 @@ public class LevelLoader : MonoBehaviour
                 {
                     inAnimalsSection = true;
                     inItemsSection = false;
+                    inDensSection = false;
                     foundAnimalsHeader = true;
                     continue;
                 }
@@ -267,7 +281,18 @@ public class LevelLoader : MonoBehaviour
                 {
                     inItemsSection = true;
                     inAnimalsSection = false;
+                    inDensSection = false;
                     foundItemsHeader = true;
+                    continue;
+                }
+
+                // Check for DENS: header
+                if (line.ToUpper().StartsWith("DENS:"))
+                {
+                    inDensSection = true;
+                    inAnimalsSection = false;
+                    inItemsSection = false;
+                    foundDensHeader = true;
                     continue;
                 }
 
@@ -328,8 +353,29 @@ public class LevelLoader : MonoBehaviour
                         }
                     }
                 }
+                // Parse den lines if in dens section
+                else if (inDensSection)
+                {
+                    // Parse den line: x y
+                    // Note: y-coordinate from file needs to be inverted to match grid coordinates
+                    string[] parts = line.Split(new[] { ' ', '\t' }, System.StringSplitOptions.RemoveEmptyEntries);
+                    if (parts.Length >= 2)
+                    {
+                        if (int.TryParse(parts[0], out int x) &&
+                            int.TryParse(parts[1], out int fileY))
+                        {
+                            // Convert file y-coordinate to grid y-coordinate (invert)
+                            int gridY = tileHeight - 1 - fileY;
+                            levelData.Dens.Add((x, gridY));
+                        }
+                        else
+                        {
+                            Debug.LogWarning($"LevelLoader: Could not parse den line: {line}");
+                        }
+                    }
+                }
                 // Backward compatibility: if no headers found, treat all lines as animals
-                else if (!foundAnimalsHeader && !foundItemsHeader)
+                else if (!foundAnimalsHeader && !foundItemsHeader && !foundDensHeader)
                 {
                     // Parse animal line: animalName x y [count]
                     // Note: y-coordinate from file needs to be inverted to match grid coordinates
@@ -366,7 +412,7 @@ public class LevelLoader : MonoBehaviour
             }
         }
 
-        Debug.Log($"LevelLoader: Loaded level with {levelData.Tiles.Count} tiles, {levelData.Animals.Count} animals, {levelData.Items.Count} items, size: {levelData.Width}x{levelData.Height}");
+        Debug.Log($"LevelLoader: Loaded level with {levelData.Tiles.Count} tiles, {levelData.Animals.Count} animals, {levelData.Items.Count} items, {levelData.Dens.Count} dens, size: {levelData.Width}x{levelData.Height}");
         return levelData;
     }
 

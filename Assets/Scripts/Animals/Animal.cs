@@ -74,6 +74,9 @@ public class Animal : MonoBehaviour
     [Tooltip("Number of animals in this group (acts as hitpoints). When reduced to 0, this animal is destroyed.")]
     [SerializeField] private int _animalCount = 1;
 
+    // Track the den this animal is currently in (if any)
+    private Den _currentDen = null;
+
     public AnimalData AnimalData => _animalData;
     public Vector2Int GridPosition => _gridPosition;
     public bool HasDestination => _hasLastDragEndGridPosition;
@@ -344,6 +347,17 @@ public class Animal : MonoBehaviour
         SetSelectionState(false);
         
         UpdateWorldPosition();
+        
+        // Handle den entry if animal spawns on a den (for controllable animals)
+        if (_isControllable && InteractableManager.Instance != null)
+        {
+            Den den = InteractableManager.Instance.GetDenAtPosition(gridPosition);
+            if (den != null)
+            {
+                den.OnAnimalEnter(this);
+                _currentDen = den;
+            }
+        }
     }
 
     /// <summary>
@@ -392,6 +406,7 @@ public class Animal : MonoBehaviour
     /// </summary>
     public void SetGridPosition(Vector2Int gridPosition)
     {
+        Vector2Int previousPosition = _gridPosition;
         _gridPosition = gridPosition;
         Vector3 targetWorld;
         if (EnvironmentManager.Instance != null)
@@ -403,6 +418,34 @@ public class Animal : MonoBehaviour
             targetWorld = new Vector3(_gridPosition.x, _gridPosition.y, transform.position.z);
         }
         StartMoveToWorldPosition(targetWorld, _moveDurationSeconds);
+        
+        // Handle den entry/exit for controllable animals
+        if (_isControllable && InteractableManager.Instance != null)
+        {
+            Den previousDen = _currentDen;
+            Den newDen = InteractableManager.Instance.GetDenAtPosition(gridPosition);
+            
+            // If we left a den, notify it
+            if (previousDen != null && previousDen != newDen)
+            {
+                previousDen.OnAnimalLeave(this);
+                _currentDen = null;
+            }
+            
+            // If we entered a new den, notify it
+            if (newDen != null && newDen != previousDen)
+            {
+                newDen.OnAnimalEnter(this);
+                _currentDen = newDen;
+            }
+            
+            // If we're still in the same den but position changed (shouldn't happen, but handle it)
+            if (previousDen == newDen && newDen != null && previousPosition != gridPosition)
+            {
+                // Position changed but still in same den - this shouldn't happen normally
+                // but handle it gracefully
+            }
+        }
         
         // Check for items at this position and pick them up if this is a controllable animal
         if (_isControllable && ItemTilemapManager.Instance != null)
@@ -939,6 +982,13 @@ public class Animal : MonoBehaviour
         if (_lineRenderer != null)
         {
             _lineRenderer.enabled = false;
+        }
+
+        // Clean up den references (leave den if in one)
+        if (_currentDen != null)
+        {
+            _currentDen.OnAnimalLeave(this);
+            _currentDen = null;
         }
 
         // Clean up AnimalManager references

@@ -34,3 +34,9 @@ ITEMS:
 Food 5 5
 Food 10 6
 Food 8 3
+// Den Placement:
+//   Format: x y
+//   - x: X coordinate (0 = left, increases to the right)
+//   - y: Y coordinate (0 = bottom, increases upward)
+DENS:
+2 2
