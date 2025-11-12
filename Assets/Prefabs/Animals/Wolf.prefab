@@ -129,3 +129,4 @@ MonoBehaviour:
   _moveDurationSeconds: 0.5
   _animalCount: 1
   _countText: {fileID: 6540347268615922553}
+  _detectionRadius: 7

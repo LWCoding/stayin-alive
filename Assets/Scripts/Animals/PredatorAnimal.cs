@@ -1,12 +1,18 @@
 using System.Collections.Generic;
 using UnityEngine;
+using Pathfinding;
 
 /// <summary>
 /// A predator animal that moves one step towards the nearest other animal each turn.
 /// </summary>
 public class PredatorAnimal : Animal
 {
+    [Header("Predator Settings")]
+    [Tooltip("Detection radius in grid cells. Only animals within this distance can be detected.")]
+    [SerializeField] private int _detectionRadius = 5;
+
     private int _stallTurnsRemaining = 0;
+    private Vector2Int? _wanderingDestination = null;
 
     public override void TakeTurn()
     {
@@ -18,14 +24,111 @@ public class PredatorAnimal : Animal
             return;
         }
 
+        // Check if we detect any prey within radius
         Vector2Int? preyGrid = FindNearestPreyGrid();
+        
         if (preyGrid.HasValue)
         {
+            // If we detect prey, cancel wandering and hunt
+            _wanderingDestination = null;
             MoveOneStepTowards(preyGrid.Value);
+        }
+        else
+        {
+            // No prey detected - wander
+            if (!_wanderingDestination.HasValue || GridPosition == _wanderingDestination.Value)
+            {
+                // Need a new wandering destination
+                _wanderingDestination = ChooseWanderingDestination();
+            }
+            
+            if (_wanderingDestination.HasValue)
+            {
+                // Check if we detect prey while wandering - if so, cancel wandering
+                Vector2Int? detectedPrey = FindNearestPreyGrid();
+                if (detectedPrey.HasValue)
+                {
+                    _wanderingDestination = null;
+                    MoveOneStepTowards(detectedPrey.Value);
+                }
+                else
+                {
+                    // Continue wandering
+                    MoveOneStepTowards(_wanderingDestination.Value);
+                }
+            }
         }
 
         // Attempt to hunt if we share a tile with another animal after moving
         TryHuntAtCurrentPosition();
+    }
+
+    /// <summary>
+    /// Override to prevent predators from moving onto dens.
+    /// </summary>
+    protected new void MoveOneStepTowards(Vector2Int destinationGrid)
+    {
+        if (EnvironmentManager.Instance == null || AstarPath.active == null)
+        {
+            return;
+        }
+
+        Vector2Int startGrid = GridPosition;
+        Vector2Int destGrid = destinationGrid;
+
+        Vector3 startWorld = EnvironmentManager.Instance.GridToWorldPosition(startGrid);
+        Vector3 destWorld = EnvironmentManager.Instance.GridToWorldPosition(destGrid);
+
+        var path = ABPath.Construct(startWorld, destWorld, null);
+        AstarPath.StartPath(path, true);
+        path.BlockUntilCalculated();
+
+        if (path.error || path.vectorPath == null || path.vectorPath.Count == 0)
+        {
+            return;
+        }
+
+        // Build axis-aligned path manually
+        List<Vector2Int> axisAlignedGrid = new List<Vector2Int>();
+        Vector2Int currentGrid = startGrid;
+        axisAlignedGrid.Add(currentGrid);
+
+        for (int i = 1; i < path.vectorPath.Count; i++)
+        {
+            Vector2Int targetGrid = EnvironmentManager.Instance.WorldToGridPosition(path.vectorPath[i]);
+            if (targetGrid == currentGrid)
+            {
+                continue;
+            }
+
+            // Move one step at a time in axis-aligned directions
+            while (currentGrid.x != targetGrid.x)
+            {
+                currentGrid.x += targetGrid.x > currentGrid.x ? 1 : -1;
+                axisAlignedGrid.Add(currentGrid);
+            }
+
+            while (currentGrid.y != targetGrid.y)
+            {
+                currentGrid.y += targetGrid.y > currentGrid.y ? 1 : -1;
+                axisAlignedGrid.Add(currentGrid);
+            }
+        }
+
+        if (axisAlignedGrid.Count < 2)
+        {
+            return;
+        }
+
+        Vector2Int nextGrid = axisAlignedGrid[1];
+        
+        // Check if the next position is valid, walkable, and not a den
+        if (EnvironmentManager.Instance.IsValidPosition(nextGrid) &&
+            EnvironmentManager.Instance.IsWalkable(nextGrid) &&
+            !Den.IsDenAtPosition(nextGrid))
+        {
+            SetGridPosition(nextGrid);
+        }
     }
 
     private Vector2Int? FindNearestPreyGrid()
@@ -56,7 +159,9 @@ public class PredatorAnimal : Animal
 
             Vector2Int otherPos = other.GridPosition;
             int distance = Mathf.Abs(otherPos.x - myPos.x) + Mathf.Abs(otherPos.y - myPos.y); // Manhattan distance
-            if (distance < bestDistance)
+            
+            // Only consider animals within detection radius
+            if (distance <= _detectionRadius && distance < bestDistance)
             {
                 bestDistance = distance;
                 nearest = other;
@@ -64,6 +169,66 @@ public class PredatorAnimal : Animal
         }
 
         return nearest != null ? nearest.GridPosition : (Vector2Int?)null;
+    }
+
+    private Vector2Int? ChooseWanderingDestination()
+    {
+        if (EnvironmentManager.Instance == null)
+        {
+            return null;
+        }
+
+        Vector2Int myPos = GridPosition;
+        Vector2Int gridSize = EnvironmentManager.Instance.GetGridSize();
+        
+        // Try to find a random position around the predator
+        int maxWanderDistance = 8; // Maximum distance to wander
+        int minWanderDistance = 2; // Minimum distance to wander
+        
+        for (int attempts = 0; attempts < 30; attempts++)
+        {
+            // Pick a random direction and distance
+            int distance = Random.Range(minWanderDistance, maxWanderDistance + 1);
+            int angle = Random.Range(0, 360);
+            
+            // Convert angle to direction (approximate, using integer grid)
+            float radians = angle * Mathf.Deg2Rad;
+            int dx = Mathf.RoundToInt(Mathf.Cos(radians) * distance);
+            int dy = Mathf.RoundToInt(Mathf.Sin(radians) * distance);
+            
+            Vector2Int targetPos = myPos + new Vector2Int(dx, dy);
+            
+            // Clamp to grid bounds
+            targetPos.x = Mathf.Clamp(targetPos.x, 0, gridSize.x - 1);
+            targetPos.y = Mathf.Clamp(targetPos.y, 0, gridSize.y - 1);
+            
+            // Check if this position is valid, walkable, and not a den
+            if (EnvironmentManager.Instance.IsValidPosition(targetPos) && 
+                EnvironmentManager.Instance.IsWalkable(targetPos) &&
+                !Den.IsDenAtPosition(targetPos))
+            {
+                return targetPos;
+            }
+        }
+        
+        // If we couldn't find a good position, try completely random positions
+        for (int attempts = 0; attempts < 20; attempts++)
+        {
+            Vector2Int targetPos = new Vector2Int(
+                Random.Range(0, gridSize.x),
+                Random.Range(0, gridSize.y)
+            );
+            
+            if (EnvironmentManager.Instance.IsValidPosition(targetPos) && 
+                EnvironmentManager.Instance.IsWalkable(targetPos) &&
+                !Den.IsDenAtPosition(targetPos))
+            {
+                return targetPos;
+            }
+        }
+        
+        // If all attempts failed, return null (will try again next turn)
+        return null;
     }
 
     private void TryHuntAtCurrentPosition()
