@@ -106,6 +106,29 @@ public class TimeManager : Singleton<TimeManager>
 			FogOfWarManager.Instance.UpdateFogOfWar();
 		}
 	}
+
+	/// <summary>
+	/// Pauses time progression. When paused, the timer will not advance and turns will not occur.
+	/// </summary>
+	public void Pause()
+	{
+		_isPaused = true;
+		Debug.Log("TimeManager: Time paused");
+	}
+
+	/// <summary>
+	/// Resumes time progression.
+	/// </summary>
+	public void Resume()
+	{
+		_isPaused = false;
+		Debug.Log("TimeManager: Time resumed");
+	}
+
+	/// <summary>
+	/// Returns whether time is currently paused.
+	/// </summary>
+	public bool IsPaused => _isPaused;
 }
 
 
