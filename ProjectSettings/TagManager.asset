@@ -47,3 +47,6 @@ TagManager:
   - name: FOW
     uniqueID: 3776891315
     locked: 0
+  - name: AnimalLine
+    uniqueID: 2754142255
+    locked: 0
