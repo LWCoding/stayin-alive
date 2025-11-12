@@ -5,47 +5,72 @@ using UnityEngine.UI;
 using System.Collections;
 
 /// <summary>
-/// Manages turn-based time progression. Each call to AdvanceTime() makes animals take a turn.
+/// Manages turn-based time progression. Automatically advances time every X seconds.
 /// Controllable animals will move only one step along their stored pathing (if any).
 /// </summary>
 public class TimeManager : Singleton<TimeManager>
 {
+	[Header("Turn Settings")]
+	[Tooltip("Time in seconds between automatic turn advances")]
+	[SerializeField] private float _turnInterval = 3f;
+
 	[Header("UI")]
-	[SerializeField] private Button _advanceTurnButton;
+	[Tooltip("Progress bar Image that shows time remaining. Should scale from 1 (3 seconds) to 0 (0 seconds).")]
+	[SerializeField] private Image _progressBarImage;
 
-	private void OnEnable()
+	private float _timeUntilNextTurn;
+	private bool _isPaused = false;
+
+	private void Start()
 	{
-		if (_advanceTurnButton != null)
+		_timeUntilNextTurn = _turnInterval;
+	}
+
+	private void Update()
+	{
+		if (_isPaused)
 		{
-			_advanceTurnButton.onClick.AddListener(OnAdvanceButtonClicked);
+			return;
+		}
+
+		// Update timer
+		_timeUntilNextTurn -= Time.deltaTime;
+
+		// Update progress bar visual
+		UpdateProgressBar();
+
+		// Advance turn when timer reaches zero
+		if (_timeUntilNextTurn <= 0f)
+		{
+			AdvanceTime();
+			_timeUntilNextTurn = _turnInterval;
 		}
 	}
 
-	private void OnDisable()
+	private void UpdateProgressBar()
 	{
-		if (_advanceTurnButton != null)
+		if (_progressBarImage == null)
 		{
-			_advanceTurnButton.onClick.RemoveListener(OnAdvanceButtonClicked);
-		}
-	}
-
-	private void OnAdvanceButtonClicked()
-	{
-		if (_advanceTurnButton != null)
-		{
-			_advanceTurnButton.interactable = false;
+			return;
 		}
 
-		AdvanceTime();
-		StartCoroutine(ReenableButtonAfterDelay(0.75f));
-	}
+		// Calculate scale: 1 when 3 seconds remaining, 0 when 0 seconds remaining
+		// Only show progress bar in the last 3 seconds
+		float timeRemaining = _timeUntilNextTurn;
+		float scale = 0f;
 
-	private IEnumerator ReenableButtonAfterDelay(float delaySeconds)
-	{
-		yield return new WaitForSeconds(delaySeconds);
-		if (_advanceTurnButton != null)
+		if (timeRemaining <= 3f)
 		{
-			_advanceTurnButton.interactable = true;
+			// Scale from 1 (at 3 seconds) to 0 (at 0 seconds)
+			scale = Mathf.Clamp01(timeRemaining / 3f);
+		}
+
+		// Update the Image's scale (using localScale on the RectTransform)
+		// Scale only the X axis (width) from 1 to 0, preserving Y and Z
+		RectTransform rectTransform = _progressBarImage.rectTransform;
+		if (rectTransform != null)
+		{
+			rectTransform.localScale = new Vector3(scale, 1f, 1f);
 		}
 	}
 
