@@ -11,16 +11,12 @@ public class PointsManager : Singleton<PointsManager>
     [SerializeField] [Tooltip("TextMeshProUGUI component to display the readiness points")]
     private TextMeshProUGUI _pointsText;
     
-    [SerializeField] [Tooltip("UI GameObject that displays the win screen. Should be inactive by default.")]
-    private GameObject _winScreen;
-    
     [Header("Settings")]
     [SerializeField] [Tooltip("Format string for displaying points. Use {0} for current points and {1} for maximum food count.")]
     private string _pointsFormat = "{0}/{1}";
     
     private int _readinessPoints = 0;
     private int _maxFoodCount = 0;
-    private bool _hasWon = false;
     
     public int ReadinessPoints => _readinessPoints;
     public int MaxFoodCount => _maxFoodCount;
@@ -46,7 +42,11 @@ public class PointsManager : Singleton<PointsManager>
         UpdatePointsDisplay();
         Debug.Log($"PointsManager: Added {points} points. Total readiness: {_readinessPoints}");
         
-        CheckWinCondition();
+        // Notify GameManager to check win condition
+        if (GameManager.Instance != null)
+        {
+            GameManager.Instance.CheckWinCondition(_readinessPoints, _maxFoodCount);
+        }
     }
     
     /// <summary>
@@ -60,7 +60,11 @@ public class PointsManager : Singleton<PointsManager>
         UpdatePointsDisplay();
         Debug.Log($"PointsManager: Set maximum food count to {maxFoodCount}");
         
-        CheckWinCondition();
+        // Notify GameManager to check win condition
+        if (GameManager.Instance != null)
+        {
+            GameManager.Instance.CheckWinCondition(_readinessPoints, _maxFoodCount);
+        }
     }
     
     /// <summary>
@@ -69,19 +73,12 @@ public class PointsManager : Singleton<PointsManager>
     public void ResetPoints()
     {
         _readinessPoints = 0;
-        _hasWon = false;
         UpdatePointsDisplay();
         
-        // Hide win screen if it was shown
-        if (_winScreen != null)
+        // Reset game state through GameManager
+        if (GameManager.Instance != null)
         {
-            _winScreen.SetActive(false);
-        }
-        
-        // Resume time if it was paused
-        if (TimeManager.Instance != null)
-        {
-            TimeManager.Instance.Resume();
+            GameManager.Instance.ResetGameState();
         }
     }
     
@@ -93,46 +90,6 @@ public class PointsManager : Singleton<PointsManager>
         if (_pointsText != null)
         {
             _pointsText.text = string.Format(_pointsFormat, _readinessPoints, _maxFoodCount);
-        }
-    }
-    
-    /// <summary>
-    /// Checks if the player has met the win condition (readiness points >= max food count).
-    /// If so, shows the win screen and pauses time.
-    /// </summary>
-    private void CheckWinCondition()
-    {
-        // Only check if we haven't already won and max food count is set
-        if (_hasWon || _maxFoodCount <= 0)
-        {
-            return;
-        }
-        
-        // Check if quota is met
-        if (_readinessPoints >= _maxFoodCount)
-        {
-            _hasWon = true;
-            
-            // Show win screen
-            if (_winScreen != null)
-            {
-                _winScreen.SetActive(true);
-                Debug.Log("PointsManager: Win condition met! Showing win screen.");
-            }
-            else
-            {
-                Debug.LogWarning("PointsManager: Win condition met, but win screen UI element is not assigned!");
-            }
-            
-            // Pause time
-            if (TimeManager.Instance != null)
-            {
-                TimeManager.Instance.Pause();
-            }
-            else
-            {
-                Debug.LogWarning("PointsManager: Win condition met, but TimeManager instance not found!");
-            }
         }
     }
 }

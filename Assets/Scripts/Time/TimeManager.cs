@@ -113,7 +113,6 @@ public class TimeManager : Singleton<TimeManager>
 	public void Pause()
 	{
 		_isPaused = true;
-		Debug.Log("TimeManager: Time paused");
 	}
 
 	/// <summary>
@@ -122,7 +121,6 @@ public class TimeManager : Singleton<TimeManager>
 	public void Resume()
 	{
 		_isPaused = false;
-		Debug.Log("TimeManager: Time resumed");
 	}
 
 	/// <summary>

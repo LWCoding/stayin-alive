@@ -569,9 +569,16 @@ public class Animal : MonoBehaviour
 
     /// <summary>
     /// Kills this animal by destroying its GameObject.
+    /// If this is a controllable animal, triggers the lose condition.
     /// </summary>
     public void Die()
     {
+        // If this is a controllable animal, trigger lose condition before destroying
+        if (_isControllable && GameManager.Instance != null)
+        {
+            GameManager.Instance.TriggerLose();
+        }
+        
         Destroy(gameObject);
     }
 
