@@ -11,6 +11,7 @@ public class LevelData
     public List<(string animalName, int x, int y, int count)> Animals { get; set; }
     public List<(string itemName, int x, int y)> Items { get; set; }
     public List<(int x, int y)> Dens { get; set; }
+    public int FoodCount { get; set; }
 
     public LevelData()
     {
@@ -18,6 +19,7 @@ public class LevelData
         Animals = new List<(string animalName, int x, int y, int count)>();
         Items = new List<(string itemName, int x, int y)>();
         Dens = new List<(int x, int y)>();
+        FoodCount = 0;
     }
 }
 

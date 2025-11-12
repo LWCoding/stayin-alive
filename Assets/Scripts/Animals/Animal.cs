@@ -166,6 +166,21 @@ public class Animal : MonoBehaviour
 
         return true;
     }
+    
+    /// <summary>
+    /// Removes all instances of an item from the inventory. Returns the number of items removed.
+    /// </summary>
+    public int RemoveAllItemsFromInventory(string itemName)
+    {
+        if (!_inventory.ContainsKey(itemName))
+        {
+            return 0;
+        }
+        
+        int count = _inventory[itemName];
+        _inventory.Remove(itemName);
+        return count;
+    }
 
     /// <summary>
     /// Clears all items from the inventory.
@@ -210,6 +225,17 @@ public class Animal : MonoBehaviour
         else
         {
             _animalCount = count;
+        }
+    }
+    
+    /// <summary>
+    /// Increases the animal count by the specified amount.
+    /// </summary>
+    public void IncreaseAnimalCount(int amount)
+    {
+        if (amount > 0)
+        {
+            _animalCount += amount;
         }
     }
 

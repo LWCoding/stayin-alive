@@ -122,6 +122,13 @@ public class LevelLoader : MonoBehaviour
             Debug.LogWarning("LevelLoader: ItemTilemapManager instance not found! Items will not be spawned.");
         }
 
+        // Set maximum food count in PointsManager (counted during parsing)
+        if (PointsManager.Instance != null)
+        {
+            PointsManager.Instance.ResetPoints();
+            PointsManager.Instance.SetMaxFoodCount(levelData.FoodCount);
+        }
+
         // Register any animals that are already on dens (safety check)
         if (InteractableManager.Instance != null && AnimalManager.Instance != null)
         {
@@ -352,6 +359,12 @@ public class LevelLoader : MonoBehaviour
                             // Convert file y-coordinate to grid y-coordinate (invert)
                             int gridY = tileHeight - 1 - fileY;
                             levelData.Items.Add((itemName, x, gridY));
+                            
+                            // Count food items as we parse them
+                            if (itemName == "Food")
+                            {
+                                levelData.FoodCount++;
+                            }
                         }
                         else
                         {
@@ -441,5 +454,6 @@ public class LevelLoader : MonoBehaviour
                 return TileType.Empty;
         }
     }
+
 
 }

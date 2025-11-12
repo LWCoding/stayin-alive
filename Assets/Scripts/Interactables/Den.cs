@@ -51,6 +51,41 @@ public class Den : MonoBehaviour
         {
             _animalsInDen.Add(animal);
             Debug.Log($"Animal '{animal.name}' entered den at ({_gridPosition.x}, {_gridPosition.y})");
+            
+            // Handle food delivery: check for food items in inventory
+            ProcessFoodDelivery(animal);
+        }
+    }
+    
+    /// <summary>
+    /// Processes food delivery when an animal enters the den.
+    /// For each food item, increases animal count by 1, removes the food, and adds points.
+    /// </summary>
+    private void ProcessFoodDelivery(Animal animal)
+    {
+        if (animal == null)
+        {
+            return;
+        }
+        
+        // Check for "Food" items in inventory
+        int foodCount = animal.GetItemCount("Food");
+        
+        if (foodCount > 0)
+        {
+            // Remove all food from inventory
+            int removedCount = animal.RemoveAllItemsFromInventory("Food");
+            
+            // Increase animal count by the number of food items
+            animal.IncreaseAnimalCount(removedCount);
+            
+            // Add points to PointsManager
+            if (PointsManager.Instance != null)
+            {
+                PointsManager.Instance.AddPoints(removedCount);
+            }
+            
+            Debug.Log($"Animal '{animal.name}' delivered {removedCount} food to den. Animal count increased by {removedCount}.");
         }
     }
     
