@@ -64,7 +64,7 @@ public class PredatorAnimal : Animal
     }
 
     /// <summary>
-    /// Override to prevent predators from moving onto dens.
+    /// Override to allow predators to move onto dens.
     /// </summary>
     protected new void MoveOneStepTowards(Vector2Int destinationGrid)
     {
@@ -122,10 +122,9 @@ public class PredatorAnimal : Animal
 
         Vector2Int nextGrid = axisAlignedGrid[1];
         
-        // Check if the next position is valid, walkable, and not a den
+        // Check if the next position is valid and walkable (dens are allowed)
         if (EnvironmentManager.Instance.IsValidPosition(nextGrid) &&
-            EnvironmentManager.Instance.IsWalkable(nextGrid) &&
-            !Den.IsDenAtPosition(nextGrid))
+            EnvironmentManager.Instance.IsWalkable(nextGrid))
         {
             SetGridPosition(nextGrid);
         }
@@ -202,10 +201,9 @@ public class PredatorAnimal : Animal
             targetPos.x = Mathf.Clamp(targetPos.x, 0, gridSize.x - 1);
             targetPos.y = Mathf.Clamp(targetPos.y, 0, gridSize.y - 1);
             
-            // Check if this position is valid, walkable, and not a den
+            // Check if this position is valid and walkable (dens are allowed)
             if (EnvironmentManager.Instance.IsValidPosition(targetPos) && 
-                EnvironmentManager.Instance.IsWalkable(targetPos) &&
-                !Den.IsDenAtPosition(targetPos))
+                EnvironmentManager.Instance.IsWalkable(targetPos))
             {
                 return targetPos;
             }
@@ -220,8 +218,7 @@ public class PredatorAnimal : Animal
             );
             
             if (EnvironmentManager.Instance.IsValidPosition(targetPos) && 
-                EnvironmentManager.Instance.IsWalkable(targetPos) &&
-                !Den.IsDenAtPosition(targetPos))
+                EnvironmentManager.Instance.IsWalkable(targetPos))
             {
                 return targetPos;
             }
@@ -234,6 +231,12 @@ public class PredatorAnimal : Animal
     private void TryHuntAtCurrentPosition()
     {
         if (AnimalManager.Instance == null)
+        {
+            return;
+        }
+
+        // If the predator is on a den, it cannot hunt any animals
+        if (Den.IsDenAtPosition(GridPosition))
         {
             return;
         }
