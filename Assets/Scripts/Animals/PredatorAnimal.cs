@@ -69,18 +69,10 @@ public class PredatorAnimal : Animal
             }
             if (other.GridPosition == GridPosition)
             {
-                // Consume the prey: destroy it and restore predator hunger to max
+                // Consume the prey: destroy it
                 if (other.gameObject != null)
                 {
                     Object.Destroy(other.gameObject);
-                }
-                if (AnimalData != null)
-                {
-                    SetHunger(AnimalData.maxHunger);
-                }
-                else
-                {
-                    SetHunger(100);
                 }
                 break;
             }
@@ -89,32 +81,7 @@ public class PredatorAnimal : Animal
 
     public override void ApplyTurnNeedsAndTileRestoration()
     {
-        // Predators do NOT regain hunger from food tiles. They only regain hunger via hunting.
-        TileType currentTile = TileType.Empty;
-        if (EnvironmentManager.Instance != null)
-        {
-            currentTile = EnvironmentManager.Instance.GetTileType(GridPosition);
-        }
-
-        // Always decay hunger by 1 (no grass restoration)
-        AddHunger(-1);
-
-        // Thirst behaves like base: water restores, else decays
-        if (currentTile != TileType.Water)
-        {
-            AddThirst(-1);
-        }
-        else
-        {
-            int maxHydration = AnimalData != null ? AnimalData.maxHydration : 100;
-            SetThirst(maxHydration);
-        }
-
-        if (CurrentHunger <= 0 || CurrentThirst <= 0)
-        {
-            Object.Destroy(gameObject);
-            return;
-        }
+        // No longer needed - food and thirst requirements removed
     }
 }
 

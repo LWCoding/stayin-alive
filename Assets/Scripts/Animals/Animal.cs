@@ -13,15 +13,6 @@ public class Animal : MonoBehaviour
     [HideInInspector] [SerializeField] private AnimalData _animalData;
     [HideInInspector] [SerializeField] private Vector2Int _gridPosition;
 
-    [Header("UI")]
-    [Tooltip("TextMeshPro UGUI component to display current hunger value")]
-    [SerializeField] private TextMeshProUGUI _hungerText;
-    [Tooltip("TextMeshPro UGUI component to display current thirst/hydration value")]
-    [SerializeField] private TextMeshProUGUI _thirstText;
-
-    [Header("Stats")]
-    private int _currentHunger;
-    private int _currentThirst;
 
     [SerializeField] [Tooltip("Whether this animal can be controlled by the player")]
     private bool _isControllable = true;
@@ -76,8 +67,6 @@ public class Animal : MonoBehaviour
 
     public AnimalData AnimalData => _animalData;
     public Vector2Int GridPosition => _gridPosition;
-    public int CurrentHunger => _currentHunger;
-    public int CurrentThirst => _currentThirst;
     public bool HasDestination => _hasLastDragEndGridPosition;
     public Vector2Int LastDestinationGridPosition => _lastDragEndGridPosition;
     public bool? LastPathfindingSuccessful => _hasLastPathfindingResult ? _lastPathfindingSuccessful : (bool?)null;
@@ -90,47 +79,10 @@ public class Animal : MonoBehaviour
     /// <summary>
     /// Applies per-turn needs decay, handles death, and restores from resource tiles.
     /// Called by TimeManager after movement each turn.
-    /// Checks the tile type first - animals on food/water tiles don't lose hunger/thirst.
     /// </summary>
     public virtual void ApplyTurnNeedsAndTileRestoration()
     {
-        // Check what tile the animal is on AFTER moving
-        TileType currentTile = TileType.Empty; // Default
-        if (EnvironmentManager.Instance != null)
-        {
-            currentTile = EnvironmentManager.Instance.GetTileType(_gridPosition);
-        }
-
-        // Only decay hunger if NOT on a Grass tile (animals can eat on Grass)
-        if (currentTile != TileType.Grass)
-        {
-            AddHunger(-1);
-        }
-        else
-        {
-            // On Grass tile - restore hunger to max instead of decaying
-            int maxHunger = _animalData != null ? _animalData.maxHunger : 100;
-            SetHunger(maxHunger);
-        }
-
-        // Only decay thirst if NOT on a Water tile (animals can drink on Water)
-        if (currentTile != TileType.Water)
-        {
-            AddThirst(-1);
-        }
-        else
-        {
-            // On Water tile - restore thirst to max instead of decaying
-            int maxHydration = _animalData != null ? _animalData.maxHydration : 100;
-            SetThirst(maxHydration);
-        }
-
-        // Death if either is zero or below
-        if (_currentHunger <= 0 || _currentThirst <= 0)
-        {
-            Destroy(gameObject);
-            return;
-        }
+        // No longer needed - food and thirst requirements removed
     }
 
     /// <summary>
@@ -269,21 +221,11 @@ public class Animal : MonoBehaviour
         _animalData = animalData;
         _gridPosition = gridPosition;
         
-        // Initialize hunger and thirst to max values
-        if (_animalData != null)
-        {
-            _currentHunger = _animalData.maxHunger;
-            _currentThirst = _animalData.maxHydration;
-        }
-        
         // Apply sprite if available
         ApplySprite();
 
         // Ensure selection visuals are reset
         SetSelectionState(false);
-        
-        // Update UI to show initial values
-        UpdateHungerThirstUI();
         
         UpdateWorldPosition();
     }
@@ -382,73 +324,11 @@ public class Animal : MonoBehaviour
     }
 
     /// <summary>
-    /// Sets the animal's hunger value and updates the UI.
+    /// Kills this animal by destroying its GameObject.
     /// </summary>
-    /// <param name="hunger">New hunger value (will be clamped between 0 and maxHunger)</param>
-    public void SetHunger(int hunger)
+    public void Die()
     {
-        if (_animalData != null)
-        {
-            _currentHunger = Mathf.Clamp(hunger, 0, _animalData.maxHunger);
-        }
-        else
-        {
-            _currentHunger = Mathf.Clamp(hunger, 0, 100);
-        }
-        
-        UpdateHungerThirstUI();
-    }
-
-    /// <summary>
-    /// Sets the animal's thirst/hydration value and updates the UI.
-    /// </summary>
-    /// <param name="thirst">New thirst value (will be clamped between 0 and maxHydration)</param>
-    public void SetThirst(int thirst)
-    {
-        if (_animalData != null)
-        {
-            _currentThirst = Mathf.Clamp(thirst, 0, _animalData.maxHydration);
-        }
-        else
-        {
-            _currentThirst = Mathf.Clamp(thirst, 0, 100);
-        }
-        
-        UpdateHungerThirstUI();
-    }
-
-    /// <summary>
-    /// Adds to the animal's hunger value and updates the UI.
-    /// </summary>
-    /// <param name="amount">Amount to add to hunger (can be negative)</param>
-    public void AddHunger(int amount)
-    {
-        SetHunger(_currentHunger + amount);
-    }
-
-    /// <summary>
-    /// Adds to the animal's thirst/hydration value and updates the UI.
-    /// </summary>
-    /// <param name="amount">Amount to add to thirst (can be negative)</param>
-    public void AddThirst(int amount)
-    {
-        SetThirst(_currentThirst + amount);
-    }
-
-    /// <summary>
-    /// Updates the hunger and thirst UI text displays.
-    /// </summary>
-    private void UpdateHungerThirstUI()
-    {
-        if (_hungerText != null)
-        {
-            _hungerText.text = _currentHunger.ToString();
-        }
-
-        if (_thirstText != null)
-        {
-            _thirstText.text = _currentThirst.ToString();
-        }
+        Destroy(gameObject);
     }
 
     private void OnMouseDown()
