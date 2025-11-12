@@ -14,17 +14,26 @@ public class PreyAnimal : Animal
     [SerializeField] private int _fleeDistance = 3;
 
     private Vector2Int? _wanderingDestination = null;
+    private int _turnCounter = 0;
 
     public override void TakeTurn()
     {
+        _turnCounter++;
+        
+        // Only move every other turn (on even turns: 2, 4, 6, etc.)
+        bool shouldMove = (_turnCounter % 2 == 0);
+        
         // Check if we detect any predators within radius
         PredatorAnimal nearestPredator = FindNearestPredator();
         
         if (nearestPredator != null)
         {
-            // If we detect a predator, cancel wandering and flee
-            _wanderingDestination = null;
-            FleeFromPredator(nearestPredator);
+            // If we detect a predator, cancel wandering and flee (only if it's a move turn)
+            if (shouldMove)
+            {
+                _wanderingDestination = null;
+                FleeFromPredator(nearestPredator);
+            }
         }
         else
         {
@@ -35,7 +44,7 @@ public class PreyAnimal : Animal
                 _wanderingDestination = ChooseWanderingDestination();
             }
             
-            if (_wanderingDestination.HasValue)
+            if (_wanderingDestination.HasValue && shouldMove)
             {
                 // Check if we detect predators while wandering - if so, cancel wandering
                 PredatorAnimal detectedPredator = FindNearestPredator();
