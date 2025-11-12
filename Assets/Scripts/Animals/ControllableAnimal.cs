@@ -9,7 +9,6 @@ public class ControllableAnimal : Animal
     {
         // For controllable animals, follow their assigned pathing one step per turn.
         AdvanceOneStepAlongPlannedPath();
-        ApplyTurnNeedsAndTileRestoration();
     }
 }
 

@@ -22,5 +22,5 @@
 //   - x: X coordinate (0 = left, increases to the right)
 //   - y: Y coordinate (0 = bottom, increases upward)
 ANIMALS:
-Bird 3 3
-Lion 15 3
+Hedgehog 3 3
+Hawk 15 3

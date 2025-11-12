@@ -11,10 +11,6 @@ public class AnimalData : ScriptableObject
     [Tooltip("Unique name identifier for this animal type")]
     public string animalName;
 
-    [Header("Visual")]
-    [Tooltip("Sprite to display when the animal is idle")]
-    public Sprite idleSprite;
-
     [Header("Animation")]
     [Tooltip("First frame sprite for two-frame animation")]
     public Sprite frame1Sprite;

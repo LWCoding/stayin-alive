@@ -16,8 +16,6 @@ public class PredatorAnimal : Animal
 
         // Attempt to hunt if we share a tile with another animal after moving
         TryHuntAtCurrentPosition();
-
-        ApplyTurnNeedsAndTileRestoration();
     }
 
     private Vector2Int? FindNearestPreyGrid()
@@ -77,11 +75,6 @@ public class PredatorAnimal : Animal
                 break;
             }
         }
-    }
-
-    public override void ApplyTurnNeedsAndTileRestoration()
-    {
-        // No longer needed - food and thirst requirements removed
     }
 }
 

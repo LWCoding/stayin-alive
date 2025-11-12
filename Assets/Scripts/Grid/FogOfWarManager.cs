@@ -38,8 +38,10 @@ public class FogOfWarManager : Singleton<FogOfWarManager>
         }
     }
 
-    private void OnDestroy()
+    protected override void OnDestroy()
     {
+        base.OnDestroy();
+        
         // Unsubscribe from events
         if (EnvironmentManager.Instance != null)
         {

@@ -10,9 +10,11 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: accb84d4a93c289478c7f27d580ddaa2, type: 3}
-  m_Name: Bird
+  m_Name: Hedgehog
   m_EditorClassIdentifier: 
-  animalName: Bird
-  idleSprite: {fileID: -50290061, guid: 5a5c2f258bc139e4594a427728523e72, type: 3}
-  prefab: {fileID: 5132175799388392085, guid: f03e23e1433890a43ac8735b0379c037, type: 3}
-  fogOfWarRadius: 3
+  animalName: Hedgehog
+  frame1Sprite: {fileID: 21300000, guid: 2fcf310aeab39764c9bea8cdeccf68af, type: 3}
+  frame2Sprite: {fileID: 21300000, guid: 92994cc548f8ce347843e5e4c98e136a, type: 3}
+  animationInterval: 0.5
+  prefab: {fileID: 3156725246720460949, guid: 750ac2677486b4e4da6a38dfd4be2b45, type: 3}
+  fogOfWarRadius: 4

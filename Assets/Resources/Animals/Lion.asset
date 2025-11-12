@@ -12,7 +12,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: accb84d4a93c289478c7f27d580ddaa2, type: 3}
   m_Name: Lion
   m_EditorClassIdentifier: 
-  animalName: Lion
-  idleSprite: {fileID: 21300000, guid: 91d1a336316399741ac321c262de9e93, type: 3}
+  animalName: Wolf
+  frame1Sprite: {fileID: 21300000, guid: 1c9fda5fb1a867f4cb833e82c298563d, type: 3}
+  frame2Sprite: {fileID: 21300000, guid: 4bde4c138a0418643bf4f6fed454b0b4, type: 3}
+  animationInterval: 0.5
   prefab: {fileID: 6832156235588291007, guid: 81c2360689d3ae845802411f78731767, type: 3}
   fogOfWarRadius: 0

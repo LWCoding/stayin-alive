@@ -25,6 +25,7 @@ public class Animal : MonoBehaviour
     private SpriteRenderer _spriteRenderer;
     private Color _originalSpriteColor;
     private bool _isSelected;
+    private TwoFrameAnimator _twoFrameAnimator;
 
     [Header("Drag Destination")]
     [Tooltip("Color of the line when pathfinding is possible")]
@@ -76,17 +77,9 @@ public class Animal : MonoBehaviour
         set => _isControllable = value;
     }
 
-    /// <summary>
-    /// Applies per-turn needs decay, handles death, and restores from resource tiles.
-    /// Called by TimeManager after movement each turn.
-    /// </summary>
-    public virtual void ApplyTurnNeedsAndTileRestoration()
-    {
-        // No longer needed - food and thirst requirements removed
-    }
 
     /// <summary>
-    /// Executes this animal's turn: moves one step along planned path (if applicable) and applies needs/restoration.
+    /// Executes this animal's turn: moves one step along planned path (if applicable).
     /// </summary>
     public virtual void TakeTurn()
     {
@@ -94,8 +87,6 @@ public class Animal : MonoBehaviour
         {
             AdvanceOneStepAlongPlannedPath();
         }
-
-        ApplyTurnNeedsAndTileRestoration();
     }
 
     /// <summary>
@@ -221,8 +212,8 @@ public class Animal : MonoBehaviour
         _animalData = animalData;
         _gridPosition = gridPosition;
         
-        // Apply sprite if available
-        ApplySprite();
+        // Setup two-frame animation if data is available
+        SetupTwoFrameAnimation();
 
         // Ensure selection visuals are reset
         SetSelectionState(false);
@@ -231,18 +222,43 @@ public class Animal : MonoBehaviour
     }
 
     /// <summary>
-    /// Applies the idle sprite from AnimalData to the animal's SpriteRenderer if available.
+    /// Sets up the two-frame animator with data from AnimalData if available.
+    /// Initializes the sprite to the first frame if available.
     /// </summary>
-    private void ApplySprite()
+    private void SetupTwoFrameAnimation()
     {
-        if (_animalData == null || _animalData.idleSprite == null)
+        if (_animalData == null)
         {
             return;
         }
 
-        if (_spriteRenderer != null)
+        // Initialize sprite to first frame if available
+        if (_animalData.frame1Sprite != null && _spriteRenderer != null)
         {
-            _spriteRenderer.sprite = _animalData.idleSprite;
+            _spriteRenderer.sprite = _animalData.frame1Sprite;
+        }
+
+        // Check if we have full animation data (both frames and valid interval)
+        if (_animalData.frame1Sprite != null && _animalData.frame2Sprite != null && _animalData.animationInterval > 0)
+        {
+            // Get or add TwoFrameAnimator component
+            if (_twoFrameAnimator == null)
+            {
+                _twoFrameAnimator = GetComponent<TwoFrameAnimator>();
+                if (_twoFrameAnimator == null)
+                {
+                    _twoFrameAnimator = gameObject.AddComponent<TwoFrameAnimator>();
+                }
+            }
+
+            // Assign the SpriteRenderer if not already assigned
+            if (_spriteRenderer != null)
+            {
+                _twoFrameAnimator.SetSpriteRenderer(_spriteRenderer);
+            }
+
+            // Initialize the animator with the data
+            _twoFrameAnimator.Initialize(_animalData.frame1Sprite, _animalData.frame2Sprite, _animalData.animationInterval);
         }
     }
 
