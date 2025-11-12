@@ -14,6 +14,5 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   animalName: Lion
   idleSprite: {fileID: 21300000, guid: 91d1a336316399741ac321c262de9e93, type: 3}
-  maxHunger: 12
-  maxHydration: 12
   prefab: {fileID: 6832156235588291007, guid: 81c2360689d3ae845802411f78731767, type: 3}
+  fogOfWarRadius: 0

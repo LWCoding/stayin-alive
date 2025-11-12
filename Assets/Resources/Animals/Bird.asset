@@ -14,6 +14,5 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   animalName: Bird
   idleSprite: {fileID: -50290061, guid: 5a5c2f258bc139e4594a427728523e72, type: 3}
-  maxHunger: 8
-  maxHydration: 8
   prefab: {fileID: 5132175799388392085, guid: f03e23e1433890a43ac8735b0379c037, type: 3}
+  fogOfWarRadius: 3

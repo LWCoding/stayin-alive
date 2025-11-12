@@ -99,6 +99,15 @@ public class LevelLoader : MonoBehaviour
             Debug.LogWarning("LevelLoader: AnimalManager instance not found! Animals will not be spawned.");
         }
 
+        // Initialize fog of war to cover entire level with black tiles
+        // This must happen after level tiles are loaded to ensure fog overlaps on top
+        if (FogOfWarManager.Instance != null)
+        {
+            FogOfWarManager.Instance.InitializeFog();
+            // Then update fog to reveal initial animal positions
+            FogOfWarManager.Instance.UpdateFogOfWar();
+        }
+
         // Force-refresh A* Pathfinding graph and sync walkability with EnvironmentManager
         RefreshAStarGraphs();
 

@@ -15,8 +15,24 @@ public class AnimalData : ScriptableObject
     [Tooltip("Sprite to display when the animal is idle")]
     public Sprite idleSprite;
 
+    [Header("Animation")]
+    [Tooltip("First frame sprite for two-frame animation")]
+    public Sprite frame1Sprite;
+    
+    [Tooltip("Second frame sprite for two-frame animation")]
+    public Sprite frame2Sprite;
+    
+    [Tooltip("Time interval in seconds between frame switches for animation")]
+    [Min(0.01f)]
+    public float animationInterval = 0.5f;
+
     [Header("Prefab")]
     [Tooltip("Prefab to instantiate when spawning this animal")]
     public GameObject prefab;
+
+    [Header("Fog of War")]
+    [Tooltip("Radius in grid cells for fog of war visibility around this animal")]
+    [Min(0)]
+    public int fogOfWarRadius = 2;
 }
 

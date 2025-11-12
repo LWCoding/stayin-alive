@@ -99,6 +99,12 @@ public class TimeManager : Singleton<TimeManager>
 
 		// After all animals have taken their turn, clear selection so no animal keeps brighter pathing
 		AnimalManager.Instance.ClearSelection();
+
+		// Update fog of war after animals have moved
+		if (FogOfWarManager.Instance != null)
+		{
+			FogOfWarManager.Instance.UpdateFogOfWar();
+		}
 	}
 }
 
