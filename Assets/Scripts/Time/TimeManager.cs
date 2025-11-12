@@ -18,10 +18,12 @@ public class TimeManager : Singleton<TimeManager>
 
 	private float _timeUntilNextTurn;
 	private bool _isPaused = false;
+	private bool _waitingForFirstPlayerMove = false;
+	private bool _pauseLockedForFirstMove = false;
 
 	private void Start()
 	{
-		_timeUntilNextTurn = _turnInterval;
+		ResetTimerAndPauseForFirstMove();
 	}
 
 	private void Update()
@@ -42,6 +44,39 @@ public class TimeManager : Singleton<TimeManager>
 		{
 			AdvanceTime();
 			_timeUntilNextTurn = _turnInterval;
+		}
+	}
+
+	/// <summary>
+	/// Resets the turn timer, pauses time progression, and waits for the player's first move.
+	/// Call this when starting a new level or restarting the game.
+	/// </summary>
+	public void ResetTimerAndPauseForFirstMove()
+	{
+		_timeUntilNextTurn = _turnInterval;
+		_waitingForFirstPlayerMove = true;
+		_pauseLockedForFirstMove = true;
+		_isPaused = true;
+		UpdateProgressBar();
+	}
+
+	/// <summary>
+	/// Notifies the time manager that the player has made their first move.
+	/// This resumes the timer if it was paused while waiting for initial input.
+	/// </summary>
+	public void NotifyPlayerMadeFirstMove()
+	{
+		if (!_pauseLockedForFirstMove)
+		{
+			return;
+		}
+
+		_pauseLockedForFirstMove = false;
+		_waitingForFirstPlayerMove = false;
+
+		if (_isPaused)
+		{
+			Resume();
 		}
 	}
 
@@ -127,6 +162,11 @@ public class TimeManager : Singleton<TimeManager>
 	/// Returns whether time is currently paused.
 	/// </summary>
 	public bool IsPaused => _isPaused;
+
+	/// <summary>
+	/// Returns whether the timer is waiting for the player's first move before starting.
+	/// </summary>
+	public bool IsWaitingForFirstMove => _waitingForFirstPlayerMove;
 }
 
 

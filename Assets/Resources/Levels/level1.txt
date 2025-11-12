@@ -41,7 +41,7 @@ Rabbit 5 5 2
 //   - y: Y coordinate (0 = bottom, increases upward)
 ITEMS:
 Food 8 12
-Food 16 8
+Food 13 8
 Food 3 8
 // Den Placement:
 //   Format: x y

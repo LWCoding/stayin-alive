@@ -169,7 +169,7 @@ public class GameManager : Singleton<GameManager>
         // Resume time if it was paused
         if (TimeManager.Instance != null)
         {
-            TimeManager.Instance.Resume();
+            TimeManager.Instance.ResetTimerAndPauseForFirstMove();
         }
     }
 }

@@ -359,6 +359,7 @@ public class ControllableAnimal : Animal
         if (pathPossible)
         {
             RequestAndDrawPath(GridPosition, destinationGridPos);
+            NotifyTimeManagerOfFirstMove();
         }
         else
         {
@@ -661,6 +662,17 @@ public class ControllableAnimal : Animal
         {
             _pathLineRenderer.enabled = false;
             _pathLineRenderer.positionCount = 0;
+        }
+    }
+
+    /// <summary>
+    /// Notifies the TimeManager that the player has completed their first move.
+    /// </summary>
+    private void NotifyTimeManagerOfFirstMove()
+    {
+        if (TimeManager.Instance != null)
+        {
+            TimeManager.Instance.NotifyPlayerMadeFirstMove();
         }
     }
 
