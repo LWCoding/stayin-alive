@@ -161,6 +161,12 @@ public class Animal : MonoBehaviour
         UpdateCountText();
         UpdateFollowers(oldCount, _animalCount);
 
+        // Spawn blood particle effects when taking damage
+        if (ParticleEffectManager.Instance != null)
+        {
+            ParticleEffectManager.Instance.SpawnParticleEffect("Blood", transform.position, 1);
+        }
+
         if (_animalCount <= 0)
         {
             ClearAllFollowers();
