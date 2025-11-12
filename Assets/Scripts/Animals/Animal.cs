@@ -66,6 +66,10 @@ public class Animal : MonoBehaviour
     private bool _hasLastPathfindingResult;
     private bool _isBeingDestroyed = false;
 
+    [Header("Inventory")]
+    // Dictionary to track items: itemName -> count
+    private Dictionary<string, int> _inventory = new Dictionary<string, int>();
+
     public AnimalData AnimalData => _animalData;
     public Vector2Int GridPosition => _gridPosition;
     public bool HasDestination => _hasLastDragEndGridPosition;
@@ -75,6 +79,84 @@ public class Animal : MonoBehaviour
     {
         get => _isControllable;
         set => _isControllable = value;
+    }
+
+    /// <summary>
+    /// Gets a copy of the inventory dictionary. Returns a new dictionary to prevent external modification.
+    /// </summary>
+    public Dictionary<string, int> GetInventory()
+    {
+        return new Dictionary<string, int>(_inventory);
+    }
+
+    /// <summary>
+    /// Gets the count of a specific item in the inventory. Returns 0 if the item is not in inventory.
+    /// </summary>
+    public int GetItemCount(string itemName)
+    {
+        if (_inventory.TryGetValue(itemName, out int count))
+        {
+            return count;
+        }
+        return 0;
+    }
+
+    /// <summary>
+    /// Checks if the animal has at least one of the specified item.
+    /// </summary>
+    public bool HasItem(string itemName)
+    {
+        return GetItemCount(itemName) > 0;
+    }
+
+    /// <summary>
+    /// Adds an item to the inventory. If the item already exists, increments the count.
+    /// </summary>
+    public void AddItemToInventory(string itemName)
+    {
+        if (string.IsNullOrEmpty(itemName))
+        {
+            Debug.LogWarning($"Animal '{name}': Cannot add item with null or empty name to inventory.");
+            return;
+        }
+
+        if (_inventory.ContainsKey(itemName))
+        {
+            _inventory[itemName]++;
+        }
+        else
+        {
+            _inventory[itemName] = 1;
+        }
+
+        Debug.Log($"Animal '{name}' picked up item '{itemName}'. Inventory now has {_inventory[itemName]} of this item.");
+    }
+
+    /// <summary>
+    /// Removes one instance of an item from the inventory. Returns true if the item was removed, false if the item was not in inventory.
+    /// </summary>
+    public bool RemoveItemFromInventory(string itemName)
+    {
+        if (!_inventory.ContainsKey(itemName))
+        {
+            return false;
+        }
+
+        _inventory[itemName]--;
+        if (_inventory[itemName] <= 0)
+        {
+            _inventory.Remove(itemName);
+        }
+
+        return true;
+    }
+
+    /// <summary>
+    /// Clears all items from the inventory.
+    /// </summary>
+    public void ClearInventory()
+    {
+        _inventory.Clear();
     }
 
 
@@ -284,6 +366,14 @@ public class Animal : MonoBehaviour
         {
             if (ItemTilemapManager.Instance.HasItemAt(gridPosition))
             {
+                // Get the item name before removing it
+                string itemName = ItemTilemapManager.Instance.GetItemNameAt(gridPosition);
+                if (!string.IsNullOrEmpty(itemName))
+                {
+                    // Add item to inventory
+                    AddItemToInventory(itemName);
+                }
+                // Remove item from tilemap
                 ItemTilemapManager.Instance.RemoveItem(gridPosition);
             }
         }

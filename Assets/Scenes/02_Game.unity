@@ -774,10 +774,10 @@ Transform:
   - {fileID: 1555208136}
   - {fileID: 456767373}
   - {fileID: 1444719985}
+  - {fileID: 1102129017}
   - {fileID: 2028315360}
   - {fileID: 2116998991}
   - {fileID: 423315586}
-  - {fileID: 1102129017}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &695805212
@@ -1750,7 +1750,7 @@ MonoBehaviour:
   m_Intensity: 1
   m_LightVolumeIntensity: 1
   m_LightVolumeIntensityEnabled: 0
-  m_ApplyToSortingLayers: 00000000658814c4b3c91ee1
+  m_ApplyToSortingLayers: 00000000658814c4b3c91ee12fe028a4
   m_LightCookieSprite: {fileID: 0}
   m_DeprecatedPointLightCookieSprite: {fileID: 0}
   m_LightOrder: 0
@@ -2078,7 +2078,7 @@ MonoBehaviour:
   manualDebugFloorRoof: 0
   showSearchTree: 0
   unwalkableNodeDebugSize: 0.3
-  logPathResults: 1
+  logPathResults: 0
   maxNearestNodeDistance: 100
   scanOnStartup: 1
   fullGetNearestSearch: 0
