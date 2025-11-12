@@ -96,17 +96,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   _animalData: {fileID: 0}
   _gridPosition: {x: 0, y: 0}
-  _isControllable: 0
-  _selectionTintColor: {r: 1, g: 0, b: 0, a: 1}
-  _selectionTintStrength: 0.35
-  _pathPossibleColor: {r: 1, g: 0.92156863, b: 0.015686275, a: 1}
-  _pathImpossibleColor: {r: 1, g: 0, b: 0, a: 1}
-  _pathLineRenderer: {fileID: 1203684411907206765, guid: 81c2360689d3ae845802411f78731767, type: 3}
-  _pathLineColor: {r: 1, g: 0.92156863, b: 0.015686275, a: 1}
-  _selectedPathOpacity: 1
-  _defaultPathOpacity: 0.3
-  _dragStartThreshold: 0.5
   _moveDurationSeconds: 0.5
   _animalCount: 1
   _countText: {fileID: 6540347268615922553, guid: 81c2360689d3ae845802411f78731767, type: 3}
   _detectionRadius: 7
+  _priority: 0

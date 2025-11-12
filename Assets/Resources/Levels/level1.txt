@@ -5,16 +5,23 @@
 //   '#' = Obstacle/Wall
 //   'G' = Grass
 //   'W' = Water
-####################
-#        #         #
-#  GGGG  # WWWW    #
-#  GGGG  # WWWW    #
-#  GGGG  # WWWW    #
-#        ###       #
-#  WW   GGGGGG     #
-#  WW   GGGGGG     #
-#                  #
-####################
+#######################
+#                     #
+#                     #
+#                     #
+#                     #
+#                     #
+#                     #
+#                     #
+#                     #
+#                     #
+#                     #
+#                     #
+#                     #
+#                     #
+#                     #
+#                     #
+#######################
 ---
 // Animal Placement:
 //   Format: animalName x y [count]
@@ -23,20 +30,25 @@
 //   - y: Y coordinate (0 = bottom, increases upward)
 //   - count: Optional number of animals in this group (defaults to 1 if not specified)
 ANIMALS:
-Hedgehog 3 3 5
-Wolf 15 3
+Hedgehog 7 7 4
+Hawk 5 15
+Wolf 12 12
+Wolf 14 14
+Rabbit 8 6 2
+Rabbit 9 9 2
+Rabbit 5 5 2
 // Item Placement:
 //   Format: itemName x y
 //   - itemName: Name of the item type (must match an ItemData name in the database)
 //   - x: X coordinate (0 = left, increases to the right)
 //   - y: Y coordinate (0 = bottom, increases upward)
 ITEMS:
-Food 5 5
-Food 10 6
-Food 8 3
+Food 8 12
+Food 12 8
+Food 3 8
 // Den Placement:
 //   Format: x y
 //   - x: X coordinate (0 = left, increases to the right)
 //   - y: Y coordinate (0 = bottom, increases upward)
 DENS:
-3 3
+7 7

@@ -10,9 +10,16 @@ public class PredatorAnimal : Animal
     [Header("Predator Settings")]
     [Tooltip("Detection radius in grid cells. Only animals within this distance can be detected.")]
     [SerializeField] private int _detectionRadius = 5;
+    [Tooltip("Priority level of this predator. Higher priority predators can hunt lower priority predators. Predators with the same priority ignore each other.")]
+    [SerializeField] private int _priority = 0;
 
     private int _stallTurnsRemaining = 0;
     private Vector2Int? _wanderingDestination = null;
+
+    /// <summary>
+    /// Gets the priority level of this predator.
+    /// </summary>
+    public int Priority => _priority;
 
     public override void TakeTurn()
     {
@@ -156,6 +163,12 @@ public class PredatorAnimal : Animal
                 continue;
             }
 
+            // Check if this animal is a valid target based on priority
+            if (!IsValidTarget(other))
+            {
+                continue;
+            }
+
             Vector2Int otherPos = other.GridPosition;
             int distance = Mathf.Abs(otherPos.x - myPos.x) + Mathf.Abs(otherPos.y - myPos.y); // Manhattan distance
             
@@ -168,6 +181,32 @@ public class PredatorAnimal : Animal
         }
 
         return nearest != null ? nearest.GridPosition : (Vector2Int?)null;
+    }
+
+    /// <summary>
+    /// Determines if an animal is a valid target for this predator based on priority rules.
+    /// - Non-predator animals (prey) are always valid targets
+    /// - Predators with lower priority are valid targets
+    /// - Predators with same or higher priority are ignored
+    /// </summary>
+    private bool IsValidTarget(Animal target)
+    {
+        // Non-predator animals are always valid targets (prey)
+        if (!(target is PredatorAnimal))
+        {
+            return true;
+        }
+
+        // For predators, check priority
+        PredatorAnimal targetPredator = target as PredatorAnimal;
+        if (targetPredator == null)
+        {
+            return true; // Safety check, shouldn't happen
+        }
+
+        // Only target predators with lower priority
+        // Ignore predators with same or higher priority
+        return targetPredator.Priority < _priority;
     }
 
     private Vector2Int? ChooseWanderingDestination()
@@ -256,13 +295,19 @@ public class PredatorAnimal : Animal
                 {
                     continue;
                 }
+
+                // Check if this animal is a valid target based on priority
+                if (!IsValidTarget(other))
+                {
+                    continue;
+                }
                 
                 // Reduce the prey's animal count by one
                 other.ReduceAnimalCount();
                 
                 // Stall this predator for 2 turns
                 _stallTurnsRemaining = 2;
-                Debug.Log($"Predator '{name}' hunted '{other.name}'. Stalled for 2 turns.");
+                Debug.Log($"Predator '{name}' (priority {_priority}) hunted '{other.name}'. Stalled for 2 turns.");
                 break;
             }
         }
