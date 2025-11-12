@@ -13,7 +13,7 @@ public class Animal : MonoBehaviour
     [HideInInspector] [SerializeField] private AnimalData _animalData;
     [HideInInspector] [SerializeField] private Vector2Int _gridPosition;
 
-    private SpriteRenderer _spriteRenderer;
+    [HideInInspector] [SerializeField] protected SpriteRenderer _spriteRenderer;
     private TwoFrameAnimator _twoFrameAnimator;
 
     [Header("Movement")]
@@ -30,6 +30,17 @@ public class Animal : MonoBehaviour
     [SerializeField] private int _animalCount = 1;
     [Tooltip("Text component that displays the animal count as 'x{count}'")]
     [SerializeField] private TMP_Text _countText;
+
+    [Header("Follower System")]
+    [Tooltip("List of follower GameObjects that visually represent additional animals in the group")]
+    private List<GameObject> _followers = new List<GameObject>();
+    [Tooltip("Base delay in seconds for the first follower, increases for each subsequent follower")]
+    private const float BASE_FOLLOWER_DELAY = 0.2f;
+    [Tooltip("Delay increment per follower (0.1s)")]
+    private const float FOLLOWER_DELAY_INCREMENT = 0.15f;
+    [Tooltip("Scale multiplier for followers (0.7 = 70% of original size)")]
+    private const float FOLLOWER_SCALE = 0.7f;
+    private Coroutine _followerUpdateCoroutine;
 
     public AnimalData AnimalData => _animalData;
     public Vector2Int GridPosition => _gridPosition;
@@ -145,11 +156,14 @@ public class Animal : MonoBehaviour
             return false;
         }
 
+        int oldCount = _animalCount;
         _animalCount--;
         UpdateCountText();
+        UpdateFollowers(oldCount, _animalCount);
 
         if (_animalCount <= 0)
         {
+            ClearAllFollowers();
             Die();
             return true;
         }
@@ -166,12 +180,15 @@ public class Animal : MonoBehaviour
         {
             _animalCount = 0;
             UpdateCountText();
+            ClearAllFollowers();
             Die();
         }
         else
         {
+            int oldCount = _animalCount;
             _animalCount = count;
             UpdateCountText();
+            UpdateFollowers(oldCount, count);
         }
     }
 
@@ -182,8 +199,10 @@ public class Animal : MonoBehaviour
     {
         if (amount > 0)
         {
+            int oldCount = _animalCount;
             _animalCount += amount;
             UpdateCountText();
+            UpdateFollowers(oldCount, _animalCount);
         }
     }
 
@@ -219,6 +238,9 @@ public class Animal : MonoBehaviour
 
         // Update count text display
         UpdateCountText();
+
+        // Initialize followers based on current count
+        UpdateFollowers(0, _animalCount);
     }
 
     /// <summary>
@@ -278,6 +300,8 @@ public class Animal : MonoBehaviour
             targetWorld = new Vector3(_gridPosition.x, _gridPosition.y, transform.position.z);
         }
         StartMoveToWorldPosition(targetWorld, _moveDurationSeconds);
+        
+        // Update follower positions will be handled by the follower update coroutine
     }
 
     /// <summary>
@@ -356,6 +380,218 @@ public class Animal : MonoBehaviour
         }
     }
 
+    /// <summary>
+    /// Updates the follower count to match the animal count.
+    /// Spawns new followers if count increased, removes followers if count decreased.
+    /// </summary>
+    private void UpdateFollowers(int oldCount, int newCount)
+    {
+        int oldFollowerCount = oldCount > 1 ? oldCount - 1 : 0;
+        int newFollowerCount = newCount > 1 ? newCount - 1 : 0;
+
+        // Remove excess followers if count decreased
+        while (_followers.Count > newFollowerCount)
+        {
+            RemoveLastFollower();
+        }
+
+        // Add new followers if count increased
+        while (_followers.Count < newFollowerCount)
+        {
+            SpawnFollower();
+        }
+
+        // Start/restart the follower update coroutine if we have followers
+        if (_followers.Count > 0)
+        {
+            if (_followerUpdateCoroutine != null)
+            {
+                StopCoroutine(_followerUpdateCoroutine);
+            }
+            _followerUpdateCoroutine = StartCoroutine(UpdateFollowersCoroutine());
+        }
+        else if (_followerUpdateCoroutine != null)
+        {
+            StopCoroutine(_followerUpdateCoroutine);
+            _followerUpdateCoroutine = null;
+        }
+    }
+
+    /// <summary>
+    /// Spawns a new follower GameObject that follows this animal with a delay.
+    /// </summary>
+    private void SpawnFollower()
+    {
+        if (_animalData == null || _animalData.prefab == null)
+        {
+            Debug.LogWarning($"Animal '{name}': Cannot spawn follower - AnimalData or prefab is null.");
+            return;
+        }
+
+        // Instantiate a copy of this animal
+        GameObject followerObj = Instantiate(_animalData.prefab, transform.parent);
+        followerObj.name = $"{name}_Follower_{_followers.Count + 1}";
+
+        // Get the follower's Animal component and sprite renderer before disabling
+        Animal followerAnimal = followerObj.GetComponent<Animal>();
+        SpriteRenderer followerSpriteRenderer = null;
+        if (followerAnimal != null)
+        {
+            // Get the sprite renderer from the Animal component before disabling it
+            followerSpriteRenderer = followerAnimal._spriteRenderer;
+            followerAnimal.enabled = false;
+        }
+
+        // Also disable ControllableAnimal if it exists
+        ControllableAnimal followerControllable = followerObj.GetComponent<ControllableAnimal>();
+        if (followerControllable != null)
+        {
+            followerControllable.enabled = false;
+        }
+
+        // Disable Rigidbody2D physics simulation if it exists
+        Rigidbody2D followerRigidbody = followerObj.GetComponent<Rigidbody2D>();
+        if (followerRigidbody != null)
+        {
+            followerRigidbody.simulated = false;
+        }
+
+        // Disable count text on followers
+        TMP_Text followerCountText = followerObj.GetComponentInChildren<TMP_Text>();
+        if (followerCountText != null)
+        {
+            followerCountText.enabled = false;
+        }
+
+        // Set initial position to match the original
+        followerObj.transform.position = transform.position;
+
+        // Scale down the follower to the specified percentage of the original size
+        followerObj.transform.localScale = transform.localScale * FOLLOWER_SCALE;
+
+        // Set follower sprite sorting order to be one less than the main sprite
+        if (followerSpriteRenderer != null && _spriteRenderer != null)
+        {
+            followerSpriteRenderer.sortingOrder = _spriteRenderer.sortingOrder - 1;
+        }
+
+        _followers.Add(followerObj);
+    }
+
+    /// <summary>
+    /// Removes the last follower from the list and destroys it.
+    /// </summary>
+    private void RemoveLastFollower()
+    {
+        if (_followers.Count == 0)
+        {
+            return;
+        }
+
+        int lastIndex = _followers.Count - 1;
+        GameObject lastFollower = _followers[lastIndex];
+        _followers.RemoveAt(lastIndex);
+
+        // Safely destroy the follower (check if it still exists)
+        if (lastFollower != null)
+        {
+            Destroy(lastFollower);
+        }
+    }
+
+    /// <summary>
+    /// Clears all followers and destroys them.
+    /// </summary>
+    private void ClearAllFollowers()
+    {
+        // Stop the update coroutine
+        if (_followerUpdateCoroutine != null)
+        {
+            StopCoroutine(_followerUpdateCoroutine);
+            _followerUpdateCoroutine = null;
+        }
+
+        // Destroy all followers
+        foreach (GameObject follower in _followers)
+        {
+            if (follower != null)
+            {
+                Destroy(follower);
+            }
+        }
+        _followers.Clear();
+    }
+
+    /// <summary>
+    /// Coroutine that updates follower positions with their respective delays.
+    /// Each follower follows the original animal's position with a delay based on its index.
+    /// Uses a position history queue to track where the animal was at different times.
+    /// </summary>
+    private IEnumerator UpdateFollowersCoroutine()
+    {
+        // Store position history with timestamps for each follower
+        List<Queue<PositionTime>> positionHistories = new List<Queue<PositionTime>>();
+        float[] delays = new float[_followers.Count];
+
+        // Initialize delays and position histories: first follower 0.5s, second 0.6s, etc.
+        for (int i = 0; i < _followers.Count; i++)
+        {
+            delays[i] = BASE_FOLLOWER_DELAY + (i * FOLLOWER_DELAY_INCREMENT);
+            positionHistories.Add(new Queue<PositionTime>());
+            // Initialize with current position
+            positionHistories[i].Enqueue(new PositionTime { position = transform.position, time = Time.time });
+        }
+
+        while (_followers.Count > 0 && this != null)
+        {
+            Vector3 currentPosition = transform.position;
+            float currentTime = Time.time;
+
+            // Record current position for all followers
+            for (int i = 0; i < _followers.Count; i++)
+            {
+                if (_followers[i] == null)
+                {
+                    continue;
+                }
+
+                // Add current position to history
+                positionHistories[i].Enqueue(new PositionTime { position = currentPosition, time = currentTime });
+
+                // Remove old positions that are beyond the delay window
+                float targetTime = currentTime - delays[i];
+                while (positionHistories[i].Count > 0 && positionHistories[i].Peek().time < targetTime)
+                {
+                    positionHistories[i].Dequeue();
+                }
+
+                // Get the target position (where the animal was at the delay time)
+                if (positionHistories[i].Count > 0)
+                {
+                    PositionTime target = positionHistories[i].Peek();
+                    _followers[i].transform.position = target.position;
+                }
+                else
+                {
+                    // Fallback: use current position if no history
+                    _followers[i].transform.position = currentPosition;
+                }
+            }
+
+            // Wait a frame before checking again
+            yield return null;
+        }
+    }
+
+    /// <summary>
+    /// Helper struct to store position with timestamp for follower following.
+    /// </summary>
+    private struct PositionTime
+    {
+        public Vector3 position;
+        public float time;
+    }
+
     private void OnDestroy()
     {
         // Stop any running coroutines
@@ -364,6 +600,15 @@ public class Animal : MonoBehaviour
             StopCoroutine(_positionLerpCoroutine);
             _positionLerpCoroutine = null;
         }
+
+        if (_followerUpdateCoroutine != null)
+        {
+            StopCoroutine(_followerUpdateCoroutine);
+            _followerUpdateCoroutine = null;
+        }
+
+        // Clear all followers
+        ClearAllFollowers();
 
         // Clean up AnimalManager references
         if (AnimalManager.Instance != null)

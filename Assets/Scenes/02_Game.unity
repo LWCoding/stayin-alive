@@ -272,7 +272,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 6428b420f6185da49b196c0d44915f0d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _edgeScrollZone: 200
+  _edgeScrollZone: 0
   _minScrollSpeed: 2
   _maxScrollSpeed: 10
   _gridMargin: 2
@@ -1796,7 +1796,7 @@ Grid:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 915587715}
   m_Enabled: 1
-  m_CellSize: {x: 0.99, y: 0.99, z: 0}
+  m_CellSize: {x: 0.98, y: 0.98, z: 0}
   m_CellGap: {x: 0, y: 0, z: 0}
   m_CellLayout: 0
   m_CellSwizzle: 0

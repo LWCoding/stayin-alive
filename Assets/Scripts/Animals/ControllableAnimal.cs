@@ -14,7 +14,6 @@ public class ControllableAnimal : Animal
     [SerializeField] private Color _selectionTintColor = new Color(1f, 0.92f, 0.7f, 1f);
     [Range(0f, 1f)]
     [SerializeField] private float _selectionTintStrength = 0.35f;
-    private SpriteRenderer _spriteRenderer;
     private Color _originalSpriteColor;
     private bool _isSelected;
 

@@ -6,9 +6,7 @@
 //   'G' = Grass
 //   'W' = Water
 #######################
-#                     #
 #   GGGGGG            #
-#     GGGGGG          #
 #    GGGGGG           #
 #             WWWWW   #
 #            WWWWWW   #
@@ -17,10 +15,8 @@
 #                     #
 #         GGGGG       #
 #           GGGGGG    #
-#           GGGGG     #
 #        GGGGGG       #
 #        WWWWWW       #
-#           WGWGWGWGWGWGWGWGWGWGWGWGWGWG       #
 #######################
 ---
 // Animal Placement:
