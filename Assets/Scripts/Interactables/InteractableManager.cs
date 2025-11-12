@@ -168,5 +168,31 @@ public class InteractableManager : Singleton<InteractableManager>
             _dens.Remove(den);
         }
     }
+    
+    /// <summary>
+    /// Registers any existing controllable animals that are currently on dens.
+    /// This is a safety check to ensure animals that spawn on dens are properly registered.
+    /// </summary>
+    public void RegisterAnimalsOnDens()
+    {
+        if (AnimalManager.Instance == null)
+        {
+            return;
+        }
+        
+        List<Animal> animals = AnimalManager.Instance.GetAllAnimals();
+        foreach (Animal animal in animals)
+        {
+            if (animal != null && animal.IsControllable)
+            {
+                Den den = GetDenAtPosition(animal.GridPosition);
+                if (den != null && !den.IsAnimalInDen(animal))
+                {
+                    den.OnAnimalEnter(animal);
+                    animal.SetCurrentDen(den);
+                }
+            }
+        }
+    }
 }
 

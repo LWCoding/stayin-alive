@@ -77,6 +77,14 @@ public class Animal : MonoBehaviour
     // Track the den this animal is currently in (if any)
     private Den _currentDen = null;
 
+    /// <summary>
+    /// Sets the current den this animal is in. Used internally and by InteractableManager.
+    /// </summary>
+    internal void SetCurrentDen(Den den)
+    {
+        _currentDen = den;
+    }
+
     public AnimalData AnimalData => _animalData;
     public Vector2Int GridPosition => _gridPosition;
     public bool HasDestination => _hasLastDragEndGridPosition;

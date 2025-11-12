@@ -8,7 +8,7 @@ using UnityEngine;
 public class Den : MonoBehaviour
 {
     [Header("Den Settings")]
-    [SerializeField] private Vector2Int _gridPosition;
+    private Vector2Int _gridPosition;
     
     // Track which animals are currently in this den
     private HashSet<Animal> _animalsInDen = new HashSet<Animal>();

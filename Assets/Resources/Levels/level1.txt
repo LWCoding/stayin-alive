@@ -39,4 +39,4 @@ Food 8 3
 //   - x: X coordinate (0 = left, increases to the right)
 //   - y: Y coordinate (0 = bottom, increases upward)
 DENS:
-2 2
+3 3

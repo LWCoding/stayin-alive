@@ -92,6 +92,16 @@ public class LevelLoader : MonoBehaviour
             }
         }
 
+        // Spawn dens using InteractableManager (before animals so animals can register on spawn)
+        if (InteractableManager.Instance != null)
+        {
+            InteractableManager.Instance.SpawnDensFromLevelData(levelData.Dens);
+        }
+        else
+        {
+            Debug.LogWarning("LevelLoader: InteractableManager instance not found! Dens will not be spawned.");
+        }
+
         // Spawn animals using AnimalManager
         if (AnimalManager.Instance != null)
         {
@@ -112,14 +122,10 @@ public class LevelLoader : MonoBehaviour
             Debug.LogWarning("LevelLoader: ItemTilemapManager instance not found! Items will not be spawned.");
         }
 
-        // Spawn dens using InteractableManager
-        if (InteractableManager.Instance != null)
+        // Register any animals that are already on dens (safety check)
+        if (InteractableManager.Instance != null && AnimalManager.Instance != null)
         {
-            InteractableManager.Instance.SpawnDensFromLevelData(levelData.Dens);
-        }
-        else
-        {
-            Debug.LogWarning("LevelLoader: InteractableManager instance not found! Dens will not be spawned.");
+            InteractableManager.Instance.RegisterAnimalsOnDens();
         }
 
         // Initialize fog of war to cover entire level with black tiles
