@@ -183,13 +183,13 @@ public class InteractableManager : Singleton<InteractableManager>
         List<Animal> animals = AnimalManager.Instance.GetAllAnimals();
         foreach (Animal animal in animals)
         {
-            if (animal != null && animal.IsControllable)
+            if (animal != null && animal.IsControllable && animal is ControllableAnimal controllable)
             {
                 Den den = GetDenAtPosition(animal.GridPosition);
                 if (den != null && !den.IsAnimalInDen(animal))
                 {
                     den.OnAnimalEnter(animal);
-                    animal.SetCurrentDen(den);
+                    controllable.SetCurrentDen(den);
                 }
             }
         }

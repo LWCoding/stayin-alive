@@ -221,23 +221,23 @@ public class AnimalManager : Singleton<AnimalManager>
     {
         if (_currentlySelectedAnimal == animal)
         {
-            if (_currentlySelectedAnimal != null)
+            if (_currentlySelectedAnimal is ControllableAnimal controllable)
             {
-                _currentlySelectedAnimal.SetSelectionState(true);
+                controllable.SetSelectionState(true);
             }
             return;
         }
 
-        if (_currentlySelectedAnimal != null)
+        if (_currentlySelectedAnimal is ControllableAnimal previousControllable)
         {
-            _currentlySelectedAnimal.SetSelectionState(false);
+            previousControllable.SetSelectionState(false);
         }
 
         _currentlySelectedAnimal = animal;
 
-        if (_currentlySelectedAnimal != null)
+        if (_currentlySelectedAnimal is ControllableAnimal newControllable)
         {
-            _currentlySelectedAnimal.SetSelectionState(true);
+            newControllable.SetSelectionState(true);
         }
     }
 
@@ -248,7 +248,10 @@ public class AnimalManager : Singleton<AnimalManager>
     {
         if (animal != null && animal == _currentlySelectedAnimal)
         {
-            _currentlySelectedAnimal.SetSelectionState(false);
+            if (_currentlySelectedAnimal is ControllableAnimal controllable)
+            {
+                controllable.SetSelectionState(false);
+            }
             _currentlySelectedAnimal = null;
         }
     }
@@ -258,11 +261,11 @@ public class AnimalManager : Singleton<AnimalManager>
     /// </summary>
     public void ClearSelection()
     {
-        if (_currentlySelectedAnimal != null)
+        if (_currentlySelectedAnimal is ControllableAnimal controllable)
         {
-            _currentlySelectedAnimal.SetSelectionState(false);
-            _currentlySelectedAnimal = null;
+            controllable.SetSelectionState(false);
         }
+        _currentlySelectedAnimal = null;
     }
 
     /// <summary>

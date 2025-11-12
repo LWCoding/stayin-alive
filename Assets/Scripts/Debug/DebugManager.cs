@@ -22,7 +22,7 @@ public class DebugManager : Singleton<DebugManager>
 		}
 	}
 
-	private void OnDestroy()
+	private new void OnDestroy()
 	{
 		// Ensure time scale is reset to normal when DebugManager is destroyed
 		Time.timeScale = NORMAL_TIME_SCALE;

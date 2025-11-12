@@ -66,7 +66,7 @@ public class PredatorAnimal : Animal
     /// <summary>
     /// Override to allow predators to move onto dens.
     /// </summary>
-    protected new void MoveOneStepTowards(Vector2Int destinationGrid)
+    protected void MoveOneStepTowards(Vector2Int destinationGrid)
     {
         if (EnvironmentManager.Instance == null || AstarPath.active == null)
         {
