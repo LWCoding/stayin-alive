@@ -6,8 +6,18 @@ using UnityEngine;
 /// </summary>
 public class PredatorAnimal : Animal
 {
+    private int _stallTurnsRemaining = 0;
+
     public override void TakeTurn()
     {
+        // If stalled, skip this turn and decrement stall counter
+        if (_stallTurnsRemaining > 0)
+        {
+            _stallTurnsRemaining--;
+            Debug.Log($"Predator '{name}' is stalled. {_stallTurnsRemaining} turns remaining.");
+            return;
+        }
+
         Vector2Int? preyGrid = FindNearestPreyGrid();
         if (preyGrid.HasValue)
         {
@@ -67,11 +77,12 @@ public class PredatorAnimal : Animal
             }
             if (other.GridPosition == GridPosition)
             {
-                // Consume the prey: destroy it
-                if (other.gameObject != null)
-                {
-                    Object.Destroy(other.gameObject);
-                }
+                // Reduce the prey's animal count by one
+                other.ReduceAnimalCount();
+                
+                // Stall this predator for 2 turns
+                _stallTurnsRemaining = 2;
+                Debug.Log($"Predator '{name}' hunted '{other.name}'. Stalled for 2 turns.");
                 break;
             }
         }

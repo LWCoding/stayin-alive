@@ -107,8 +107,9 @@ public class AnimalManager : Singleton<AnimalManager>
     /// </summary>
     /// <param name="animalName">Name of the animal type to spawn</param>
     /// <param name="gridPosition">Grid position to spawn at</param>
+    /// <param name="count">Number of animals in this group (defaults to 1)</param>
     /// <returns>The spawned Animal component, or null if animal data or prefab is not found</returns>
-    public Animal SpawnAnimal(string animalName, Vector2Int gridPosition)
+    public Animal SpawnAnimal(string animalName, Vector2Int gridPosition, int count = 1)
     {
         AnimalData animalData = GetAnimalData(animalName);
         if (animalData == null)
@@ -142,6 +143,10 @@ public class AnimalManager : Singleton<AnimalManager>
 
         // Initialize the animal with its data
         animal.Initialize(animalData, gridPosition);
+        
+        // Set the animal count
+        animal.SetAnimalCount(count);
+        
         _animals.Add(animal);
 
         return animal;
@@ -150,16 +155,16 @@ public class AnimalManager : Singleton<AnimalManager>
     /// <summary>
     /// Spawns multiple animals from level data.
     /// </summary>
-    public void SpawnAnimalsFromLevelData(List<(string animalName, int x, int y)> animals)
+    public void SpawnAnimalsFromLevelData(List<(string animalName, int x, int y, int count)> animals)
     {
         ClearAllAnimals();
 
-        foreach (var (animalName, x, y) in animals)
+        foreach (var (animalName, x, y, count) in animals)
         {
             Vector2Int gridPos = new Vector2Int(x, y);
             if (EnvironmentManager.Instance != null && EnvironmentManager.Instance.IsValidPosition(gridPos))
             {
-                SpawnAnimal(animalName, gridPos);
+                SpawnAnimal(animalName, gridPos, count);
             }
             else
             {

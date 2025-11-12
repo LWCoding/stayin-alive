@@ -15,7 +15,8 @@ using Pathfinding;
 ///   - 'G' or 'g' = Grass
 ///   - '#' = Obstacle
 /// - Use "---" as separator between tilemap and animal information
-/// - After separator, use "ANIMALS:" header followed by animal entries as: animalName x y (one per line)
+/// - After separator, use "ANIMALS:" header followed by animal entries as: animalName x y [count] (one per line)
+///   - count is optional and defaults to 1 if not specified
 /// - Use "ITEMS:" header followed by item entries as: itemName x y (one per line)
 /// </summary>
 public class LevelLoader : MonoBehaviour
@@ -273,8 +274,9 @@ public class LevelLoader : MonoBehaviour
                 // Parse animal lines if in animals section
                 if (inAnimalsSection)
                 {
-                    // Parse animal line: animalName x y
+                    // Parse animal line: animalName x y [count]
                     // Note: y-coordinate from file needs to be inverted to match grid coordinates
+                    // count is optional and defaults to 1
                     string[] parts = line.Split(new[] { ' ', '\t' }, System.StringSplitOptions.RemoveEmptyEntries);
                     if (parts.Length >= 3)
                     {
@@ -284,7 +286,19 @@ public class LevelLoader : MonoBehaviour
                         {
                             // Convert file y-coordinate to grid y-coordinate (invert)
                             int gridY = tileHeight - 1 - fileY;
-                            levelData.Animals.Add((animalName, x, gridY));
+                            
+                            // Parse optional count parameter (defaults to 1)
+                            int count = 1;
+                            if (parts.Length >= 4)
+                            {
+                                if (!int.TryParse(parts[3], out count) || count < 1)
+                                {
+                                    Debug.LogWarning($"LevelLoader: Invalid count value '{parts[3]}' for animal '{animalName}' at ({x}, {fileY}). Using default count of 1.");
+                                    count = 1;
+                                }
+                            }
+                            
+                            levelData.Animals.Add((animalName, x, gridY, count));
                         }
                         else
                         {
@@ -317,8 +331,9 @@ public class LevelLoader : MonoBehaviour
                 // Backward compatibility: if no headers found, treat all lines as animals
                 else if (!foundAnimalsHeader && !foundItemsHeader)
                 {
-                    // Parse animal line: animalName x y
+                    // Parse animal line: animalName x y [count]
                     // Note: y-coordinate from file needs to be inverted to match grid coordinates
+                    // count is optional and defaults to 1
                     string[] parts = line.Split(new[] { ' ', '\t' }, System.StringSplitOptions.RemoveEmptyEntries);
                     if (parts.Length >= 3)
                     {
@@ -328,7 +343,19 @@ public class LevelLoader : MonoBehaviour
                         {
                             // Convert file y-coordinate to grid y-coordinate (invert)
                             int gridY = tileHeight - 1 - fileY;
-                            levelData.Animals.Add((animalName, x, gridY));
+                            
+                            // Parse optional count parameter (defaults to 1)
+                            int count = 1;
+                            if (parts.Length >= 4)
+                            {
+                                if (!int.TryParse(parts[3], out count) || count < 1)
+                                {
+                                    Debug.LogWarning($"LevelLoader: Invalid count value '{parts[3]}' for animal '{animalName}' at ({x}, {fileY}). Using default count of 1.");
+                                    count = 1;
+                                }
+                            }
+                            
+                            levelData.Animals.Add((animalName, x, gridY, count));
                         }
                         else
                         {

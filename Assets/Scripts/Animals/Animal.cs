@@ -70,6 +70,10 @@ public class Animal : MonoBehaviour
     // Dictionary to track items: itemName -> count
     private Dictionary<string, int> _inventory = new Dictionary<string, int>();
 
+    [Header("Animal Grouping")]
+    [Tooltip("Number of animals in this group (acts as hitpoints). When reduced to 0, this animal is destroyed.")]
+    [SerializeField] private int _animalCount = 1;
+
     public AnimalData AnimalData => _animalData;
     public Vector2Int GridPosition => _gridPosition;
     public bool HasDestination => _hasLastDragEndGridPosition;
@@ -80,6 +84,7 @@ public class Animal : MonoBehaviour
         get => _isControllable;
         set => _isControllable = value;
     }
+    public int AnimalCount => _animalCount;
 
     /// <summary>
     /// Gets a copy of the inventory dictionary. Returns a new dictionary to prevent external modification.
@@ -157,6 +162,44 @@ public class Animal : MonoBehaviour
     public void ClearInventory()
     {
         _inventory.Clear();
+    }
+
+    /// <summary>
+    /// Reduces the animal count by one. If the count reaches zero, destroys this animal.
+    /// </summary>
+    /// <returns>True if the animal was destroyed, false otherwise.</returns>
+    public bool ReduceAnimalCount()
+    {
+        if (_animalCount <= 0)
+        {
+            return false;
+        }
+
+        _animalCount--;
+
+        if (_animalCount <= 0)
+        {
+            Die();
+            return true;
+        }
+
+        return false;
+    }
+
+    /// <summary>
+    /// Sets the animal count. If set to zero or below, destroys this animal.
+    /// </summary>
+    public void SetAnimalCount(int count)
+    {
+        if (count <= 0)
+        {
+            _animalCount = 0;
+            Die();
+        }
+        else
+        {
+            _animalCount = count;
+        }
     }
 
 
@@ -523,8 +566,6 @@ public class Animal : MonoBehaviour
             _lineRenderer.SetPosition(0, startPos);
             _lineRenderer.SetPosition(1, destinationWorldPos);
         }
-
-        Debug.Log($"Animal '{name}' path to {destinationGridPos} is {(pathPossible ? "possible" : "not possible")}.");
 
         StopDragging();
 
