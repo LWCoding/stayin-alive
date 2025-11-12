@@ -1,8 +1,6 @@
 using System.Collections.Generic;
 using UnityEngine;
-using Pathfinding;
 using UnityEngine.UI;
-using System.Collections;
 
 /// <summary>
 /// Manages turn-based time progression. Automatically advances time every X seconds.
