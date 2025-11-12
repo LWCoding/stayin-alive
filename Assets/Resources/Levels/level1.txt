@@ -24,3 +24,12 @@
 ANIMALS:
 Hedgehog 3 3
 Hawk 15 3
+// Item Placement:
+//   Format: itemName x y
+//   - itemName: Name of the item type (must match an ItemData name in the database)
+//   - x: X coordinate (0 = left, increases to the right)
+//   - y: Y coordinate (0 = bottom, increases upward)
+ITEMS:
+Food 5 5
+Food 10 6
+Food 8 3

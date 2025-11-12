@@ -279,6 +279,15 @@ public class Animal : MonoBehaviour
         }
         StartMoveToWorldPosition(targetWorld, _moveDurationSeconds);
         
+        // Check for items at this position and pick them up if this is a controllable animal
+        if (_isControllable && ItemTilemapManager.Instance != null)
+        {
+            if (ItemTilemapManager.Instance.HasItemAt(gridPosition))
+            {
+                ItemTilemapManager.Instance.RemoveItem(gridPosition);
+            }
+        }
+        
         // Refresh path line if we have a valid destination (path start has changed)
         TryRequestAndDrawPathFromState();
     }

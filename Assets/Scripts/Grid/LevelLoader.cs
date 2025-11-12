@@ -16,6 +16,7 @@ using Pathfinding;
 ///   - '#' = Obstacle
 /// - Use "---" as separator between tilemap and animal information
 /// - After separator, use "ANIMALS:" header followed by animal entries as: animalName x y (one per line)
+/// - Use "ITEMS:" header followed by item entries as: itemName x y (one per line)
 /// </summary>
 public class LevelLoader : MonoBehaviour
 {
@@ -99,6 +100,16 @@ public class LevelLoader : MonoBehaviour
             Debug.LogWarning("LevelLoader: AnimalManager instance not found! Animals will not be spawned.");
         }
 
+        // Spawn items using ItemTilemapManager
+        if (ItemTilemapManager.Instance != null)
+        {
+            ItemTilemapManager.Instance.PlaceItemsFromLevelData(levelData.Items);
+        }
+        else
+        {
+            Debug.LogWarning("LevelLoader: ItemTilemapManager instance not found! Items will not be spawned.");
+        }
+
         // Initialize fog of war to cover entire level with black tiles
         // This must happen after level tiles are loaded to ensure fog overlaps on top
         if (FogOfWarManager.Instance != null)
@@ -111,7 +122,7 @@ public class LevelLoader : MonoBehaviour
         // Force-refresh A* Pathfinding graph and sync walkability with EnvironmentManager
         RefreshAStarGraphs();
 
-        Debug.Log($"LevelLoader: Successfully loaded level '{levelFileName}' with {levelData.Tiles.Count} tiles and {levelData.Animals.Count} animals");
+        Debug.Log($"LevelLoader: Successfully loaded level '{levelFileName}' with {levelData.Tiles.Count} tiles, {levelData.Animals.Count} animals, and {levelData.Items.Count} items");
     }
 
     /// <summary>
@@ -225,11 +236,13 @@ public class LevelLoader : MonoBehaviour
         levelData.Width = maxWidth;
         levelData.Height = tileHeight;
 
-        // Parse animals section (after separator)
+        // Parse animals and items sections (after separator)
         if (separatorLine >= 0)
         {
             bool inAnimalsSection = false;
+            bool inItemsSection = false;
             bool foundAnimalsHeader = false;
+            bool foundItemsHeader = false;
             
             for (int i = separatorLine + 1; i < lines.Length; i++)
             {
@@ -243,14 +256,66 @@ public class LevelLoader : MonoBehaviour
                 if (line.ToUpper().StartsWith("ANIMALS:"))
                 {
                     inAnimalsSection = true;
+                    inItemsSection = false;
                     foundAnimalsHeader = true;
                     continue;
                 }
 
-                // Parse animal lines if:
-                // 1. We've seen ANIMALS: header (inAnimalsSection is true), OR
-                // 2. We haven't found ANIMALS: header yet (backward compatibility - parse all data after separator)
-                if (inAnimalsSection || !foundAnimalsHeader)
+                // Check for ITEMS: header
+                if (line.ToUpper().StartsWith("ITEMS:"))
+                {
+                    inItemsSection = true;
+                    inAnimalsSection = false;
+                    foundItemsHeader = true;
+                    continue;
+                }
+
+                // Parse animal lines if in animals section
+                if (inAnimalsSection)
+                {
+                    // Parse animal line: animalName x y
+                    // Note: y-coordinate from file needs to be inverted to match grid coordinates
+                    string[] parts = line.Split(new[] { ' ', '\t' }, System.StringSplitOptions.RemoveEmptyEntries);
+                    if (parts.Length >= 3)
+                    {
+                        string animalName = parts[0];
+                        if (int.TryParse(parts[1], out int x) &&
+                            int.TryParse(parts[2], out int fileY))
+                        {
+                            // Convert file y-coordinate to grid y-coordinate (invert)
+                            int gridY = tileHeight - 1 - fileY;
+                            levelData.Animals.Add((animalName, x, gridY));
+                        }
+                        else
+                        {
+                            Debug.LogWarning($"LevelLoader: Could not parse animal line: {line}");
+                        }
+                    }
+                }
+                // Parse item lines if in items section
+                else if (inItemsSection)
+                {
+                    // Parse item line: itemName x y
+                    // Note: y-coordinate from file needs to be inverted to match grid coordinates
+                    string[] parts = line.Split(new[] { ' ', '\t' }, System.StringSplitOptions.RemoveEmptyEntries);
+                    if (parts.Length >= 3)
+                    {
+                        string itemName = parts[0];
+                        if (int.TryParse(parts[1], out int x) &&
+                            int.TryParse(parts[2], out int fileY))
+                        {
+                            // Convert file y-coordinate to grid y-coordinate (invert)
+                            int gridY = tileHeight - 1 - fileY;
+                            levelData.Items.Add((itemName, x, gridY));
+                        }
+                        else
+                        {
+                            Debug.LogWarning($"LevelLoader: Could not parse item line: {line}");
+                        }
+                    }
+                }
+                // Backward compatibility: if no headers found, treat all lines as animals
+                else if (!foundAnimalsHeader && !foundItemsHeader)
                 {
                     // Parse animal line: animalName x y
                     // Note: y-coordinate from file needs to be inverted to match grid coordinates
@@ -274,7 +339,7 @@ public class LevelLoader : MonoBehaviour
             }
         }
 
-        Debug.Log($"LevelLoader: Loaded level with {levelData.Tiles.Count} tiles, {levelData.Animals.Count} animals, size: {levelData.Width}x{levelData.Height}");
+        Debug.Log($"LevelLoader: Loaded level with {levelData.Tiles.Count} tiles, {levelData.Animals.Count} animals, {levelData.Items.Count} items, size: {levelData.Width}x{levelData.Height}");
         return levelData;
     }
 
