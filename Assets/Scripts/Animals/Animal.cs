@@ -73,6 +73,8 @@ public class Animal : MonoBehaviour
     [Header("Animal Grouping")]
     [Tooltip("Number of animals in this group (acts as hitpoints). When reduced to 0, this animal is destroyed.")]
     [SerializeField] private int _animalCount = 1;
+    [Tooltip("Text component that displays the animal count as 'x{count}'")]
+    [SerializeField] private TMP_Text _countText;
 
     // Track the den this animal is currently in (if any)
     private Den _currentDen = null;
@@ -202,6 +204,7 @@ public class Animal : MonoBehaviour
         }
 
         _animalCount--;
+        UpdateCountText();
 
         if (_animalCount <= 0)
         {
@@ -220,11 +223,13 @@ public class Animal : MonoBehaviour
         if (count <= 0)
         {
             _animalCount = 0;
+            UpdateCountText();
             Die();
         }
         else
         {
             _animalCount = count;
+            UpdateCountText();
         }
     }
     
@@ -236,6 +241,7 @@ public class Animal : MonoBehaviour
         if (amount > 0)
         {
             _animalCount += amount;
+            UpdateCountText();
         }
     }
 
@@ -381,6 +387,9 @@ public class Animal : MonoBehaviour
         SetSelectionState(false);
         
         UpdateWorldPosition();
+        
+        // Update count text display
+        UpdateCountText();
         
         // Handle den entry if animal spawns on a den (for controllable animals)
         if (_isControllable && InteractableManager.Instance != null)
@@ -991,6 +1000,17 @@ public class Animal : MonoBehaviour
         }
 
         return axisPoints;
+    }
+
+    /// <summary>
+    /// Updates the count text display to show "x{count}" format.
+    /// </summary>
+    private void UpdateCountText()
+    {
+        if (_countText != null)
+        {
+            _countText.text = $"x{_animalCount}";
+        }
     }
 
     private void OnDestroy()
