@@ -13,7 +13,7 @@ public class TimeManager : Singleton<TimeManager>
 	[SerializeField] private float _turnInterval = 3f;
 
 	[Header("UI")]
-	[Tooltip("Progress bar Image that shows time remaining. Should scale from 1 (3 seconds) to 0 (0 seconds).")]
+	[Tooltip("Progress bar Image that shows time remaining. Should scale from 1 (at turnInterval) to 0 (at 0 seconds).")]
 	[SerializeField] private Image _progressBarImage;
 
 	private float _timeUntilNextTurn;
@@ -52,15 +52,15 @@ public class TimeManager : Singleton<TimeManager>
 			return;
 		}
 
-		// Calculate scale: 1 when 3 seconds remaining, 0 when 0 seconds remaining
-		// Only show progress bar in the last 3 seconds
+		// Calculate scale: 1 when _turnInterval seconds remaining, 0 when 0 seconds remaining
+		// Show progress bar for the full turn interval
 		float timeRemaining = _timeUntilNextTurn;
 		float scale = 0f;
 
-		if (timeRemaining <= 3f)
+		if (timeRemaining <= _turnInterval)
 		{
-			// Scale from 1 (at 3 seconds) to 0 (at 0 seconds)
-			scale = Mathf.Clamp01(timeRemaining / 3f);
+			// Scale from 1 (at _turnInterval seconds) to 0 (at 0 seconds)
+			scale = Mathf.Clamp01(timeRemaining / _turnInterval);
 		}
 
 		// Update the Image's scale (using localScale on the RectTransform)
