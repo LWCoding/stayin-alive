@@ -6,17 +6,17 @@
 //   'G' = Grass
 //   'W' = Water
 #######################
-#   GGGGGG            #
-#    GGGGGG           #
-#             WWWWW   #
-#            WWWWWW   #
-#             WWW     #
-#  WW                 #
-#                     #
-#         GGGGG       #
-#           GGGGGG    #
-#        GGGGGG       #
-#        WWWWWW       #
+#GGGGGGGGGGGGGGGGGGGGG#
+#GGGGGGGGGGGGGGGGGGGGG#
+#GGGGGGGGGGGGWWWWWWGGG#
+#GGGGGGGGWWWWWWWWWWWGG#
+#GGGGGGGGGGWWWWWWWWGGG#
+#GGGGGGGGGGGGGWWWWWGGG#
+#GGGGGGGGGGGGGGGGGGGGG#
+#GGGGGGGGGGGGGGGGGGGGG#
+#GGGGGGGGGGGGGGGGGGGGG#
+#GGGGGGWWWWWWGGGGGGGGG#
+#GGGGGGGGWWWWWWGGGGGGG#
 #######################
 ---
 // Animal Placement:
@@ -27,9 +27,9 @@
 //   - count: Optional number of animals in this group (defaults to 1 if not specified)
 ANIMALS:
 Hedgehog 10 7 4
-Hawk 5 15
-Wolf 15 12
-Wolf 14 14
+Hawk 2 10
+Wolf 16 11
+Wolf 17 11
 Rabbit 8 6 2
 Rabbit 11 9 2
 Rabbit 6 6 2
@@ -40,9 +40,9 @@ Rabbit 5 5 2
 //   - x: X coordinate (0 = left, increases to the right)
 //   - y: Y coordinate (0 = bottom, increases upward)
 ITEMS:
-Food 8 12
-Food 13 8
-Food 3 8
+Food 14 11
+Food 10 8
+Food 3 3
 // Den Placement:
 //   Format: x y
 //   - x: X coordinate (0 = left, increases to the right)

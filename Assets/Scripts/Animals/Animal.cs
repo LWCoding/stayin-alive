@@ -35,7 +35,7 @@ public class Animal : MonoBehaviour
     [Tooltip("List of follower GameObjects that visually represent additional animals in the group")]
     private List<GameObject> _followers = new List<GameObject>();
     [Tooltip("Base delay in seconds for the first follower, increases for each subsequent follower")]
-    private const float BASE_FOLLOWER_DELAY = 0.2f;
+    private const float BASE_FOLLOWER_DELAY = 0.3f;
     [Tooltip("Delay increment per follower (0.1s)")]
     private const float FOLLOWER_DELAY_INCREMENT = 0.15f;
     [Tooltip("Scale multiplier for followers (0.7 = 70% of original size)")]
@@ -371,12 +371,20 @@ public class Animal : MonoBehaviour
 
     /// <summary>
     /// Updates the count text display to show "x{count}" format.
+    /// Only displays text when there is more than one animal (hides for single animal).
     /// </summary>
     private void UpdateCountText()
     {
         if (_countText != null)
         {
-            _countText.text = $"x{_animalCount}";
+            if (_animalCount > 1)
+            {
+                _countText.text = $"x{_animalCount}";
+            }
+            else
+            {
+                _countText.text = "";
+            }
         }
     }
 
