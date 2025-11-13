@@ -18,6 +18,7 @@ public class Animal : MonoBehaviour
     [HideInInspector] [SerializeField] protected SpriteRenderer _spriteRenderer;
     private TwoFrameAnimator _twoFrameAnimator;
     private Coroutine _positionLerpCoroutine;
+    private bool _areVisualsVisible = true;
 
     [Header("Inventory")]
     // Dictionary to track items: itemName -> count
@@ -56,6 +57,56 @@ public class Animal : MonoBehaviour
     public Dictionary<string, int> GetInventory()
     {
         return new Dictionary<string, int>(_inventory);
+    }
+
+    /// <summary>
+    /// Sets the visibility of this animal's primary visuals (sprite renderer and count text),
+    /// along with any follower sprites.
+    /// </summary>
+    public void SetVisualVisibility(bool isVisible)
+    {
+        _areVisualsVisible = isVisible;
+
+        if (_spriteRenderer != null)
+        {
+            _spriteRenderer.enabled = isVisible;
+        }
+
+        if (_countText != null)
+        {
+            _countText.enabled = isVisible;
+        }
+
+        // Update follower sprites as well
+        for (int i = 0; i < _followers.Count; i++)
+        {
+            GameObject follower = _followers[i];
+            if (follower == null)
+            {
+                continue;
+            }
+
+            ApplyVisibilityToFollower(follower, isVisible);
+        }
+    }
+
+    private void ApplyVisibilityToFollower(GameObject follower, bool isVisible)
+    {
+        if (follower == null)
+        {
+            return;
+        }
+
+        SpriteRenderer followerSpriteRenderer = follower.GetComponent<SpriteRenderer>();
+        if (followerSpriteRenderer == null)
+        {
+            followerSpriteRenderer = follower.GetComponentInChildren<SpriteRenderer>();
+        }
+
+        if (followerSpriteRenderer != null)
+        {
+            followerSpriteRenderer.enabled = isVisible;
+        }
     }
 
     /// <summary>
@@ -540,6 +591,8 @@ public class Animal : MonoBehaviour
         {
             followerSpriteRenderer.sortingOrder = _spriteRenderer.sortingOrder + 1;
         }
+
+        ApplyVisibilityToFollower(followerObj, _areVisualsVisible);
 
         _followers.Add(followerObj);
     }

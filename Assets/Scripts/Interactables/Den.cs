@@ -11,6 +11,11 @@ public class Den : MonoBehaviour
     [Header("Den Settings")]
     private Vector2Int _gridPosition;
     
+    [Header("Visuals")]
+    [SerializeField] private SpriteRenderer _spriteRenderer;
+    [SerializeField] private Sprite _unoccupiedSprite;
+    [SerializeField] private Sprite _occupiedSprite;
+    
     // Track which animals are currently in this den
     private HashSet<Animal> _animalsInDen = new HashSet<Animal>();
     
@@ -18,6 +23,14 @@ public class Den : MonoBehaviour
     private Coroutine _timeProgressionCoroutine;
     
     public Vector2Int GridPosition => _gridPosition;
+    
+    private void Awake()
+    {
+        if (_spriteRenderer == null)
+        {
+            _spriteRenderer = GetComponent<SpriteRenderer>();
+        }
+    }
     
     /// <summary>
     /// Initializes the den at the specified grid position.
@@ -36,6 +49,8 @@ public class Den : MonoBehaviour
         {
             transform.position = new Vector3(_gridPosition.x, _gridPosition.y, 0);
         }
+        
+        UpdateDenVisualState();
     }
     
     /// <summary>
@@ -56,6 +71,8 @@ public class Den : MonoBehaviour
             _animalsInDen.Add(animal);
             Debug.Log($"Animal '{animal.name}' entered den at ({_gridPosition.x}, {_gridPosition.y})");
             
+            animal.SetVisualVisibility(false);
+            
             // Handle food delivery: check for food items in inventory
             ProcessFoodDelivery(animal);
             
@@ -64,6 +81,8 @@ public class Den : MonoBehaviour
             {
                 _timeProgressionCoroutine = StartCoroutine(PassiveTimeProgression());
             }
+            
+            UpdateDenVisualState();
         }
     }
     
@@ -108,12 +127,16 @@ public class Den : MonoBehaviour
         {
             Debug.Log($"Animal '{animal.name}' left den at ({_gridPosition.x}, {_gridPosition.y})");
             
+            animal.SetVisualVisibility(true);
+            
             // Stop passive time progression if no animals are left in the den
             if (_animalsInDen.Count == 0 && _timeProgressionCoroutine != null)
             {
                 StopCoroutine(_timeProgressionCoroutine);
                 _timeProgressionCoroutine = null;
             }
+            
+            UpdateDenVisualState();
         }
     }
     
@@ -167,6 +190,24 @@ public class Den : MonoBehaviour
         
         Den den = InteractableManager.Instance.GetDenAtPosition(animal.GridPosition);
         return den != null && den.IsAnimalInDen(animal);
+    }
+    
+    private void UpdateDenVisualState()
+    {
+        if (_spriteRenderer == null)
+        {
+            return;
+        }
+        
+        bool hasAnimals = _animalsInDen.Count > 0;
+        Sprite targetSprite = hasAnimals ? _occupiedSprite : _unoccupiedSprite;
+        
+        if (targetSprite != null)
+        {
+            _spriteRenderer.sprite = targetSprite;
+        }
+        
+        _spriteRenderer.enabled = targetSprite != null || _spriteRenderer.sprite != null;
     }
 }
 
