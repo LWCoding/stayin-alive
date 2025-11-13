@@ -204,7 +204,7 @@ Camera:
   m_Enabled: 1
   serializedVersion: 2
   m_ClearFlags: 2
-  m_BackGroundColor: {r: 0.19215687, g: 0.3019608, b: 0.4745098, a: 0}
+  m_BackGroundColor: {r: 0, g: 0, b: 0, a: 0}
   m_projectionMatrixMode: 1
   m_GateFitMode: 2
   m_FOVAxisMode: 0
@@ -892,8 +892,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 035606061360caf439f8703e503af46f, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _levelWidth: 40
-  _levelHeight: 40
+  _levelWidth: 35
+  _levelHeight: 35
   _terrainNoiseScale: 0.1
   _obstacleNoiseScale: 0.15
   _waterThreshold: 0.3
@@ -903,14 +903,14 @@ MonoBehaviour:
   _addBorderWalls: 1
   _controllableAnimalName: Hedgehog
   _controllableAnimalCount: 4
-  _predatorPatchCount: 3
+  _predatorPatchCount: 2
   _predatorsPerPatch: 2
-  _predatorPatchRadius: 3
+  _predatorPatchRadius: 2
   _predatorNames:
   - Wolf
   - Hawk
   _rabbitCount: 8
-  _rabbitsPerGroup: 2
+  _rabbitsPerGroup: 3
   _foodItemCount: 5
 --- !u!1 &476097330
 GameObject:
@@ -3236,7 +3236,7 @@ MonoBehaviour:
   _emptyTile: {fileID: 11400000, guid: 3d88d5ab1e68a2f4c8cca3487cb5a30c, type: 2}
   _waterTile: {fileID: 11400000, guid: 16cb841d64520d3408e569488f4a5e1e, type: 2}
   _grassTile: {fileID: 11400000, guid: 4d613257fb476ef44b2156696f2d09e4, type: 2}
-  _obstacleTile: {fileID: 11400000, guid: f6d0db93c8b3f6b4489ce47b8f740b11, type: 2}
+  _obstacleTile: {fileID: 11400000, guid: 872b1e52ba833394fa53c37ab4d630e0, type: 2}
   _updateOnGridChange: 1
   _drawOnStart: 1
 --- !u!19719996 &1748890611

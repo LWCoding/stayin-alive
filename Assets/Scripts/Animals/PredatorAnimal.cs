@@ -13,6 +13,8 @@ public class PredatorAnimal : Animal
     [Tooltip("Priority level of this predator. Higher priority predators can hunt lower priority predators. Predators with the same priority ignore each other.")]
     [SerializeField] private int _priority = 0;
 
+    [SerializeField] private int _stallTurnsAfterHunt = 5;
+
     private int _stallTurnsRemaining = 0;
     private Vector2Int? _wanderingDestination = null;
 
@@ -305,9 +307,8 @@ public class PredatorAnimal : Animal
                 // Reduce the prey's animal count by one
                 other.ReduceAnimalCount();
                 
-                // Stall this predator for 3 turns
-                _stallTurnsRemaining = 3;
-                Debug.Log($"Predator '{name}' (priority {_priority}) hunted '{other.name}'. Stalled for 3 turns.");
+                // Stall this predator for the configured number of turns
+                _stallTurnsRemaining = Mathf.Max(0, _stallTurnsAfterHunt);
                 break;
             }
         }
