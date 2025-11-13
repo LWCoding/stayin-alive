@@ -14,7 +14,12 @@ public class InteractableManager : Singleton<InteractableManager>
     [Tooltip("Prefab to use when spawning dens. Must have a Den component.")]
     [SerializeField] private GameObject _denPrefab;
     
+	[Header("Rabbit Spawner Prefab")]
+	[Tooltip("Prefab to use when spawning rabbit spawners. Must have a RabbitSpawner component.")]
+	[SerializeField] private GameObject _rabbitSpawnerPrefab;
+	
     private List<Den> _dens = new List<Den>();
+	private List<RabbitSpawner> _rabbitSpawners = new List<RabbitSpawner>();
     
     protected override void Awake()
     {
@@ -41,6 +46,15 @@ public class InteractableManager : Singleton<InteractableManager>
             }
         }
         _dens.Clear();
+
+		foreach (RabbitSpawner spawner in _rabbitSpawners)
+		{
+			if (spawner != null)
+			{
+				Destroy(spawner.gameObject);
+			}
+		}
+		_rabbitSpawners.Clear();
     }
     
     /// <summary>
@@ -92,23 +106,136 @@ public class InteractableManager : Singleton<InteractableManager>
     /// <summary>
     /// Spawns multiple dens from level data.
     /// </summary>
-    public void SpawnDensFromLevelData(List<(int x, int y)> dens)
-    {
-        ClearAllInteractables();
-        
-        foreach (var (x, y) in dens)
-        {
-            Vector2Int gridPos = new Vector2Int(x, y);
-            if (EnvironmentManager.Instance != null && EnvironmentManager.Instance.IsValidPosition(gridPos))
-            {
-                SpawnDen(gridPos);
-            }
-            else
-            {
-                Debug.LogWarning($"InteractableManager: Den at ({x}, {y}) is out of bounds!");
-            }
-        }
-    }
+	public void SpawnDensFromLevelData(List<(int x, int y)> dens)
+	{
+		if (dens == null)
+		{
+			return;
+		}
+
+		foreach (var (x, y) in dens)
+		{
+			Vector2Int gridPos = new Vector2Int(x, y);
+			if (EnvironmentManager.Instance != null && EnvironmentManager.Instance.IsValidPosition(gridPos))
+			{
+				SpawnDen(gridPos);
+			}
+			else
+			{
+				Debug.LogWarning($"InteractableManager: Den at ({x}, {y}) is out of bounds!");
+			}
+		}
+	}
+
+	/// <summary>
+	/// Spawns a rabbit spawner at the specified grid position.
+	/// </summary>
+	/// <param name="gridPosition">Grid position to spawn the rabbit spawner at</param>
+	/// <returns>The spawned RabbitSpawner component, or null if prefab is not assigned</returns>
+	public RabbitSpawner SpawnRabbitSpawner(Vector2Int gridPosition)
+	{
+		if (_rabbitSpawnerPrefab == null)
+		{
+			Debug.LogError("InteractableManager: Rabbit spawner prefab is not assigned! Please assign a rabbit spawner prefab in the Inspector.");
+			return null;
+		}
+
+		if (EnvironmentManager.Instance == null)
+		{
+			Debug.LogError("InteractableManager: EnvironmentManager instance not found!");
+			return null;
+		}
+
+		if (!EnvironmentManager.Instance.IsValidPosition(gridPosition))
+		{
+			Debug.LogWarning($"InteractableManager: Cannot spawn rabbit spawner at invalid position ({gridPosition.x}, {gridPosition.y}).");
+			return null;
+		}
+
+		GameObject spawnerObj = Instantiate(_rabbitSpawnerPrefab, _interactableParent);
+		RabbitSpawner spawner = spawnerObj.GetComponent<RabbitSpawner>();
+
+		if (spawner == null)
+		{
+			Debug.LogError("InteractableManager: Rabbit spawner prefab does not have a RabbitSpawner component!");
+			Destroy(spawnerObj);
+			return null;
+		}
+
+		spawner.Initialize(gridPosition);
+		_rabbitSpawners.Add(spawner);
+
+		Debug.Log($"InteractableManager: Spawned rabbit spawner at ({gridPosition.x}, {gridPosition.y})");
+
+		return spawner;
+	}
+
+	/// <summary>
+	/// Spawns rabbit spawners from level data.
+	/// </summary>
+	public void SpawnRabbitSpawnersFromLevelData(List<(int x, int y)> spawners)
+	{
+		if (spawners == null)
+		{
+			return;
+		}
+
+		foreach (var (x, y) in spawners)
+		{
+			Vector2Int gridPos = new Vector2Int(x, y);
+			if (EnvironmentManager.Instance != null && EnvironmentManager.Instance.IsValidPosition(gridPos))
+			{
+				SpawnRabbitSpawner(gridPos);
+			}
+			else
+			{
+				Debug.LogWarning($"InteractableManager: Rabbit spawner at ({x}, {y}) is out of bounds!");
+			}
+		}
+	}
+
+	/// <summary>
+	/// Gets the rabbit spawner at the specified grid position, if any.
+	/// </summary>
+	public RabbitSpawner GetRabbitSpawnerAtPosition(Vector2Int gridPosition)
+	{
+		for (int i = _rabbitSpawners.Count - 1; i >= 0; i--)
+		{
+			if (_rabbitSpawners[i] == null)
+			{
+				_rabbitSpawners.RemoveAt(i);
+				continue;
+			}
+
+			if (_rabbitSpawners[i].GridPosition == gridPosition)
+			{
+				return _rabbitSpawners[i];
+			}
+		}
+
+		return null;
+	}
+
+	/// <summary>
+	/// Gets all rabbit spawners in the scene.
+	/// </summary>
+	public List<RabbitSpawner> GetAllRabbitSpawners()
+	{
+		List<RabbitSpawner> validSpawners = new List<RabbitSpawner>();
+		for (int i = _rabbitSpawners.Count - 1; i >= 0; i--)
+		{
+			if (_rabbitSpawners[i] == null)
+			{
+				_rabbitSpawners.RemoveAt(i);
+			}
+			else
+			{
+				validSpawners.Add(_rabbitSpawners[i]);
+			}
+		}
+
+		return validSpawners;
+	}
     
     /// <summary>
     /// Gets the den at the specified grid position, if any.
@@ -168,6 +295,17 @@ public class InteractableManager : Singleton<InteractableManager>
             _dens.Remove(den);
         }
     }
+
+	/// <summary>
+	/// Removes a rabbit spawner from the spawner list. Called when a spawner is destroyed.
+	/// </summary>
+	public void RemoveRabbitSpawner(RabbitSpawner spawner)
+	{
+		if (spawner != null && _rabbitSpawners != null)
+		{
+			_rabbitSpawners.Remove(spawner);
+		}
+	}
     
     /// <summary>
     /// Registers any existing controllable animals that are currently on dens.

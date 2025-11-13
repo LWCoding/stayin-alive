@@ -911,6 +911,7 @@ MonoBehaviour:
   - Hawk
   _rabbitCount: 8
   _rabbitsPerGroup: 3
+  _rabbitSpawnerCount: 2
   _foodItemCount: 5
 --- !u!1 &476097330
 GameObject:
@@ -3553,6 +3554,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   _interactableParent: {fileID: 1781482500}
   _denPrefab: {fileID: 2062690371380645069, guid: da51f67c3c0174e4cbcc8647c2721208, type: 3}
+  _rabbitSpawnerPrefab: {fileID: 1762848270398535883, guid: e39eeb602175d5741a7546f0f6ce32bc, type: 3}
 --- !u!1 &1931653250
 GameObject:
   m_ObjectHideFlags: 0

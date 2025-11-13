@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
@@ -39,6 +40,12 @@ public class TimeManager : Singleton<TimeManager>
 	private bool _waitingForFirstPlayerMove = false;
 	private bool _pauseLockedForFirstMove = false;
 	private ColorAdjustments _colorAdjustments;
+
+	/// <summary>
+	/// Invoked after each turn advance (including resets via <see cref="ResetTimerAndPauseForFirstMove"/>).
+	/// Provides the current player turn count.
+	/// </summary>
+	public event Action<int> OnTurnAdvanced;
 
 	public enum Season
 	{
@@ -110,6 +117,8 @@ public class TimeManager : Singleton<TimeManager>
 		UpdateSeasonImage();
 		UpdateSeasonText();
 		UpdatePostProcessingColors();
+
+		OnTurnAdvanced?.Invoke(_playerTurnCount);
 	}
 
 	/// <summary>
@@ -163,6 +172,7 @@ public class TimeManager : Singleton<TimeManager>
 		if (AnimalManager.Instance == null)
 		{
 			Debug.LogWarning("TimeManager: AnimalManager instance not found. Cannot advance time.");
+			OnTurnAdvanced?.Invoke(_playerTurnCount);
 			return;
 		}
 
@@ -197,6 +207,8 @@ public class TimeManager : Singleton<TimeManager>
 		{
 			FogOfWarManager.Instance.UpdateFogOfWar();
 		}
+
+		OnTurnAdvanced?.Invoke(_playerTurnCount);
 	}
 
 	private void UpdateSeasonImage()

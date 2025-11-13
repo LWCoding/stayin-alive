@@ -56,7 +56,10 @@ public class PreyAnimal : Animal
                 else
                 {
                     // Continue wandering
-                    MoveOneStepTowards(_wanderingDestination.Value);
+                    if (!MoveOneStepTowards(_wanderingDestination.Value))
+                    {
+                        _wanderingDestination = null;
+                    }
                 }
             }
         }
@@ -157,41 +160,39 @@ public class PreyAnimal : Animal
 
         // Try to find a valid walkable position near the target
         Vector2Int? validFleePos = FindValidFleePosition(targetPos, myPos);
-        if (validFleePos.HasValue)
+        if (validFleePos.HasValue && MoveOneStepTowards(validFleePos.Value))
         {
-            MoveOneStepTowards(validFleePos.Value);
+            return;
         }
-        else
+
+        // If we can't find a good flee position, try to move in any direction away
+        // Try the 4 cardinal directions away from the predator
+        Vector2Int[] directions = new Vector2Int[]
         {
-            // If we can't find a good flee position, try to move in any direction away
-            // Try the 4 cardinal directions away from the predator
-            Vector2Int[] directions = new Vector2Int[]
-            {
-                new Vector2Int(1, 0),   // Right
-                new Vector2Int(-1, 0),  // Left
-                new Vector2Int(0, 1),   // Up
-                new Vector2Int(0, -1)   // Down
-            };
+            new Vector2Int(1, 0),   // Right
+            new Vector2Int(-1, 0),  // Left
+            new Vector2Int(0, 1),   // Up
+            new Vector2Int(0, -1)   // Down
+        };
 
-            // Prefer directions that move away from the predator
-            System.Array.Sort(directions, (a, b) =>
-            {
-                Vector2Int posA = myPos + a;
-                Vector2Int posB = myPos + b;
-                int distA = Mathf.Abs(posA.x - predatorPos.x) + Mathf.Abs(posA.y - predatorPos.y);
-                int distB = Mathf.Abs(posB.x - predatorPos.x) + Mathf.Abs(posB.y - predatorPos.y);
-                return distB.CompareTo(distA); // Sort descending (farther is better)
-            });
+        // Prefer directions that move away from the predator
+        System.Array.Sort(directions, (a, b) =>
+        {
+            Vector2Int posA = myPos + a;
+            Vector2Int posB = myPos + b;
+            int distA = Mathf.Abs(posA.x - predatorPos.x) + Mathf.Abs(posA.y - predatorPos.y);
+            int distB = Mathf.Abs(posB.x - predatorPos.x) + Mathf.Abs(posB.y - predatorPos.y);
+            return distB.CompareTo(distA); // Sort descending (farther is better)
+        });
 
-            foreach (Vector2Int dir in directions)
+        foreach (Vector2Int dir in directions)
+        {
+            Vector2Int testPos = myPos + dir;
+            if (EnvironmentManager.Instance.IsValidPosition(testPos) &&
+                EnvironmentManager.Instance.IsWalkable(testPos) &&
+                MoveOneStepTowards(testPos))
             {
-                Vector2Int testPos = myPos + dir;
-                if (EnvironmentManager.Instance.IsValidPosition(testPos) &&
-                    EnvironmentManager.Instance.IsWalkable(testPos))
-                {
-                    MoveOneStepTowards(testPos);
-                    return;
-                }
+                return;
             }
         }
     }
@@ -250,11 +251,11 @@ public class PreyAnimal : Animal
     /// <summary>
     /// Moves one step towards the destination using pathfinding.
     /// </summary>
-    private void MoveOneStepTowards(Vector2Int destinationGrid)
+    private bool MoveOneStepTowards(Vector2Int destinationGrid)
     {
         if (EnvironmentManager.Instance == null || AstarPath.active == null)
         {
-            return;
+            return false;
         }
 
         Vector2Int startGrid = GridPosition;
@@ -269,7 +270,7 @@ public class PreyAnimal : Animal
 
         if (path.error || path.vectorPath == null || path.vectorPath.Count == 0)
         {
-            return;
+            return false;
         }
 
         // Build axis-aligned path manually
@@ -301,7 +302,7 @@ public class PreyAnimal : Animal
 
         if (axisAlignedGrid.Count < 2)
         {
-            return;
+            return false;
         }
 
         Vector2Int nextGrid = axisAlignedGrid[1];
@@ -311,7 +312,10 @@ public class PreyAnimal : Animal
             EnvironmentManager.Instance.IsWalkable(nextGrid))
         {
             SetGridPosition(nextGrid);
+            return true;
         }
+
+        return false;
     }
 
     /// <summary>

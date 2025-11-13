@@ -65,6 +65,9 @@ public class ProceduralLevelLoader : MonoBehaviour
     
     [Tooltip("Number of rabbits per group")]
     [SerializeField] private int _rabbitsPerGroup = 2;
+
+	[Tooltip("Number of rabbit spawner interactables to spawn")]
+	[SerializeField] private int _rabbitSpawnerCount = 2;
     
     [Tooltip("Number of food items to spawn")]
     [SerializeField] private int _foodItemCount = 5;
@@ -101,14 +104,16 @@ public class ProceduralLevelLoader : MonoBehaviour
             }
         }
 
-        // Spawn dens using InteractableManager (before animals so animals can register on spawn)
+		// Spawn interactables using InteractableManager (before animals so animals can register on spawn)
         if (InteractableManager.Instance != null)
         {
-            InteractableManager.Instance.SpawnDensFromLevelData(levelData.Dens);
+			InteractableManager.Instance.ClearAllInteractables();
+			InteractableManager.Instance.SpawnDensFromLevelData(levelData.Dens);
+			InteractableManager.Instance.SpawnRabbitSpawnersFromLevelData(levelData.RabbitSpawners);
         }
         else
         {
-            Debug.LogWarning("ProceduralLevelLoader: InteractableManager instance not found! Dens will not be spawned.");
+			Debug.LogWarning("ProceduralLevelLoader: InteractableManager instance not found! Dens and rabbit spawners will not be spawned.");
         }
 
         // Spawn animals using AnimalManager
@@ -159,7 +164,7 @@ public class ProceduralLevelLoader : MonoBehaviour
         // Set virtual camera to follow the controllable animal
         SetupCameraFollow();
 
-        Debug.Log($"ProceduralLevelLoader: Successfully generated level with {levelData.Tiles.Count} tiles, {levelData.Animals.Count} animals, {levelData.Items.Count} items, and {levelData.Dens.Count} dens");
+		Debug.Log($"ProceduralLevelLoader: Successfully generated level with {levelData.Tiles.Count} tiles, {levelData.Animals.Count} animals, {levelData.Items.Count} items, {levelData.Dens.Count} dens, and {levelData.RabbitSpawners.Count} rabbit spawners");
     }
 
     /// <summary>
@@ -233,9 +238,10 @@ public class ProceduralLevelLoader : MonoBehaviour
         }
 
         // Initialize lists
-        levelData.Animals = new List<(string animalName, int x, int y, int count)>();
-        levelData.Items = new List<(string itemName, int x, int y)>();
-        levelData.Dens = new List<(int x, int y)>();
+		levelData.Animals = new List<(string animalName, int x, int y, int count)>();
+		levelData.Items = new List<(string itemName, int x, int y)>();
+		levelData.Dens = new List<(int x, int y)>();
+		levelData.RabbitSpawners = new List<(int x, int y)>();
         levelData.FoodCount = 0;
 
         // Generate spawn positions for animals, dens, and items
@@ -307,6 +313,28 @@ public class ProceduralLevelLoader : MonoBehaviour
             walkablePositions.Remove(controllablePos);
         }
         
+		// Spawn rabbit spawners at random positions
+		if (_rabbitSpawnerCount > 0 && spawnPositions.Count > 0)
+		{
+			int spawnersSpawned = 0;
+			int attempts = 0;
+			int maxAttempts = spawnPositions.Count * 2;
+
+			while (spawnersSpawned < _rabbitSpawnerCount && spawnPositions.Count > 0 && attempts < maxAttempts)
+			{
+				attempts++;
+				int index = Random.Range(0, spawnPositions.Count);
+				Vector2Int spawnerPos = spawnPositions[index];
+
+				levelData.RabbitSpawners.Add((spawnerPos.x, spawnerPos.y));
+				spawnersSpawned++;
+
+				// Remove so animals/items don't overlap
+				spawnPositions.RemoveAt(index);
+				walkablePositions.Remove(spawnerPos);
+			}
+		}
+
         // 2. Spawn predators in patches
         if (_predatorNames != null && _predatorNames.Length > 0 && walkablePositions.Count > 0)
         {
