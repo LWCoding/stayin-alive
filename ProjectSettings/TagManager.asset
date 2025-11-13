@@ -50,3 +50,6 @@ TagManager:
   - name: AnimalLine
     uniqueID: 2754142255
     locked: 0
+  - name: CountText
+    uniqueID: 1489856089
+    locked: 0
