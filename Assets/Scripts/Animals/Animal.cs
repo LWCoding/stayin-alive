@@ -15,10 +15,6 @@ public class Animal : MonoBehaviour
 
     [HideInInspector] [SerializeField] protected SpriteRenderer _spriteRenderer;
     private TwoFrameAnimator _twoFrameAnimator;
-
-    [Header("Movement")]
-    [Tooltip("Seconds to interpolate when moving one grid cell")]
-    [SerializeField] private float _moveDurationSeconds = 0.5f;
     private Coroutine _positionLerpCoroutine;
 
     [Header("Inventory")]
@@ -34,12 +30,6 @@ public class Animal : MonoBehaviour
     [Header("Follower System")]
     [Tooltip("List of follower GameObjects that visually represent additional animals in the group")]
     private List<GameObject> _followers = new List<GameObject>();
-    [Tooltip("Base delay in seconds for the first follower, increases for each subsequent follower")]
-    private const float BASE_FOLLOWER_DELAY = 0.3f;
-    [Tooltip("Delay increment per follower (0.1s)")]
-    private const float FOLLOWER_DELAY_INCREMENT = 0.15f;
-    [Tooltip("Scale multiplier for followers (0.7 = 70% of original size)")]
-    private const float FOLLOWER_SCALE = 0.7f;
     private Coroutine _followerUpdateCoroutine;
 
     public AnimalData AnimalData => _animalData;
@@ -305,7 +295,7 @@ public class Animal : MonoBehaviour
         {
             targetWorld = new Vector3(_gridPosition.x, _gridPosition.y, transform.position.z);
         }
-        StartMoveToWorldPosition(targetWorld, _moveDurationSeconds);
+        StartMoveToWorldPosition(targetWorld, Globals.MoveDurationSeconds);
         
         // Update follower positions will be handled by the follower update coroutine
     }
@@ -481,7 +471,7 @@ public class Animal : MonoBehaviour
         followerObj.transform.position = transform.position;
 
         // Scale down the follower to the specified percentage of the original size
-        followerObj.transform.localScale = transform.localScale * FOLLOWER_SCALE;
+        followerObj.transform.localScale = transform.localScale * Globals.FollowerScale;
 
         // Set follower sprite sorting order to be one less than the main sprite
         if (followerSpriteRenderer != null && _spriteRenderer != null)
@@ -547,10 +537,10 @@ public class Animal : MonoBehaviour
         List<Queue<PositionTime>> positionHistories = new List<Queue<PositionTime>>();
         float[] delays = new float[_followers.Count];
 
-        // Initialize delays and position histories: first follower 0.5s, second 0.6s, etc.
+        // Initialize delays and position histories: first follower uses base delay, subsequent followers add increment
         for (int i = 0; i < _followers.Count; i++)
         {
-            delays[i] = BASE_FOLLOWER_DELAY + (i * FOLLOWER_DELAY_INCREMENT);
+            delays[i] = Globals.BaseFollowerDelay + (i * Globals.FollowerDelayIncrement);
             positionHistories.Add(new Queue<PositionTime>());
             // Initialize with current position
             positionHistories[i].Enqueue(new PositionTime { position = transform.position, time = Time.time });

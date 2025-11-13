@@ -364,7 +364,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: Time to Next Turn
+  m_text: Season Timer
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 80af2cc7cd196b3488b78ec5f6d8a3b8, type: 2}
   m_sharedMaterial: {fileID: 3129977671062793659, guid: 80af2cc7cd196b3488b78ec5f6d8a3b8, type: 2}
@@ -2306,7 +2306,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 34646ea0de313664aa74bc4e06e5df15, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _turnInterval: 1
+  _turnsPerSeason: 50
   _progressBarImage: {fileID: 1622132781}
 --- !u!1 &1622132779
 GameObject:

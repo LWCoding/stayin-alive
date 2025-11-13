@@ -3,57 +3,46 @@ using UnityEngine;
 using UnityEngine.UI;
 
 /// <summary>
-/// Manages turn-based time progression. Automatically advances time every X seconds.
+/// Manages turn-based time progression. Time advances when the player makes a move.
 /// Controllable animals will move only one step along their stored pathing (if any).
 /// </summary>
 public class TimeManager : Singleton<TimeManager>
 {
-	[Header("Turn Settings")]
-	[Tooltip("Time in seconds between automatic turn advances")]
-	[SerializeField] private float _turnInterval = 3f;
+	[Header("Season Settings")]
+	[Tooltip("Number of player turns before changing to the next season")]
+	[SerializeField] private int _turnsPerSeason = 50;
 
 	[Header("UI")]
-	[Tooltip("Progress bar Image that shows time remaining. Should scale from 1 (at turnInterval) to 0 (at 0 seconds).")]
+	[Tooltip("Progress bar Image that shows progress through the current season. Scales from 0 (start of season) to 1 (end of season).")]
 	[SerializeField] private Image _progressBarImage;
 
-	private float _timeUntilNextTurn;
+	private int _playerTurnCount = 0;
+	private Season _currentSeason = Season.Spring;
 	private bool _isPaused = false;
 	private bool _waitingForFirstPlayerMove = false;
 	private bool _pauseLockedForFirstMove = false;
+
+	public enum Season
+	{
+		Spring,
+		Summer,
+		Fall,
+		Winter
+	}
 
 	private void Start()
 	{
 		ResetTimerAndPauseForFirstMove();
 	}
 
-	private void Update()
-	{
-		if (_isPaused)
-		{
-			return;
-		}
-
-		// Update timer
-		_timeUntilNextTurn -= Time.deltaTime;
-
-		// Update progress bar visual
-		UpdateProgressBar();
-
-		// Advance turn when timer reaches zero
-		if (_timeUntilNextTurn <= 0f)
-		{
-			AdvanceTime();
-			_timeUntilNextTurn = _turnInterval;
-		}
-	}
-
 	/// <summary>
-	/// Resets the turn timer, pauses time progression, and waits for the player's first move.
+	/// Resets the turn count and season, pauses time progression, and waits for the player's first move.
 	/// Call this when starting a new level or restarting the game.
 	/// </summary>
 	public void ResetTimerAndPauseForFirstMove()
 	{
-		_timeUntilNextTurn = _turnInterval;
+		_playerTurnCount = 0;
+		_currentSeason = Season.Spring;
 		_waitingForFirstPlayerMove = true;
 		_pauseLockedForFirstMove = true;
 		_isPaused = true;
@@ -61,59 +50,53 @@ public class TimeManager : Singleton<TimeManager>
 	}
 
 	/// <summary>
-	/// Notifies the time manager that the player has made their first move.
-	/// This resumes the timer if it was paused while waiting for initial input.
+	/// Notifies the time manager that the player has made a move.
+	/// Advances time by one turn.
 	/// </summary>
-	public void NotifyPlayerMadeFirstMove()
+	public void NotifyPlayerMoved()
 	{
-		if (!_pauseLockedForFirstMove)
+		// Handle first move unlock
+		if (_pauseLockedForFirstMove)
 		{
-			return;
+			_pauseLockedForFirstMove = false;
+			_waitingForFirstPlayerMove = false;
+
+			if (_isPaused)
+			{
+				Resume();
+			}
 		}
 
-		_pauseLockedForFirstMove = false;
-		_waitingForFirstPlayerMove = false;
-
-		if (_isPaused)
-		{
-			Resume();
-		}
-	}
-
-	private void UpdateProgressBar()
-	{
-		if (_progressBarImage == null)
-		{
-			return;
-		}
-
-		// Calculate scale: 1 when _turnInterval seconds remaining, 0 when 0 seconds remaining
-		// Show progress bar for the full turn interval
-		float timeRemaining = _timeUntilNextTurn;
-		float scale = 0f;
-
-		if (timeRemaining <= _turnInterval)
-		{
-			// Scale from 1 (at _turnInterval seconds) to 0 (at 0 seconds)
-			scale = Mathf.Clamp01(timeRemaining / _turnInterval);
-		}
-
-		// Update the Image's scale (using localScale on the RectTransform)
-		// Scale only the X axis (width) from 1 to 0, preserving Y and Z
-		RectTransform rectTransform = _progressBarImage.rectTransform;
-		if (rectTransform != null)
-		{
-			rectTransform.localScale = new Vector3(scale, 1f, 1f);
-		}
+		// Advance time for this move
+		NextTurn();
 	}
 
 	/// <summary>
 	/// Advances time by one turn.
-	/// - Controllable animals move a single grid step along their planned path (if set and valid).
-	/// - Non-controllable animals currently do nothing (hook for AI turns).
+	/// - Increments player turn count
+	/// - Updates season if needed (every 50 turns)
+	/// - All animals take their turn (AI animals move, controllable animals don't move here as they already moved)
 	/// </summary>
-	public void AdvanceTime()
+	public void NextTurn()
 	{
+		// Increment player turn count
+		_playerTurnCount++;
+
+		// Update season if needed (every 50 turns)
+		int newSeasonIndex = _playerTurnCount / _turnsPerSeason;
+		Season newSeason = (Season)(newSeasonIndex % 4);
+		if (newSeason != _currentSeason)
+		{
+			_currentSeason = newSeason;
+		}
+
+		// Update progress bar to show progress through current season
+		UpdateProgressBar();
+
+		// Debug log turn count and current season
+		Debug.Log($"Turn: {_playerTurnCount}, Season: {_currentSeason}");
+
+		// Advance time for all animals (non-controllable animals take their turn)
 		if (AnimalManager.Instance == null)
 		{
 			Debug.LogWarning("TimeManager: AnimalManager instance not found. Cannot advance time.");
@@ -125,6 +108,12 @@ public class TimeManager : Singleton<TimeManager>
 		{
 			Animal animal = animals[i];
 			if (animal == null)
+			{
+				continue;
+			}
+
+			// Skip controllable animals - they already moved when the player moved
+			if (animal.IsControllable)
 			{
 				continue;
 			}
@@ -143,7 +132,43 @@ public class TimeManager : Singleton<TimeManager>
 	}
 
 	/// <summary>
-	/// Pauses time progression. When paused, the timer will not advance and turns will not occur.
+	/// Updates the progress bar to show progress through the current season.
+	/// The bar scales from 0 (start of season) to 1 (end of season).
+	/// </summary>
+	private void UpdateProgressBar()
+	{
+		if (_progressBarImage == null)
+		{
+			return;
+		}
+
+		// Calculate progress through current season (0 to 1)
+		// Turns into current season = remainder when dividing by turns per season
+		int turnsIntoCurrentSeason = _playerTurnCount % _turnsPerSeason;
+		float progress = (float)turnsIntoCurrentSeason / _turnsPerSeason;
+
+		// Clamp to ensure it's between 0 and 1
+		float scale = Mathf.Clamp01(progress);
+
+		// Update the Image's scale (using localScale on the RectTransform)
+		// Scale only the X axis (width) from 0 to 1, preserving Y and Z
+		RectTransform rectTransform = _progressBarImage.rectTransform;
+		if (rectTransform != null)
+		{
+			rectTransform.localScale = new Vector3(scale, 1f, 1f);
+		}
+	}
+
+	/// <summary>
+	/// Advances time by one turn. Kept for backwards compatibility.
+	/// </summary>
+	public void AdvanceTime()
+	{
+		NextTurn();
+	}
+
+	/// <summary>
+	/// Pauses time progression. When paused, turns will not occur.
 	/// </summary>
 	public void Pause()
 	{
@@ -167,6 +192,16 @@ public class TimeManager : Singleton<TimeManager>
 	/// Returns whether the timer is waiting for the player's first move before starting.
 	/// </summary>
 	public bool IsWaitingForFirstMove => _waitingForFirstPlayerMove;
+
+	/// <summary>
+	/// Returns the current number of turns the player has made.
+	/// </summary>
+	public int PlayerTurnCount => _playerTurnCount;
+
+	/// <summary>
+	/// Returns the current season.
+	/// </summary>
+	public Season CurrentSeason => _currentSeason;
 }
 
 

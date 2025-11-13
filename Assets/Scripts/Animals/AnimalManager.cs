@@ -215,30 +215,11 @@ public class AnimalManager : Singleton<AnimalManager>
     }
 
     /// <summary>
-    /// Sets the currently selected animal and updates selection visuals.
+    /// Sets the currently selected animal.
     /// </summary>
     public void SetSelectedAnimal(Animal animal)
     {
-        if (_currentlySelectedAnimal == animal)
-        {
-            if (_currentlySelectedAnimal is ControllableAnimal controllable)
-            {
-                controllable.SetSelectionState(true);
-            }
-            return;
-        }
-
-        if (_currentlySelectedAnimal is ControllableAnimal previousControllable)
-        {
-            previousControllable.SetSelectionState(false);
-        }
-
         _currentlySelectedAnimal = animal;
-
-        if (_currentlySelectedAnimal is ControllableAnimal newControllable)
-        {
-            newControllable.SetSelectionState(true);
-        }
     }
 
     /// <summary>
@@ -248,10 +229,6 @@ public class AnimalManager : Singleton<AnimalManager>
     {
         if (animal != null && animal == _currentlySelectedAnimal)
         {
-            if (_currentlySelectedAnimal is ControllableAnimal controllable)
-            {
-                controllable.SetSelectionState(false);
-            }
             _currentlySelectedAnimal = null;
         }
     }
@@ -261,10 +238,6 @@ public class AnimalManager : Singleton<AnimalManager>
     /// </summary>
     public void ClearSelection()
     {
-        if (_currentlySelectedAnimal is ControllableAnimal controllable)
-        {
-            controllable.SetSelectionState(false);
-        }
         _currentlySelectedAnimal = null;
     }
 
