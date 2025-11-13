@@ -165,7 +165,7 @@ MonoBehaviour:
     m_Bits: 1
   m_VolumeTrigger: {fileID: 0}
   m_VolumeFrameworkUpdateModeOption: 2
-  m_RenderPostProcessing: 0
+  m_RenderPostProcessing: 1
   m_Antialiasing: 0
   m_AntialiasingQuality: 2
   m_StopNaN: 0
@@ -799,6 +799,55 @@ Tilemap:
     e31: 0
     e32: 0
     e33: 1
+--- !u!1 &443342602
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 443342603}
+  - component: {fileID: 443342604}
+  m_Layer: 0
+  m_Name: Postprocessing
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &443342603
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 443342602}
+  serializedVersion: 2
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 20}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &443342604
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 443342602}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 172515602e62fb746b5d573b38a5fe58, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  m_IsGlobal: 1
+  priority: 0
+  blendDistance: 0
+  weight: 1
+  sharedProfile: {fileID: 11400000, guid: 1b42eceb452624c4a83917f796a27d98, type: 2}
 --- !u!1 &456767372
 GameObject:
   m_ObjectHideFlags: 0
@@ -2682,6 +2731,7 @@ MonoBehaviour:
   _progressBarImage: {fileID: 1622132781}
   _seasonImage: {fileID: 1166810994}
   _seasonText: {fileID: 940832583}
+  _postProcessingVolume: {fileID: 443342604}
   _springSprite: {fileID: 21300000, guid: 8f01ccf5b56227a468478ac9870ccaff, type: 3}
   _summerSprite: {fileID: 21300000, guid: 2d31c1ae099cb0f49968bba3b3c62db1, type: 3}
   _fallSprite: {fileID: 21300000, guid: 20618a3d4f6a6534cac61422b4197070, type: 3}
@@ -4079,6 +4129,7 @@ SceneRoots:
   - {fileID: 2940055}
   - {fileID: 2025633161}
   - {fileID: 1082324784}
+  - {fileID: 443342603}
   - {fileID: 513084878}
   - {fileID: 631379535}
   - {fileID: 861405192}

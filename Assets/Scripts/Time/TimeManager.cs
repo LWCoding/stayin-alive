@@ -1,6 +1,8 @@
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
+using UnityEngine.Rendering;
+using UnityEngine.Rendering.Universal;
 using TMPro;
 
 /// <summary>
@@ -20,6 +22,11 @@ public class TimeManager : Singleton<TimeManager>
 	[SerializeField] private Image _seasonImage;
 	[Tooltip("Text that displays the current season name.")]
 	[SerializeField] private TextMeshProUGUI _seasonText;
+	
+	[Header("Post-Processing")]
+	[Tooltip("Global post-processing volume to modify based on season.")]
+	[SerializeField] private Volume _postProcessingVolume;
+	
 	[Header("Season Sprites")]
 	[SerializeField] private Sprite _springSprite;
 	[SerializeField] private Sprite _summerSprite;
@@ -31,6 +38,7 @@ public class TimeManager : Singleton<TimeManager>
 	private bool _isPaused = false;
 	private bool _waitingForFirstPlayerMove = false;
 	private bool _pauseLockedForFirstMove = false;
+	private ColorAdjustments _colorAdjustments;
 
 	public enum Season
 	{
@@ -42,7 +50,49 @@ public class TimeManager : Singleton<TimeManager>
 
 	private void Start()
 	{
+		InitializePostProcessing();
 		ResetTimerAndPauseForFirstMove();
+	}
+
+	/// <summary>
+	/// Initializes the post-processing volume and gets the ColorAdjustments override.
+	/// </summary>
+	private void InitializePostProcessing()
+	{
+		if (_postProcessingVolume == null)
+		{
+			// Try to find a global volume if not assigned
+			Volume[] volumes = FindObjectsOfType<Volume>();
+			foreach (Volume volume in volumes)
+			{
+				if (volume.isGlobal)
+				{
+					_postProcessingVolume = volume;
+					break;
+				}
+			}
+
+			if (_postProcessingVolume == null)
+			{
+				Debug.LogWarning("TimeManager: No global post-processing volume found. Season color changes will not be applied.");
+				return;
+			}
+		}
+
+		// Get or add ColorAdjustments override
+		if (_postProcessingVolume.profile != null)
+		{
+			if (!_postProcessingVolume.profile.TryGet<ColorAdjustments>(out _colorAdjustments))
+			{
+				// If ColorAdjustments doesn't exist, add it
+				_colorAdjustments = _postProcessingVolume.profile.Add<ColorAdjustments>();
+			}
+
+			if (_colorAdjustments != null)
+			{
+				_colorAdjustments.active = true;
+			}
+		}
 	}
 
 	/// <summary>
@@ -59,6 +109,7 @@ public class TimeManager : Singleton<TimeManager>
 		UpdateProgressBar();
 		UpdateSeasonImage();
 		UpdateSeasonText();
+		UpdatePostProcessingColors();
 	}
 
 	/// <summary>
@@ -102,6 +153,7 @@ public class TimeManager : Singleton<TimeManager>
 			_currentSeason = newSeason;
 			UpdateSeasonImage();
 			UpdateSeasonText();
+			UpdatePostProcessingColors();
 		}
 
 		// Update progress bar to show progress through current season
@@ -181,6 +233,52 @@ public class TimeManager : Singleton<TimeManager>
 		}
 
 		_seasonText.text = _currentSeason.ToString();
+	}
+
+	/// <summary>
+	/// Updates the post-processing volume colors based on the current season.
+	/// </summary>
+	private void UpdatePostProcessingColors()
+	{
+		if (_colorAdjustments == null || _postProcessingVolume == null)
+		{
+			return;
+		}
+
+		Color seasonColorFilter = Color.white;
+		float seasonSaturation = 0f;
+		
+		switch (_currentSeason)
+		{
+			case Season.Spring:
+				// Fresh, bright greens and light colors
+				seasonColorFilter = new Color(0.95f, 1.0f, 0.9f, 1.0f); // Slightly green tint
+				seasonSaturation = 0f; // Normal saturation
+				break;
+			case Season.Summer:
+				// Warm, vibrant yellows and oranges
+				seasonColorFilter = new Color(1.0f, 0.98f, 0.92f, 1.0f); // Warm yellow tint
+				seasonSaturation = 10f; // Slightly increased saturation
+				break;
+			case Season.Fall:
+				// Warm oranges and browns
+				seasonColorFilter = new Color(1.0f, 0.92f, 0.85f, 1.0f); // Orange/brown tint
+				seasonSaturation = 0f; // Normal saturation
+				break;
+			case Season.Winter:
+				// Cool blues and grays - desaturated for a muted, cold look
+				seasonColorFilter = new Color(0.9f, 0.95f, 1.0f, 1.0f); // Cool blue tint
+				seasonSaturation = -50f; // Reduced saturation for muted look
+				break;
+		}
+
+		// Apply color filter with moderate intensity
+		_colorAdjustments.colorFilter.overrideState = true;
+		_colorAdjustments.colorFilter.value = seasonColorFilter;
+		
+		// Apply saturation adjustment
+		_colorAdjustments.saturation.overrideState = true;
+		_colorAdjustments.saturation.value = seasonSaturation;
 	}
 
 	/// <summary>

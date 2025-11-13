@@ -26,6 +26,6 @@ public static class Globals
     /// <summary>
     /// Seconds between automatic NextTurn() calls when animals are in a den.
     /// </summary>
-    public static float DenTimeProgressionDelay = 1.0f;
+    public static float DenTimeProgressionDelay = 0.02f;
 }
 
