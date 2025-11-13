@@ -22,5 +22,10 @@ public static class Globals
     /// Scale multiplier for followers (0.7 = 70% of original size).
     /// </summary>
     public static float FollowerScale = 0.7f;
+
+    /// <summary>
+    /// Seconds between automatic NextTurn() calls when animals are in a den.
+    /// </summary>
+    public static float DenTimeProgressionDelay = 1.0f;
 }
 

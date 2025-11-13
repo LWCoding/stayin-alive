@@ -93,9 +93,6 @@ public class TimeManager : Singleton<TimeManager>
 		// Update progress bar to show progress through current season
 		UpdateProgressBar();
 
-		// Debug log turn count and current season
-		Debug.Log($"Turn: {_playerTurnCount}, Season: {_currentSeason}");
-
 		// Advance time for all animals (non-controllable animals take their turn)
 		if (AnimalManager.Instance == null)
 		{

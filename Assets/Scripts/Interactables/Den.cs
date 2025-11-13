@@ -1,3 +1,4 @@
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -12,6 +13,9 @@ public class Den : MonoBehaviour
     
     // Track which animals are currently in this den
     private HashSet<Animal> _animalsInDen = new HashSet<Animal>();
+    
+    // Coroutine for passive time progression
+    private Coroutine _timeProgressionCoroutine;
     
     public Vector2Int GridPosition => _gridPosition;
     
@@ -54,6 +58,12 @@ public class Den : MonoBehaviour
             
             // Handle food delivery: check for food items in inventory
             ProcessFoodDelivery(animal);
+            
+            // Start passive time progression if not already running
+            if (_timeProgressionCoroutine == null)
+            {
+                _timeProgressionCoroutine = StartCoroutine(PassiveTimeProgression());
+            }
         }
     }
     
@@ -97,7 +107,34 @@ public class Den : MonoBehaviour
         if (_animalsInDen.Remove(animal))
         {
             Debug.Log($"Animal '{animal.name}' left den at ({_gridPosition.x}, {_gridPosition.y})");
+            
+            // Stop passive time progression if no animals are left in the den
+            if (_animalsInDen.Count == 0 && _timeProgressionCoroutine != null)
+            {
+                StopCoroutine(_timeProgressionCoroutine);
+                _timeProgressionCoroutine = null;
+            }
         }
+    }
+    
+    /// <summary>
+    /// Coroutine that passively progresses time while animals are in the den.
+    /// Calls NextTurn() on TimeManager at intervals determined by Globals.DenTimeProgressionDelay.
+    /// </summary>
+    private IEnumerator PassiveTimeProgression()
+    {
+        while (_animalsInDen.Count > 0)
+        {
+            yield return new WaitForSeconds(Globals.DenTimeProgressionDelay);
+            
+            // Only progress time if TimeManager exists and is not paused
+            if (TimeManager.Instance != null && !TimeManager.Instance.IsPaused)
+            {
+                TimeManager.Instance.NextTurn();
+            }
+        }
+        
+        _timeProgressionCoroutine = null;
     }
     
     /// <summary>
