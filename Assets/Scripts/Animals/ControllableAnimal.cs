@@ -202,6 +202,11 @@ public class ControllableAnimal : Animal
         // Move to the new position
         SetGridPosition(targetPos);
 
+        if (AnimalManager.Instance != null)
+        {
+            AnimalManager.Instance.ResolveTileConflictsForAnimal(this);
+        }
+
         // Notify TimeManager that the player has moved
         if (TimeManager.Instance != null)
         {

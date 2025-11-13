@@ -63,7 +63,15 @@ public class PredatorAnimal : Animal
                 else
                 {
                     // Continue wandering
-                    MoveOneStepTowards(_wanderingDestination.Value);
+                    bool moved = MoveOneStepTowards(_wanderingDestination.Value);
+                    if (!moved)
+                    {
+                        _wanderingDestination = ChooseWanderingDestination();
+                        if (_wanderingDestination.HasValue)
+                        {
+                            MoveOneStepTowards(_wanderingDestination.Value);
+                        }
+                    }
                 }
             }
         }
@@ -75,11 +83,11 @@ public class PredatorAnimal : Animal
     /// <summary>
     /// Override to allow predators to move onto dens.
     /// </summary>
-    protected void MoveOneStepTowards(Vector2Int destinationGrid)
+    protected bool MoveOneStepTowards(Vector2Int destinationGrid)
     {
         if (EnvironmentManager.Instance == null || AstarPath.active == null)
         {
-            return;
+            return false;
         }
 
         Vector2Int startGrid = GridPosition;
@@ -94,7 +102,7 @@ public class PredatorAnimal : Animal
 
         if (path.error || path.vectorPath == null || path.vectorPath.Count == 0)
         {
-            return;
+            return false;
         }
 
         // Build axis-aligned path manually
@@ -126,7 +134,7 @@ public class PredatorAnimal : Animal
 
         if (axisAlignedGrid.Count < 2)
         {
-            return;
+            return false;
         }
 
         Vector2Int nextGrid = axisAlignedGrid[1];
@@ -136,7 +144,10 @@ public class PredatorAnimal : Animal
             EnvironmentManager.Instance.IsWalkable(nextGrid))
         {
             SetGridPosition(nextGrid);
+            return true;
         }
+
+        return false;
     }
 
     private Vector2Int? FindNearestPreyGrid()

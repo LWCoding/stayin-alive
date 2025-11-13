@@ -12,6 +12,8 @@ public class Animal : MonoBehaviour
     [Header("Animal Info")]
     [HideInInspector] [SerializeField] private AnimalData _animalData;
     [HideInInspector] [SerializeField] private Vector2Int _gridPosition;
+    [HideInInspector] [SerializeField] private Vector2Int _previousGridPosition;
+    [HideInInspector] [SerializeField] private bool _encounteredAnimalDuringMove;
 
     [HideInInspector] [SerializeField] protected SpriteRenderer _spriteRenderer;
     private TwoFrameAnimator _twoFrameAnimator;
@@ -34,6 +36,12 @@ public class Animal : MonoBehaviour
 
     public AnimalData AnimalData => _animalData;
     public Vector2Int GridPosition => _gridPosition;
+    public Vector2Int PreviousGridPosition => _previousGridPosition;
+    public bool EncounteredAnimalDuringMove => _encounteredAnimalDuringMove;
+    public void ClearEncounteredAnimalDuringMoveFlag()
+    {
+        _encounteredAnimalDuringMove = false;
+    }
 
     /// <summary>
     /// Whether this animal can be controlled by the player. Override in subclasses to specify controllability.
@@ -154,7 +162,13 @@ public class Animal : MonoBehaviour
         // Spawn blood particle effects when taking damage
         if (ParticleEffectManager.Instance != null)
         {
-            ParticleEffectManager.Instance.SpawnParticleEffect("Blood", transform.position, 2);
+            Vector3 effectPosition = transform.position;
+            if (EnvironmentManager.Instance != null)
+            {
+                effectPosition = EnvironmentManager.Instance.GridToWorldPosition(_gridPosition);
+                effectPosition.z = transform.position.z;
+            }
+            ParticleEffectManager.Instance.SpawnParticleEffect("Blood", effectPosition, 2);
         }
 
         if (_animalCount <= 0)
@@ -226,6 +240,8 @@ public class Animal : MonoBehaviour
     {
         _animalData = animalData;
         _gridPosition = gridPosition;
+        _previousGridPosition = gridPosition;
+        _encounteredAnimalDuringMove = false;
 
         // Setup two-frame animation if data is available
         SetupTwoFrameAnimation();
@@ -285,7 +301,18 @@ public class Animal : MonoBehaviour
     /// </summary>
     public virtual void SetGridPosition(Vector2Int gridPosition)
     {
-        _gridPosition = gridPosition;
+        if (_gridPosition != gridPosition)
+        {
+            _previousGridPosition = _gridPosition;
+            _gridPosition = gridPosition;
+            _encounteredAnimalDuringMove = false;
+
+            if (AnimalManager.Instance != null &&
+                AnimalManager.Instance.HasOtherAnimalAtPosition(this, _gridPosition))
+            {
+                _encounteredAnimalDuringMove = true;
+            }
+        }
         Vector3 targetWorld;
         if (EnvironmentManager.Instance != null)
         {
@@ -298,6 +325,41 @@ public class Animal : MonoBehaviour
         StartMoveToWorldPosition(targetWorld, Globals.MoveDurationSeconds);
         
         // Update follower positions will be handled by the follower update coroutine
+    }
+
+    /// <summary>
+    /// Forces the animal back onto its previous grid position without preventing the logic
+    /// of the tile it attempted to enter from executing.
+    /// </summary>
+    public void ResetToPreviousGridPosition()
+    {
+        if (_gridPosition == _previousGridPosition)
+        {
+            return;
+        }
+
+        if (_positionLerpCoroutine != null)
+        {
+            StopCoroutine(_positionLerpCoroutine);
+            _positionLerpCoroutine = null;
+        }
+
+        _gridPosition = _previousGridPosition;
+        _encounteredAnimalDuringMove = false;
+
+        Vector3 targetWorld;
+        if (EnvironmentManager.Instance != null)
+        {
+            targetWorld = EnvironmentManager.Instance.GridToWorldPosition(_gridPosition);
+        }
+        else
+        {
+            targetWorld = new Vector3(_gridPosition.x, _gridPosition.y, transform.position.z);
+        }
+
+        // Preserve current z value to avoid unintended layering changes
+        targetWorld.z = transform.position.z;
+        transform.position = targetWorld;
     }
 
     /// <summary>

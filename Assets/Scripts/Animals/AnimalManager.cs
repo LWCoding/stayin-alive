@@ -103,6 +103,79 @@ public class AnimalManager : Singleton<AnimalManager>
     }
 
     /// <summary>
+    /// Ensures that only one animal occupies a grid tile by reverting the most recent mover if needed.
+    /// </summary>
+    /// <param name="movedAnimal">The animal that recently changed tiles.</param>
+    public void ResolveTileConflictsForAnimal(Animal movedAnimal)
+    {
+        if (movedAnimal == null)
+        {
+            return;
+        }
+
+        Vector2Int movedPosition = movedAnimal.GridPosition;
+        bool shouldRevert = movedAnimal.EncounteredAnimalDuringMove;
+
+        for (int i = _animals.Count - 1; i >= 0; i--)
+        {
+            Animal other = _animals[i];
+
+            if (other == null)
+            {
+                _animals.RemoveAt(i);
+                continue;
+            }
+
+            if (other == movedAnimal)
+            {
+                continue;
+            }
+
+            if (other.GridPosition == movedPosition)
+            {
+                shouldRevert = true;
+                break;
+            }
+        }
+
+        if (shouldRevert)
+        {
+            movedAnimal.ResetToPreviousGridPosition();
+        }
+
+        movedAnimal.ClearEncounteredAnimalDuringMoveFlag();
+    }
+
+    /// <summary>
+    /// Checks whether there is another animal already occupying the specified grid position.
+    /// </summary>
+    public bool HasOtherAnimalAtPosition(Animal origin, Vector2Int position)
+    {
+        for (int i = _animals.Count - 1; i >= 0; i--)
+        {
+            Animal other = _animals[i];
+
+            if (other == null)
+            {
+                _animals.RemoveAt(i);
+                continue;
+            }
+
+            if (other == origin)
+            {
+                continue;
+            }
+
+            if (other.GridPosition == position)
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    /// <summary>
     /// Spawns an animal at the specified grid position by name.
     /// </summary>
     /// <param name="animalName">Name of the animal type to spawn</param>
