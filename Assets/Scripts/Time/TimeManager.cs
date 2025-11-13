@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
+using TMPro;
 
 /// <summary>
 /// Manages turn-based time progression. Time advances when the player makes a move.
@@ -15,6 +16,15 @@ public class TimeManager : Singleton<TimeManager>
 	[Header("UI")]
 	[Tooltip("Progress bar Image that shows progress through the current season. Scales from 0 (start of season) to 1 (end of season).")]
 	[SerializeField] private Image _progressBarImage;
+	[Tooltip("Image that displays the current season icon.")]
+	[SerializeField] private Image _seasonImage;
+	[Tooltip("Text that displays the current season name.")]
+	[SerializeField] private TextMeshProUGUI _seasonText;
+	[Header("Season Sprites")]
+	[SerializeField] private Sprite _springSprite;
+	[SerializeField] private Sprite _summerSprite;
+	[SerializeField] private Sprite _fallSprite;
+	[SerializeField] private Sprite _winterSprite;
 
 	private int _playerTurnCount = 0;
 	private Season _currentSeason = Season.Spring;
@@ -47,6 +57,8 @@ public class TimeManager : Singleton<TimeManager>
 		_pauseLockedForFirstMove = true;
 		_isPaused = true;
 		UpdateProgressBar();
+		UpdateSeasonImage();
+		UpdateSeasonText();
 	}
 
 	/// <summary>
@@ -88,6 +100,8 @@ public class TimeManager : Singleton<TimeManager>
 		if (newSeason != _currentSeason)
 		{
 			_currentSeason = newSeason;
+			UpdateSeasonImage();
+			UpdateSeasonText();
 		}
 
 		// Update progress bar to show progress through current season
@@ -126,6 +140,47 @@ public class TimeManager : Singleton<TimeManager>
 		{
 			FogOfWarManager.Instance.UpdateFogOfWar();
 		}
+	}
+
+	private void UpdateSeasonImage()
+	{
+		if (_seasonImage == null)
+		{
+			return;
+		}
+
+		Sprite seasonSprite = null;
+		switch (_currentSeason)
+		{
+			case Season.Spring:
+				seasonSprite = _springSprite;
+				break;
+			case Season.Summer:
+				seasonSprite = _summerSprite;
+				break;
+			case Season.Fall:
+				seasonSprite = _fallSprite;
+				break;
+			case Season.Winter:
+				seasonSprite = _winterSprite;
+				break;
+		}
+
+		_seasonImage.sprite = seasonSprite;
+		_seasonImage.enabled = seasonSprite != null;
+	}
+
+	/// <summary>
+	/// Updates the season text to display the current season's name.
+	/// </summary>
+	private void UpdateSeasonText()
+	{
+		if (_seasonText == null)
+		{
+			return;
+		}
+
+		_seasonText.text = _currentSeason.ToString();
 	}
 
 	/// <summary>

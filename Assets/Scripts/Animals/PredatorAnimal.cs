@@ -305,9 +305,9 @@ public class PredatorAnimal : Animal
                 // Reduce the prey's animal count by one
                 other.ReduceAnimalCount();
                 
-                // Stall this predator for 2 turns
-                _stallTurnsRemaining = 2;
-                Debug.Log($"Predator '{name}' (priority {_priority}) hunted '{other.name}'. Stalled for 2 turns.");
+                // Stall this predator for 3 turns
+                _stallTurnsRemaining = 3;
+                Debug.Log($"Predator '{name}' (priority {_priority}) hunted '{other.name}'. Stalled for 3 turns.");
                 break;
             }
         }
