@@ -7,13 +7,9 @@ using UnityEngine;
 /// </summary>
 public class GameManager : Singleton<GameManager>
 {
-    [Header("Level Settings")]
-    [Tooltip("Starting level file name (without .txt extension) from Levels/ folder")]
-    [SerializeField] private string _startingLevel = "level1";
-    
     [Header("References")]
-    [Tooltip("LevelLoader component. If not assigned, will try to find it in the scene.")]
-    [SerializeField] private LevelLoader _levelLoader;
+    [Tooltip("ProceduralLevelLoader component. If not assigned, will try to find it in the scene.")]
+    [SerializeField] private ProceduralLevelLoader _proceduralLevelLoader;
     
     [Header("Game End UI")]
     [Tooltip("UI GameObject that displays the win screen. Should be inactive by default.")]
@@ -32,28 +28,22 @@ public class GameManager : Singleton<GameManager>
     
     private void Start()
     {
-        // Find LevelLoader if not assigned
-        if (_levelLoader == null)
+        // Find ProceduralLevelLoader if not assigned
+        if (_proceduralLevelLoader == null)
         {
-            _levelLoader = FindObjectOfType<LevelLoader>();
+            _proceduralLevelLoader = FindObjectOfType<ProceduralLevelLoader>();
         }
         
-        // Check if LevelLoader exists
-        if (_levelLoader == null)
+        // Check if ProceduralLevelLoader exists
+        if (_proceduralLevelLoader == null)
         {
-            Debug.LogError("GameManager: LevelLoader not found! Please ensure a LevelLoader component exists in the scene.");
+            Debug.LogError("GameManager: ProceduralLevelLoader not found! Please ensure a ProceduralLevelLoader component exists in the scene.");
             return;
         }
         
-        // Load the starting level
-        if (string.IsNullOrEmpty(_startingLevel))
-        {
-            Debug.LogWarning("GameManager: Starting level is not set! Please assign a level name in the inspector.");
-            return;
-        }
-        
-        Debug.Log($"GameManager: Loading starting level: {_startingLevel}");
-        _levelLoader.LoadAndApplyLevel(_startingLevel);
+        // Generate and load a procedurally generated level
+        Debug.Log("GameManager: Generating procedurally generated level");
+        _proceduralLevelLoader.LoadAndApplyLevel();
     }
     
     /// <summary>

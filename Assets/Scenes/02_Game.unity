@@ -925,6 +925,7 @@ GameObject:
   m_Component:
   - component: {fileID: 456767373}
   - component: {fileID: 456767374}
+  - component: {fileID: 456767375}
   m_Layer: 0
   m_Name: LevelLoader
   m_TagString: Untagged
@@ -960,6 +961,38 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _levelFileName: 
+--- !u!114 &456767375
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 456767372}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 035606061360caf439f8703e503af46f, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  _levelWidth: 30
+  _levelHeight: 30
+  _terrainNoiseScale: 0.1
+  _obstacleNoiseScale: 0.15
+  _waterThreshold: 0.3
+  _grassThreshold: 0.7
+  _obstacleThreshold: 0.85
+  _randomSeed: 0
+  _addBorderWalls: 1
+  _controllableAnimalName: Hedgehog
+  _controllableAnimalCount: 4
+  _predatorPatchCount: 3
+  _predatorsPerPatch: 2
+  _predatorPatchRadius: 3
+  _predatorNames:
+  - Wolf
+  - Hawk
+  _rabbitCount: 8
+  _rabbitsPerGroup: 2
+  _foodItemCount: 5
 --- !u!1 &476097330
 GameObject:
   m_ObjectHideFlags: 0
@@ -3567,8 +3600,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 071fe5ed8619b9449b0f715d35c9da1a, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _startingLevel: level1
-  _levelLoader: {fileID: 456767374}
+  _proceduralLevelLoader: {fileID: 456767375}
   _winScreen: {fileID: 480649642}
   _loseScreen: {fileID: 343417315}
 --- !u!1 &2116998990
