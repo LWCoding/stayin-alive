@@ -906,8 +906,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 035606061360caf439f8703e503af46f, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _levelWidth: 50
-  _levelHeight: 50
+  _levelWidth: 40
+  _levelHeight: 40
   _terrainNoiseScale: 0.1
   _obstacleNoiseScale: 0.15
   _waterThreshold: 0.3
@@ -2267,7 +2267,7 @@ MonoBehaviour:
   _itemTilemap: {fileID: 1931653255}
   _itemTiles:
   - itemName: Food
-    tile: {fileID: 11400000, guid: cf0cc6abdb85cf142a176cd6c2337e77, type: 2}
+    tile: {fileID: 11400000, guid: 1eda418d029255f4691a5bd3bea7bba2, type: 2}
 --- !u!1 &1144474249
 GameObject:
   m_ObjectHideFlags: 0
