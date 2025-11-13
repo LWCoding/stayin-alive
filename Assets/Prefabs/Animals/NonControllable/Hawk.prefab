@@ -77,6 +77,17 @@ PrefabInstance:
       insertIndex: 1
       addedObject: {fileID: 4520481472541313476}
   m_SourcePrefab: {fileID: 100100000, guid: 373ac555e5fbaf34c84fc9ea003210dd, type: 3}
+--- !u!114 &4839799939517079635 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 1903356919880861898, guid: 373ac555e5fbaf34c84fc9ea003210dd, type: 3}
+  m_PrefabInstance: {fileID: 6431273789033064601}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 9541d86e2fd84c1d9990edf0852d74ab, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1 &5132175799388392085 stripped
 GameObject:
   m_CorrespondingSourceObject: {fileID: 2195891697856963084, guid: 373ac555e5fbaf34c84fc9ea003210dd, type: 3}
@@ -97,8 +108,7 @@ MonoBehaviour:
   _animalData: {fileID: 0}
   _gridPosition: {x: 0, y: 0}
   _spriteRenderer: {fileID: 0}
-  _moveDurationSeconds: 0.1
   _animalCount: 1
-  _countText: {fileID: 6540347268615922553, guid: 81c2360689d3ae845802411f78731767, type: 3}
+  _countText: {fileID: 4839799939517079635}
   _detectionRadius: 7
   _priority: 0

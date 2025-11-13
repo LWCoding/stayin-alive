@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 using Pathfinding;
+using Cinemachine;
 
 /// <summary>
 /// Component that procedurally generates levels using Perlin Noise.
@@ -154,6 +155,9 @@ public class ProceduralLevelLoader : MonoBehaviour
 
         // Force-refresh A* Pathfinding graph and sync walkability with EnvironmentManager
         RefreshAStarGraphs();
+
+        // Set virtual camera to follow the controllable animal
+        SetupCameraFollow();
 
         Debug.Log($"ProceduralLevelLoader: Successfully generated level with {levelData.Tiles.Count} tiles, {levelData.Animals.Count} animals, {levelData.Items.Count} items, and {levelData.Dens.Count} dens");
     }
@@ -413,6 +417,62 @@ public class ProceduralLevelLoader : MonoBehaviour
                 spawnPositions.Remove(foodPos);
             }
         }
+    }
+
+    /// <summary>
+    /// Sets up the virtual camera to follow the controllable animal.
+    /// Teleports the camera to the animal's position immediately.
+    /// </summary>
+    private void SetupCameraFollow()
+    {
+        // Find the controllable animal
+        if (AnimalManager.Instance == null)
+        {
+            Debug.LogWarning("ProceduralLevelLoader: AnimalManager instance not found! Cannot set up camera follow.");
+            return;
+        }
+
+        List<Animal> animals = AnimalManager.Instance.GetAllAnimals();
+        Animal controllableAnimal = null;
+
+        foreach (Animal animal in animals)
+        {
+            if (animal != null && animal.IsControllable)
+            {
+                controllableAnimal = animal;
+                break;
+            }
+        }
+
+        if (controllableAnimal == null)
+        {
+            Debug.LogWarning("ProceduralLevelLoader: No controllable animal found! Camera will not follow.");
+            return;
+        }
+
+        // Find the Cinemachine Virtual Camera in the scene
+        CinemachineVirtualCamera virtualCamera = FindObjectOfType<CinemachineVirtualCamera>();
+        
+        if (virtualCamera == null)
+        {
+            Debug.LogWarning("ProceduralLevelLoader: CinemachineVirtualCamera not found in scene! Camera will not follow.");
+            return;
+        }
+
+        // Set the follow target to the controllable animal's transform
+        virtualCamera.Follow = controllableAnimal.transform;
+        virtualCamera.LookAt = controllableAnimal.transform;
+
+        // Teleport camera immediately to the animal's position
+        // Get the world position of the animal
+        Vector3 animalWorldPos = controllableAnimal.transform.position;
+        
+        // Set camera position (preserve Z for orthographic camera)
+        Transform cameraTransform = virtualCamera.transform;
+        Vector3 cameraPos = new Vector3(animalWorldPos.x, animalWorldPos.y, cameraTransform.position.z);
+        cameraTransform.position = cameraPos;
+
+        Debug.Log($"ProceduralLevelLoader: Virtual camera set to follow controllable animal at {controllableAnimal.GridPosition}");
     }
 
     /// <summary>
