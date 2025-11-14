@@ -4,24 +4,69 @@ using Pathfinding;
 /// <summary>
 /// Custom traversal provider that filters out water tiles for animals that cannot go on water.
 /// Implements ITraversalProvider to integrate with A* pathfinding.
+/// Thread-safe implementation that caches grid data and avoids Unity API calls from worker threads.
 /// </summary>
 public class WaterTraversalProvider : ITraversalProvider
 {
-    private bool _canGoOnWater;
-    private EnvironmentManager _environmentManager;
+    private readonly bool _canGoOnWater;
+    
+    // Thread-safe cached grid data (snapshot taken at construction)
+    // These arrays are only read from worker threads, so they're safe
+    private readonly TileType[,] _gridSnapshot;
+    private readonly int _gridWidth;
+    private readonly int _gridHeight;
+    
+    // Cached reference to avoid repeated null checks (set once at construction)
+    private readonly bool _hasGridData;
 
     /// <summary>
     /// Creates a new WaterTraversalProvider.
+    /// Takes a snapshot of the grid data at construction time for thread-safe access.
     /// </summary>
     /// <param name="canGoOnWater">Whether the animal can traverse water tiles.</param>
     public WaterTraversalProvider(bool canGoOnWater)
     {
         _canGoOnWater = canGoOnWater;
-        _environmentManager = EnvironmentManager.Instance;
+        
+        // Cache grid data at construction time (on main thread)
+        EnvironmentManager envManager = EnvironmentManager.Instance;
+        if (envManager != null)
+        {
+            Vector2Int gridSize = envManager.GetGridSize();
+            _gridWidth = gridSize.x;
+            _gridHeight = gridSize.y;
+            
+            if (_gridWidth > 0 && _gridHeight > 0)
+            {
+                // Create a snapshot of the tile data
+                _gridSnapshot = new TileType[_gridWidth, _gridHeight];
+                for (int x = 0; x < _gridWidth; x++)
+                {
+                    for (int y = 0; y < _gridHeight; y++)
+                    {
+                        _gridSnapshot[x, y] = envManager.GetTileType(x, y);
+                    }
+                }
+                _hasGridData = true;
+            }
+            else
+            {
+                _gridSnapshot = null;
+                _hasGridData = false;
+            }
+        }
+        else
+        {
+            _gridSnapshot = null;
+            _gridWidth = 0;
+            _gridHeight = 0;
+            _hasGridData = false;
+        }
     }
 
     /// <summary>
     /// Determines if a node can be traversed based on water walkability.
+    /// Thread-safe: only reads from cached snapshot data and uses node coordinates directly.
     /// </summary>
     public bool CanTraverse(Path path, GraphNode node)
     {
@@ -37,19 +82,38 @@ public class WaterTraversalProvider : ITraversalProvider
             return true;
         }
 
-        // If the animal cannot go on water, check if this node is a water tile
-        if (_environmentManager == null)
+        // If no grid data is available, fall back to allowing traversal
+        if (!_hasGridData || _gridSnapshot == null)
         {
-            // If EnvironmentManager is not available, fall back to default behavior
             return true;
         }
 
-        // Convert node world position to grid position
-        Vector3 worldPos = (Vector3)node.position;
-        Vector2Int gridPos = _environmentManager.WorldToGridPosition(worldPos);
+        // Get grid coordinates directly from the node (thread-safe, no Unity API calls)
+        int x, y;
+        if (node is GridNodeBase gridNode)
+        {
+            // Use grid coordinates directly from GridNode (most efficient and thread-safe)
+            x = gridNode.XCoordinateInGrid;
+            y = gridNode.ZCoordinateInGrid; // Note: A* uses Z for Y in 2D
+        }
+        else
+        {
+            // Fallback: convert from world position using math (no Unity API calls)
+            // This is less accurate but still thread-safe
+            Vector3 worldPos = (Vector3)node.position;
+            x = Mathf.RoundToInt(worldPos.x);
+            y = Mathf.RoundToInt(worldPos.y);
+        }
 
-        // Check if this is a water tile
-        TileType tileType = _environmentManager.GetTileType(gridPos);
+        // Bounds check
+        if (x < 0 || x >= _gridWidth || y < 0 || y >= _gridHeight)
+        {
+            // Out of bounds - allow traversal (or could return false, depends on design)
+            return true;
+        }
+
+        // Check if this is a water tile (reading from cached snapshot - thread-safe)
+        TileType tileType = _gridSnapshot[x, y];
         if (tileType == TileType.Water)
         {
             // Animal cannot go on water, so this node is not traversable
