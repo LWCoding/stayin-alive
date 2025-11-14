@@ -97,12 +97,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 8eace28a218090e488aece6efa6e0924, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _wormAnimalName: Worm
-  _baseTurnsBetweenSpawns: 20
-  _baseSpawnAmount: 2
-  _spawnAmountVariance: 0.25
+  _wormItemName: Worm
+  _turnsBetweenSpawns: 30
   _spawnRadius: 3
-  _springSpawnMultiplier: 1.5
-  _summerSpawnMultiplier: 1.2
-  _fallSpawnMultiplier: 0.8
-  _winterSpawnMultiplier: 0.5
