@@ -3,7 +3,7 @@ using UnityEngine;
 /// <summary>
 /// Manages the overall game state and initialization.
 /// Handles loading the starting level when the game begins.
-/// Manages win/lose conditions and displays appropriate screens.
+/// Manages lose conditions and displays appropriate screens.
 /// </summary>
 public class GameManager : Singleton<GameManager>
 {
@@ -44,61 +44,6 @@ public class GameManager : Singleton<GameManager>
         // Generate and load a procedurally generated level
         Debug.Log("GameManager: Generating procedurally generated level");
         _proceduralLevelLoader.LoadAndApplyLevel();
-    }
-    
-    /// <summary>
-    /// Checks if the player has met the win condition (readiness points >= max food count).
-    /// Called by PointsManager when points change.
-    /// </summary>
-    /// <param name="readinessPoints">Current readiness points</param>
-    /// <param name="maxFoodCount">Maximum food count required to win</param>
-    public void CheckWinCondition(int readinessPoints, int maxFoodCount)
-    {
-        // Only check if we haven't already won or lost and max food count is set
-        if (_hasWon || _hasLost || maxFoodCount <= 0)
-        {
-            return;
-        }
-        
-        // Check if quota is met
-        if (readinessPoints >= maxFoodCount)
-        {
-            TriggerWin();
-        }
-    }
-    
-    /// <summary>
-    /// Triggers the win condition. Shows win screen and pauses time.
-    /// </summary>
-    public void TriggerWin()
-    {
-        if (_hasWon || _hasLost)
-        {
-            return;
-        }
-        
-        _hasWon = true;
-        
-        // Show win screen
-        if (_winScreen != null)
-        {
-            _winScreen.SetActive(true);
-            Debug.Log("GameManager: Win condition met! Showing win screen.");
-        }
-        else
-        {
-            Debug.LogWarning("GameManager: Win condition met, but win screen UI element is not assigned!");
-        }
-        
-        // Pause time
-        if (TimeManager.Instance != null)
-        {
-            TimeManager.Instance.Pause();
-        }
-        else
-        {
-            Debug.LogWarning("GameManager: Win condition met, but TimeManager instance not found!");
-        }
     }
     
     /// <summary>

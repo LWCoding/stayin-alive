@@ -1556,7 +1556,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _pointsText: {fileID: 870660986}
-  _pointsFormat: 'Readiness: {0}/{1}'
+  _pointsFormat: 'Food Stored: {0}'
 --- !u!1 &861405191
 GameObject:
   m_ObjectHideFlags: 0

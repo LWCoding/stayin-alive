@@ -137,11 +137,10 @@ public class ProceduralLevelLoader : MonoBehaviour
             Debug.LogWarning("ProceduralLevelLoader: ItemTilemapManager instance not found! Items will not be spawned.");
         }
 
-        // Set maximum food count in PointsManager (counted during parsing)
+        // Reset points in PointsManager
         if (PointsManager.Instance != null)
         {
             PointsManager.Instance.ResetPoints();
-            PointsManager.Instance.SetMaxFoodCount(levelData.FoodCount);
         }
 
         // Register any animals that are already on dens (safety check)
