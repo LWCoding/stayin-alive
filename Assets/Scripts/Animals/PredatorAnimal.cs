@@ -17,6 +17,7 @@ public class PredatorAnimal : Animal
 
     private int _stallTurnsRemaining = 0;
     private Vector2Int? _wanderingDestination = null;
+    private Vector2Int? _huntingDestination = null;
 
     /// <summary>
     /// Gets the priority level of this predator.
@@ -40,7 +41,27 @@ public class PredatorAnimal : Animal
         {
             // If we detect prey, cancel wandering and hunt
             _wanderingDestination = null;
-            MoveOneStepTowards(preyGrid.Value);
+            _huntingDestination = preyGrid.Value;
+            if (!MoveOneStepTowards(preyGrid.Value))
+            {
+                // If move failed, try to find a new prey or recalculate path
+                Vector2Int? newPreyGrid = FindNearestPreyGrid();
+                if (newPreyGrid.HasValue)
+                {
+                    _huntingDestination = newPreyGrid.Value;
+                    MoveOneStepTowards(newPreyGrid.Value);
+                }
+                else
+                {
+                    // No prey found, start wandering
+                    _huntingDestination = null;
+                    _wanderingDestination = ChooseWanderingDestination();
+                    if (_wanderingDestination.HasValue)
+                    {
+                        MoveOneStepTowards(_wanderingDestination.Value);
+                    }
+                }
+            }
         }
         else
         {
@@ -58,18 +79,41 @@ public class PredatorAnimal : Animal
                 if (detectedPrey.HasValue)
                 {
                     _wanderingDestination = null;
-                    MoveOneStepTowards(detectedPrey.Value);
+                    _huntingDestination = detectedPrey.Value;
+                    if (!MoveOneStepTowards(detectedPrey.Value))
+                    {
+                        // If move failed, try to find a new prey
+                        Vector2Int? newPreyGrid = FindNearestPreyGrid();
+                        if (newPreyGrid.HasValue)
+                        {
+                            _huntingDestination = newPreyGrid.Value;
+                            MoveOneStepTowards(newPreyGrid.Value);
+                        }
+                        else
+                        {
+                            _huntingDestination = null;
+                        }
+                    }
                 }
                 else
                 {
                     // Continue wandering
+                    _huntingDestination = null;
                     bool moved = MoveOneStepTowards(_wanderingDestination.Value);
                     if (!moved)
                     {
-                        _wanderingDestination = ChooseWanderingDestination();
-                        if (_wanderingDestination.HasValue)
+                        // If move failed, try to find a new destination and move immediately
+                        // Try multiple times to find a valid destination
+                        for (int attempts = 0; attempts < 3; attempts++)
                         {
-                            MoveOneStepTowards(_wanderingDestination.Value);
+                            _wanderingDestination = ChooseWanderingDestination();
+                            if (_wanderingDestination.HasValue)
+                            {
+                                if (MoveOneStepTowards(_wanderingDestination.Value))
+                                {
+                                    break; // Successfully moved
+                                }
+                            }
                         }
                     }
                 }
@@ -143,11 +187,58 @@ public class PredatorAnimal : Animal
         if (EnvironmentManager.Instance.IsValidPosition(nextGrid) &&
             EnvironmentManager.Instance.IsWalkable(nextGrid))
         {
+            // Check if there's another animal at this position
+            // Predators can move onto valid hunt targets (prey or lower priority predators)
+            Animal animalAtPosition = GetAnimalAtPosition(nextGrid);
+            if (animalAtPosition != null)
+            {
+                // Skip controllable animals that are in a den (they are safe)
+                if (animalAtPosition.IsControllable && Den.IsControllableAnimalInDen(animalAtPosition))
+                {
+                    return false; // Animal in den, treat as failed move
+                }
+                
+                // Only allow movement if the animal is a valid hunt target
+                if (!IsValidTarget(animalAtPosition))
+                {
+                    return false; // Not a valid target, treat as failed move
+                }
+                // If it's a valid target, allow the move (hunting will happen in TryHuntAtCurrentPosition)
+            }
+            
             SetGridPosition(nextGrid);
             return true;
         }
 
         return false;
+    }
+
+    /// <summary>
+    /// Gets the animal at the specified grid position, if any.
+    /// </summary>
+    private Animal GetAnimalAtPosition(Vector2Int position)
+    {
+        if (AnimalManager.Instance == null)
+        {
+            return null;
+        }
+
+        List<Animal> animals = AnimalManager.Instance.GetAllAnimals();
+        for (int i = 0; i < animals.Count; i++)
+        {
+            Animal other = animals[i];
+            if (other == null || other == this)
+            {
+                continue;
+            }
+
+            if (other.GridPosition == position)
+            {
+                return other;
+            }
+        }
+
+        return null;
     }
 
     private Vector2Int? FindNearestPreyGrid()
@@ -322,6 +413,47 @@ public class PredatorAnimal : Animal
                 _stallTurnsRemaining = Mathf.Max(0, _stallTurnsAfterHunt);
                 break;
             }
+        }
+    }
+
+    /// <summary>
+    /// Draws gizmos when the object is selected in the editor.
+    /// </summary>
+    private void OnDrawGizmosSelected()
+    {
+        if (EnvironmentManager.Instance == null)
+        {
+            return;
+        }
+
+        Vector3 currentWorldPos = EnvironmentManager.Instance.GridToWorldPosition(GridPosition);
+        
+        // Draw destination point and line
+        Vector2Int? destination = null;
+        Color gizmoColor = Color.yellow;
+        
+        if (_huntingDestination.HasValue)
+        {
+            destination = _huntingDestination;
+            gizmoColor = Color.red; // Red for hunting
+        }
+        else if (_wanderingDestination.HasValue)
+        {
+            destination = _wanderingDestination;
+            gizmoColor = Color.cyan; // Cyan for wandering
+        }
+        
+        if (destination.HasValue)
+        {
+            Vector3 destWorldPos = EnvironmentManager.Instance.GridToWorldPosition(destination.Value);
+            
+            // Draw line from current position to destination
+            Gizmos.color = gizmoColor;
+            Gizmos.DrawLine(currentWorldPos, destWorldPos);
+            
+            // Draw destination point
+            Gizmos.color = gizmoColor;
+            Gizmos.DrawWireSphere(destWorldPos, 0.3f);
         }
     }
 }

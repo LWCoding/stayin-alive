@@ -14,6 +14,7 @@ public class PreyAnimal : Animal
     [SerializeField] private int _fleeDistance = 3;
 
     private Vector2Int? _wanderingDestination = null;
+    private Vector2Int? _fleeDestination = null;
     private int _turnCounter = 0;
 
     public override void TakeTurn()
@@ -58,7 +59,12 @@ public class PreyAnimal : Animal
                     // Continue wandering
                     if (!MoveOneStepTowards(_wanderingDestination.Value))
                     {
-                        _wanderingDestination = null;
+                        // If move failed, try to find a new destination and move immediately
+                        _wanderingDestination = ChooseWanderingDestination();
+                        if (_wanderingDestination.HasValue)
+                        {
+                            MoveOneStepTowards(_wanderingDestination.Value);
+                        }
                     }
                 }
             }
@@ -160,9 +166,13 @@ public class PreyAnimal : Animal
 
         // Try to find a valid walkable position near the target
         Vector2Int? validFleePos = FindValidFleePosition(targetPos, myPos);
-        if (validFleePos.HasValue && MoveOneStepTowards(validFleePos.Value))
+        if (validFleePos.HasValue)
         {
-            return;
+            _fleeDestination = validFleePos.Value;
+            if (MoveOneStepTowards(validFleePos.Value))
+            {
+                return;
+            }
         }
 
         // If we can't find a good flee position, try to move in any direction away
@@ -189,12 +199,43 @@ public class PreyAnimal : Animal
         {
             Vector2Int testPos = myPos + dir;
             if (EnvironmentManager.Instance.IsValidPosition(testPos) &&
-                EnvironmentManager.Instance.IsWalkable(testPos) &&
-                MoveOneStepTowards(testPos))
+                EnvironmentManager.Instance.IsWalkable(testPos))
             {
-                return;
+                _fleeDestination = testPos;
+                if (MoveOneStepTowards(testPos))
+                {
+                    return;
+                }
             }
         }
+
+        // If all moves failed, try to recalculate a new flee destination
+        // Try a different angle/distance
+        for (int attempts = 0; attempts < 5; attempts++)
+        {
+            int angle = Random.Range(0, 360);
+            float radians = angle * Mathf.Deg2Rad;
+            Vector2Int newDirection = new Vector2Int(
+                Mathf.RoundToInt(Mathf.Cos(radians) * _fleeDistance),
+                Mathf.RoundToInt(Mathf.Sin(radians) * _fleeDistance)
+            );
+            Vector2Int newTargetPos = myPos + newDirection;
+            
+            newTargetPos.x = Mathf.Clamp(newTargetPos.x, 0, gridSize.x - 1);
+            newTargetPos.y = Mathf.Clamp(newTargetPos.y, 0, gridSize.y - 1);
+            
+            Vector2Int? newFleePos = FindValidFleePosition(newTargetPos, myPos);
+            if (newFleePos.HasValue)
+            {
+                _fleeDestination = newFleePos.Value;
+                if (MoveOneStepTowards(newFleePos.Value))
+                {
+                    return;
+                }
+            }
+        }
+        
+        _fleeDestination = null;
     }
 
     /// <summary>
@@ -311,6 +352,14 @@ public class PreyAnimal : Animal
         if (EnvironmentManager.Instance.IsValidPosition(nextGrid) &&
             EnvironmentManager.Instance.IsWalkable(nextGrid))
         {
+            // Check if there's another animal at this position
+            // Prey animals should not move onto other animals (no interactions between prey)
+            if (AnimalManager.Instance != null && 
+                AnimalManager.Instance.HasOtherAnimalAtPosition(this, nextGrid))
+            {
+                return false; // Collision detected, treat as failed move
+            }
+            
             SetGridPosition(nextGrid);
             return true;
         }
@@ -377,6 +426,47 @@ public class PreyAnimal : Animal
         
         // If all attempts failed, return null (will try again next turn)
         return null;
+    }
+
+    /// <summary>
+    /// Draws gizmos when the object is selected in the editor.
+    /// </summary>
+    private void OnDrawGizmosSelected()
+    {
+        if (EnvironmentManager.Instance == null)
+        {
+            return;
+        }
+
+        Vector3 currentWorldPos = EnvironmentManager.Instance.GridToWorldPosition(GridPosition);
+        
+        // Draw destination point and line
+        Vector2Int? destination = null;
+        Color gizmoColor = Color.green;
+        
+        if (_fleeDestination.HasValue)
+        {
+            destination = _fleeDestination;
+            gizmoColor = Color.red; // Red for fleeing
+        }
+        else if (_wanderingDestination.HasValue)
+        {
+            destination = _wanderingDestination;
+            gizmoColor = Color.cyan; // Cyan for wandering
+        }
+        
+        if (destination.HasValue)
+        {
+            Vector3 destWorldPos = EnvironmentManager.Instance.GridToWorldPosition(destination.Value);
+            
+            // Draw line from current position to destination
+            Gizmos.color = gizmoColor;
+            Gizmos.DrawLine(currentWorldPos, destWorldPos);
+            
+            // Draw destination point
+            Gizmos.color = gizmoColor;
+            Gizmos.DrawWireSphere(destWorldPos, 0.3f);
+        }
     }
 }
 
