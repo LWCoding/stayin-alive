@@ -29,16 +29,22 @@ public class PointsManager : Singleton<PointsManager>
     /// Adds points to the readiness score.
     /// </summary>
     /// <param name="points">Number of points to add</param>
-    public void AddPoints(int points)
+    /// <param name="allowNegative"> if true, allows negative values to be passed in order to deduct points </param>
+    /// <returns>boolean representing if addition was successful</returns>
+    public bool AddPoints(int points, bool allowNegative = false)
     {
-        if (points <= 0)
+        // I overloaded this horrifically so we didn't need multiple functions for it...
+        // I put a default value though so it wouldn't break any other functionality that
+        // depended on the positive nature of it
+        if ((points <= 0 && !allowNegative) || _readinessPoints + points < 0)
         {
-            return;
+            return false;
         }
         
         _readinessPoints += points;
         UpdatePointsDisplay();
         Debug.Log($"PointsManager: Added {points} points. Total readiness: {_readinessPoints}");
+        return true;
     }
     
     /// <summary>
