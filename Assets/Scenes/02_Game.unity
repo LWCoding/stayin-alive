@@ -901,7 +901,7 @@ MonoBehaviour:
   _obstacleThreshold: 0.85
   _randomSeed: 0
   _addBorderWalls: 1
-  _controllableAnimalName: Hedgehog
+  _controllableAnimalName: KangarooRat
   _controllableAnimalCount: 4
   _predatorPatchCount: 2
   _predatorsPerPatch: 2

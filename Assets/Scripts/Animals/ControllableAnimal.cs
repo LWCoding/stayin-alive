@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using UnityEngine;
 
 /// <summary>
@@ -55,7 +56,7 @@ public class ControllableAnimal : Animal
         if (InteractableManager.Instance != null)
         {
             Den den = InteractableManager.Instance.GetDenAtPosition(gridPosition);
-            if (den != null)
+            if (den != null && !HasPredatorAtPosition(gridPosition))
             {
                 den.OnAnimalEnter(this);
                 _currentDen = den;
@@ -84,11 +85,15 @@ public class ControllableAnimal : Animal
                 _currentDen = null;
             }
 
-            // If we entered a new den, notify it
+            // If we entered a new den, notify it (only if no predator is blocking the den)
             if (newDen != null && newDen != previousDen)
             {
-                newDen.OnAnimalEnter(this);
-                _currentDen = newDen;
+                // Check if there's a predator at this position - if so, prevent den entry
+                if (!HasPredatorAtPosition(gridPosition))
+                {
+                    newDen.OnAnimalEnter(this);
+                    _currentDen = newDen;
+                }
             }
         }
 
@@ -217,6 +222,34 @@ public class ControllableAnimal : Animal
         {
             TimeManager.Instance.NotifyPlayerMoved();
         }
+    }
+
+    /// <summary>
+    /// Checks if there is a predator animal at the specified grid position.
+    /// </summary>
+    private bool HasPredatorAtPosition(Vector2Int position)
+    {
+        if (AnimalManager.Instance == null)
+        {
+            return false;
+        }
+
+        List<Animal> animals = AnimalManager.Instance.GetAllAnimals();
+        for (int i = 0; i < animals.Count; i++)
+        {
+            Animal other = animals[i];
+            if (other == null || other == this)
+            {
+                continue;
+            }
+
+            if (other.GridPosition == position && other is PredatorAnimal)
+            {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     private void OnDestroy()

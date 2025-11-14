@@ -204,16 +204,13 @@ public class PredatorAnimal : Animal
         {
             // Check if there's another animal at this position
             // Predators can move onto valid hunt targets (prey or lower priority predators)
+            // They can also move onto den tiles even when controllable animals are inside (but cannot hunt them)
             Animal animalAtPosition = GetAnimalAtPosition(nextGrid);
             if (animalAtPosition != null)
             {
-                // Skip controllable animals that are in a den (they are safe)
-                if (animalAtPosition.IsControllable && Den.IsControllableAnimalInDen(animalAtPosition))
-                {
-                    return false; // Animal in den, treat as failed move
-                }
-                
                 // Only allow movement if the animal is a valid hunt target
+                // Note: Controllable animals in dens are still considered valid targets for movement,
+                // but hunting is prevented in TryHuntAtCurrentPosition when on a den tile
                 if (!IsValidTarget(animalAtPosition))
                 {
                     return false; // Not a valid target, treat as failed move

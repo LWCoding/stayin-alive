@@ -42,8 +42,8 @@ public class ProceduralLevelLoader : MonoBehaviour
     [SerializeField] private bool _addBorderWalls = true;
     
     [Header("Animal Spawning Settings")]
-    [Tooltip("Name of the controllable animal to spawn (e.g., 'Hedgehog')")]
-    [SerializeField] private string _controllableAnimalName = "Hedgehog";
+    [Tooltip("Name of the controllable animal to spawn")]
+    [SerializeField] private string _controllableAnimalName = "KangarooRat";
     
     [Tooltip("Number of controllable animals to spawn")]
     [SerializeField] private int _controllableAnimalCount = 4;
