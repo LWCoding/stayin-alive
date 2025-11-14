@@ -2199,17 +2199,23 @@ MonoBehaviour:
   musicSource: {fileID: 876931888}
   sfxList:
   - type: 1
-    clip: {fileID: 8300000, guid: 8865ed139d8d0434f9da8349cf23897f, type: 3}
+    clip: {fileID: 8300000, guid: 0ee8f56cabdfac443a0e1560d39a57bd, type: 3}
     volume: 0.553
   - type: 2
-    clip: {fileID: 8300000, guid: 0ee8f56cabdfac443a0e1560d39a57bd, type: 3}
+    clip: {fileID: 8300000, guid: 06b6de919304987449c1a73d6e7097e5, type: 3}
     volume: 0.54
   - type: 3
-    clip: {fileID: 8300000, guid: 06b6de919304987449c1a73d6e7097e5, type: 3}
+    clip: {fileID: 8300000, guid: ea941c90f88c2384c96e3b495f2ebd2d, type: 3}
     volume: 0.549
   - type: 4
-    clip: {fileID: 8300000, guid: ea941c90f88c2384c96e3b495f2ebd2d, type: 3}
+    clip: {fileID: 8300000, guid: ad3c6c1b702db78459c6c158c396ff3e, type: 3}
     volume: 0.535
+  - type: 5
+    clip: {fileID: 8300000, guid: 8865ed139d8d0434f9da8349cf23897f, type: 3}
+    volume: 0.48
+  - type: 6
+    clip: {fileID: 8300000, guid: 1829db40df8fde1478918d723fab7253, type: 3}
+    volume: 0.484
   musicList: []
 --- !u!1 &880794004
 GameObject:

@@ -14,7 +14,34 @@ public class AnimalManager : Singleton<AnimalManager>
     private Dictionary<string, AnimalData> _animalDataDictionary = new Dictionary<string, AnimalData>();
     private Animal _currentlySelectedAnimal;
 
+    // Track animals visible in the camera viewport
+    private List<Animal> _animalsInViewport = new List<Animal>();
+    
+    // Cache the main camera to avoid repeated lookups
+    private Camera _mainCamera;
+
     public Animal CurrentlySelectedAnimal => _currentlySelectedAnimal;
+    
+    /// <summary>
+    /// Gets the list of animals currently visible in the camera viewport (not obscured by fog of war).
+    /// </summary>
+    public List<Animal> GetAnimalsInViewport()
+    {
+        return new List<Animal>(_animalsInViewport);
+    }
+
+    /// <summary>
+    /// Checks if an animal is currently in the camera viewport (not obscured by fog of war).
+    /// </summary>
+    public bool IsAnimalInViewport(Animal animal)
+    {
+        if (animal == null || _animalsInViewport == null)
+        {
+            return false;
+        }
+
+        return _animalsInViewport.Contains(animal);
+    }
 
     protected override void Awake()
     {
@@ -29,6 +56,27 @@ public class AnimalManager : Singleton<AnimalManager>
 
         // Load all AnimalData from Resources/Animals/ folder
         LoadAnimalData();
+        
+        // Cache the main camera
+        _mainCamera = Camera.main;
+    }
+
+    private void Start()
+    {
+        // Ensure camera is cached (may not be available in Awake)
+        if (_mainCamera == null)
+        {
+            _mainCamera = Camera.main;
+        }
+        
+        // Initialize the viewport list
+        UpdateAnimalsInViewport();
+    }
+
+    private void Update()
+    {
+        // Update the list of animals in viewport each frame
+        UpdateAnimalsInViewport();
     }
 
     /// <summary>
@@ -322,6 +370,66 @@ public class AnimalManager : Singleton<AnimalManager>
         if (animal != null && _animals != null)
         {
             _animals.Remove(animal);
+        }
+        
+        // Also remove from viewport list if present
+        if (animal != null && _animalsInViewport != null)
+        {
+            _animalsInViewport.Remove(animal);
+        }
+    }
+
+    /// <summary>
+    /// Updates the list of animals visible in the camera viewport.
+    /// Only includes animals that are:
+    /// 1. In the camera's viewport (world space)
+    /// 2. Not obscured by fog of war (their tile is revealed)
+    /// </summary>
+    private void UpdateAnimalsInViewport()
+    {
+        // Clear the current list
+        _animalsInViewport.Clear();
+        
+        // Ensure we have FogOfWarManager
+        if (FogOfWarManager.Instance == null)
+        {
+            return;
+        }
+
+        // Get all animals in the scene
+        List<Animal> allAnimals = GetAllAnimals();
+
+        // Check each animal
+        for (int i = 0; i < allAnimals.Count; i++)
+        {
+            Animal animal = allAnimals[i];
+            if (animal == null)
+            {
+                continue;
+            }
+
+            // Check if animal is in the camera viewport (world space)
+            Vector3 viewportPos = _mainCamera.WorldToViewportPoint(animal.transform.position);
+            bool isInViewport = viewportPos.x >= 0f && viewportPos.x <= 1f &&
+                               viewportPos.y >= 0f && viewportPos.y <= 1f &&
+                               viewportPos.z > 0f; // In front of camera
+
+            if (!isInViewport)
+            {
+                continue; // Animal is not in viewport
+            }
+
+            // Check if the animal's tile is revealed (not obscured by fog of war)
+            Vector2Int animalGridPos = animal.GridPosition;
+            bool isTileRevealed = FogOfWarManager.Instance.IsTileRevealed(animalGridPos);
+
+            if (!isTileRevealed)
+            {
+                continue; // Animal is obscured by fog of war
+            }
+
+            // Animal passes all checks - add to the list
+            _animalsInViewport.Add(animal);
         }
     }
 }

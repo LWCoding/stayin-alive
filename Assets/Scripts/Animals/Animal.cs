@@ -235,6 +235,19 @@ public class Animal : MonoBehaviour
             ParticleEffectManager.Instance.SpawnParticleEffect("Blood", effectPosition, 2);
         }
 
+         // Play death sound effect if available and animal is in viewport
+        if (_animalData != null && AudioManager.Instance != null)
+        {
+            if (_animalData.dyingSFX != AudioManager.SFXType.None)
+            {
+                // Check if animal is in viewport using AnimalManager
+                if (AnimalManager.Instance != null && AnimalManager.Instance.IsAnimalInViewport(this))
+                {
+                    AudioManager.Instance.PlaySFX(_animalData.dyingSFX);
+                }
+            }
+        }
+
         if (_animalCount <= 0)
         {
             ClearAllFollowers();

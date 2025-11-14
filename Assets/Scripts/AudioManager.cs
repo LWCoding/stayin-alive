@@ -11,21 +11,22 @@ public class AudioManager : Singleton<AudioManager>
     public enum SFXType
     {
         None = 0,
-        Damage, 
-        Hawk, 
-        Coyote,
-        Walk, 
-        Dig,
+        Hawk = 1,
+        Coyote = 2,
+        Walk = 3,
+        Dig = 4,
+        KangDeath = 5, 
+        BunnyDeath = 6,
     }
 
     public enum MusicType
     {
-        Menu,
-        Spring, 
-        Summer, 
-        Autumn, 
-        Winter,
-        Danger,
+        Menu = 1,
+        Spring = 2,
+        Summer = 3,
+        Autumn = 4,
+        Winter = 5,
+        Danger = 6,
     }
 
     // ======================

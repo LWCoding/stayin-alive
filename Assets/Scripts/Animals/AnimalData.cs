@@ -32,8 +32,8 @@ public class AnimalData : ScriptableObject
     public int maxHunger = 100;
     
     [Header("Audio")]
-    [Tooltip("Sound to play when this animal takes damage (AudioManager SFX type).")]
-    public AudioManager.SFXType damageSFX = AudioManager.SFXType.None;
+    [Tooltip("Sound to play when this animal dies (AudioManager SFX type).")]
+    public AudioManager.SFXType dyingSFX = AudioManager.SFXType.None;
     [Tooltip("Sound to play when this animal starts chasing a controllable target.")]
     public AudioManager.SFXType chasingSFX = AudioManager.SFXType.None;
 }
