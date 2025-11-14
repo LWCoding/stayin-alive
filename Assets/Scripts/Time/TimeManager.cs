@@ -275,7 +275,7 @@ public class TimeManager : Singleton<TimeManager>
 			case Season.Summer:
 				// Warm, vibrant yellows and oranges
 				seasonColorFilter = new Color(1.0f, 0.98f, 0.92f, 1.0f); // Warm yellow tint
-				seasonSaturation = 10f; // Slightly increased saturation
+				seasonSaturation = 20f; // Slightly increased saturation
 				break;
 			case Season.Fall:
 				// Warm oranges and browns
@@ -285,7 +285,7 @@ public class TimeManager : Singleton<TimeManager>
 			case Season.Winter:
 				// Cool blues and grays - desaturated for a muted, cold look
 				seasonColorFilter = new Color(0.9f, 0.95f, 1.0f, 1.0f); // Cool blue tint
-				seasonSaturation = -50f; // Reduced saturation for muted look
+				seasonSaturation = -20f; // Reduced saturation for muted look
 				break;
 		}
 
