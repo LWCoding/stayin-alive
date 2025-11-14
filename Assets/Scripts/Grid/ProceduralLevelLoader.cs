@@ -338,15 +338,16 @@ public class ProceduralLevelLoader : MonoBehaviour
 		}
 
         // 2. Spawn predators in patches with predator dens
-        if (_predatorNames != null && _predatorNames.Length > 0 && walkablePositions.Count > 0)
+        if (_predatorNames != null && _predatorNames.Length > 0 && spawnPositions.Count > 0)
         {
             for (int patch = 0; patch < _predatorPatchCount; patch++)
             {
-                if (walkablePositions.Count == 0)
+                if (spawnPositions.Count == 0)
                     break;
                 
                 // Pick a random center position for this patch (this will be the predator den location)
-                Vector2Int patchCenter = walkablePositions[Random.Range(0, walkablePositions.Count)];
+                // Use spawnPositions to avoid water tiles
+                Vector2Int patchCenter = spawnPositions[Random.Range(0, spawnPositions.Count)];
                 
                 // Pick ONE predator type for this entire patch (all predators in this patch will be the same type)
                 string patchPredatorType = _predatorNames[Random.Range(0, _predatorNames.Length)];
@@ -355,11 +356,8 @@ public class ProceduralLevelLoader : MonoBehaviour
                 levelData.PredatorDens.Add((patchCenter.x, patchCenter.y, patchPredatorType));
                 
                 // Remove patch center from available positions (den occupies it)
+                spawnPositions.Remove(patchCenter);
                 walkablePositions.Remove(patchCenter);
-                if (spawnPositions.Contains(patchCenter))
-                {
-                    spawnPositions.Remove(patchCenter);
-                }
                 
                 // Spawn predators around the center
                 List<Vector2Int> patchPositions = new List<Vector2Int>();
@@ -375,18 +373,19 @@ public class ProceduralLevelLoader : MonoBehaviour
                         if (candidatePos.x >= 0 && candidatePos.x < _levelWidth &&
                             candidatePos.y >= 0 && candidatePos.y < _levelHeight)
                         {
-                            // Check if it's not an obstacle
-                            bool isObstacle = false;
+                            // Find the tile type for this position
+                            TileType tileType = TileType.Empty;
                             foreach (var (tx, ty, tt) in levelData.Tiles)
                             {
-                                if (tx == candidatePos.x && ty == candidatePos.y && tt == TileType.Obstacle)
+                                if (tx == candidatePos.x && ty == candidatePos.y)
                                 {
-                                    isObstacle = true;
+                                    tileType = tt;
                                     break;
                                 }
                             }
                             
-                            if (!isObstacle)
+                            // Only add positions that are not obstacles and not water
+                            if (tileType != TileType.Obstacle && tileType != TileType.Water)
                             {
                                 patchPositions.Add(candidatePos);
                             }
