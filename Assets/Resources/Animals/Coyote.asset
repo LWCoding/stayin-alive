@@ -10,10 +10,10 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: accb84d4a93c289478c7f27d580ddaa2, type: 3}
-  m_Name: Rabbit
+  m_Name: Coyote
   m_EditorClassIdentifier: 
-  animalName: Rabbit
-  frame1Sprite: {fileID: 21300000, guid: 899ba2391a8de09479de9db37495629c, type: 3}
-  frame2Sprite: {fileID: 21300000, guid: 3c980efdaa391f3438f4c3dddb655978, type: 3}
+  animalName: Coyote
+  frame1Sprite: {fileID: 21300000, guid: 5d034249c5af10a4b9f861cad507bcb0, type: 3}
+  frame2Sprite: {fileID: 21300000, guid: d780d151a90eaff448690ad054444d20, type: 3}
   animationInterval: 0.5
-  prefab: {fileID: 5487607050269822669, guid: ec45a6d6cf2c9b746947e8d8b8b36756, type: 3}
+  prefab: {fileID: 7487528407562162894, guid: 4fdf22e056f221240b13ee0dcbc005ce, type: 3}

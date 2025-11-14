@@ -65,9 +65,21 @@ PrefabInstance:
       value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 7930525551410983211, guid: 373ac555e5fbaf34c84fc9ea003210dd, type: 3}
+      propertyPath: m_Size.x
+      value: 1.1377778
+      objectReference: {fileID: 0}
+    - target: {fileID: 7930525551410983211, guid: 373ac555e5fbaf34c84fc9ea003210dd, type: 3}
+      propertyPath: m_Size.y
+      value: 1.1377778
+      objectReference: {fileID: 0}
+    - target: {fileID: 7930525551410983211, guid: 373ac555e5fbaf34c84fc9ea003210dd, type: 3}
       propertyPath: m_Sprite
       value: 
-      objectReference: {fileID: 21300000, guid: 9f146adb8c327014ba07ee0129b2806c, type: 3}
+      objectReference: {fileID: 21300000, guid: 899ba2391a8de09479de9db37495629c, type: 3}
+    - target: {fileID: 7930525551410983211, guid: 373ac555e5fbaf34c84fc9ea003210dd, type: 3}
+      propertyPath: m_WasSpriteAssigned
+      value: 1
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -106,8 +118,10 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   _animalData: {fileID: 0}
   _gridPosition: {x: 0, y: 0}
+  _previousGridPosition: {x: 0, y: 0}
+  _encounteredAnimalDuringMove: 0
+  _canGoOnWater: 0
   _spriteRenderer: {fileID: 0}
-  _moveDurationSeconds: 0.1
   _animalCount: 1
   _countText: {fileID: 5202976279325484043}
   _detectionRadius: 5

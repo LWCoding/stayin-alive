@@ -997,7 +997,7 @@ MonoBehaviour:
   _predatorsPerPatch: 2
   _predatorPatchRadius: 2
   _predatorNames:
-  - Wolf
+  - Coyote
   - Hawk
   _rabbitCount: 8
   _rabbitsPerGroup: 3
