@@ -95,33 +95,38 @@ public class Den : MonoBehaviour
     
     /// <summary>
     /// Processes food delivery when an animal enters the den.
-    /// For each food item, increases animal count by 1, removes the food, and adds points.
+    /// Empties all inventory slots and adds +1 point per item to PointsManager.
     /// </summary>
     private void ProcessFoodDelivery(Animal animal)
     {
-        if (animal == null)
+        if (animal == null || !animal.IsControllable)
         {
             return;
         }
         
-        // Check for "Food" items in inventory
-        int foodCount = animal.GetItemCount("Food");
-        
-        if (foodCount > 0)
+        // Use InventoryManager to get and clear all items
+        if (InventoryManager.Instance != null)
         {
-            // Remove all food from inventory
-            int removedCount = animal.RemoveAllItemsFromInventory("Food");
+            // Count items before clearing
+            int itemCount = InventoryManager.Instance.CurrentItemCount;
             
-            // Increase animal count by the number of food items
-            animal.IncreaseAnimalCount(removedCount);
-            
-            // Add points to PointsManager
-            if (PointsManager.Instance != null)
+            if (itemCount > 0)
             {
-                PointsManager.Instance.AddPoints(removedCount);
+                // Clear all items from inventory
+                int clearedCount = InventoryManager.Instance.ClearAllItems();
+                
+                // Add points to PointsManager (+1 point per item)
+                if (PointsManager.Instance != null)
+                {
+                    PointsManager.Instance.AddPoints(clearedCount);
+                }
+                
+                Debug.Log($"Animal '{animal.name}' deposited {clearedCount} items at den. Added {clearedCount} points.");
             }
-            
-            Debug.Log($"Animal '{animal.name}' delivered {removedCount} food to den. Animal count increased by {removedCount}.");
+        }
+        else
+        {
+            Debug.LogWarning("Den: InventoryManager instance not found! Cannot process food delivery.");
         }
     }
     

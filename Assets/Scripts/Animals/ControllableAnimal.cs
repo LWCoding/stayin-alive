@@ -102,15 +102,30 @@ public class ControllableAnimal : Animal
         {
             if (ItemTilemapManager.Instance.HasItemAt(gridPosition))
             {
-                // Get the item name before removing it
+                // Get the item name and sprite from the tile before removing it
                 string itemName = ItemTilemapManager.Instance.GetItemNameAt(gridPosition);
+                Sprite itemSprite = ItemTilemapManager.Instance.GetSpriteAt(gridPosition);
+                
                 if (!string.IsNullOrEmpty(itemName))
                 {
-                    // Add item to inventory
-                    AddItemToInventory(itemName);
+                    // Try to add item to inventory using InventoryManager
+                    if (InventoryManager.Instance != null)
+                    {
+                        if (InventoryManager.Instance.AddItem(itemName, itemSprite))
+                        {
+                            // Remove item from tilemap only if successfully added to inventory
+                            ItemTilemapManager.Instance.RemoveItem(gridPosition);
+                        }
+                        else
+                        {
+                            Debug.Log($"Cannot pick up '{itemName}' - inventory is full!");
+                        }
+                    }
+                    else
+                    {
+                        Debug.LogWarning("ControllableAnimal: InventoryManager instance not found! Cannot add item to inventory.");
+                    }
                 }
-                // Remove item from tilemap
-                ItemTilemapManager.Instance.RemoveItem(gridPosition);
             }
         }
     }

@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 using UnityEngine.Tilemaps;
 
@@ -201,6 +202,90 @@ public class ItemTilemapManager : Singleton<ItemTilemapManager>
     public TileBase GetItemTile(string itemName)
     {
         return GetTileForItemName(itemName);
+    }
+
+    /// <summary>
+    /// Gets the tile at the specified grid position. Returns null if no tile exists.
+    /// </summary>
+    public TileBase GetTileAt(Vector2Int gridPosition)
+    {
+        if (_itemTilemap == null)
+        {
+            return null;
+        }
+
+        Vector3Int tilePosition = new Vector3Int(gridPosition.x, gridPosition.y, 0);
+        return _itemTilemap.GetTile(tilePosition);
+    }
+
+    /// <summary>
+    /// Extracts the sprite from a tile. Handles both Tile and AnimatedTile types.
+    /// Returns null if sprite cannot be extracted.
+    /// </summary>
+    public Sprite GetSpriteFromTile(TileBase tile)
+    {
+        if (tile == null)
+        {
+            return null;
+        }
+
+        // Try to get sprite from Tile (not TileBase)
+        if (tile is Tile tileAsset)
+        {
+            if (tileAsset.sprite != null)
+            {
+                return tileAsset.sprite;
+            }
+        }
+        // Try to get first sprite from AnimatedTile
+        else if (tile.GetType().Name == "AnimatedTile")
+        {
+            // Use reflection to access m_AnimatedSprites field
+            // Try with different binding flags to search through inheritance hierarchy
+            var animatedSpritesField = tile.GetType().GetField("m_AnimatedSprites", 
+                System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.FlattenHierarchy);
+
+            if (animatedSpritesField == null)
+            {
+                var allFields = tile.GetType().GetFields(
+                    System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.FlattenHierarchy);
+                
+                foreach (var field in allFields)
+                {
+                    if (field.FieldType == typeof(Sprite[]))
+                    {
+                        animatedSpritesField = field;
+                        break;
+                    }
+                }
+            }
+            
+            if (animatedSpritesField != null)
+            {
+                Sprite[] animatedSprites = animatedSpritesField.GetValue(tile) as Sprite[];
+                if (animatedSprites != null && animatedSprites.Length > 0 && animatedSprites[0] != null)
+                {
+                    return animatedSprites[0];
+                }
+            }
+        }
+
+        return null;
+    }
+
+    /// <summary>
+    /// Gets the sprite from the tile at the specified grid position.
+    /// Returns null if no tile exists or sprite cannot be extracted.
+    /// </summary>
+    public Sprite GetSpriteAt(Vector2Int gridPosition)
+    {
+        TileBase tile = GetTileAt(gridPosition);
+        if (tile == null)
+        {
+            return null;
+        }
+
+        return GetSpriteFromTile(tile);
     }
 }
 
