@@ -23,15 +23,16 @@ public class PredatorAnimal : Animal
     [Tooltip("Sprite to set on the predator den when this predator associates with it.")]
     [SerializeField] private Sprite _denSprite;
 
-    private int _stallTurnsRemaining = 0;
-    private Vector2Int? _wanderingDestination = null;
-    private Vector2Int? _huntingDestination = null;
-    private PredatorDen _predatorDen = null;
+    protected int _stallTurnsRemaining = 0;
+    protected Vector2Int? _wanderingDestination = null;
+    protected Vector2Int? _huntingDestination = null;
+    protected PredatorDen _predatorDen = null;
 
     /// <summary>
     /// Gets the priority level of this predator.
     /// </summary>
     public int Priority => _priority;
+    protected int DetectionRadius => _detectionRadius;
 
     private void Awake()
     {
@@ -170,6 +171,12 @@ public class PredatorAnimal : Animal
             return;
         }
 
+        if (TryPerformSpecialTurnAction())
+        {
+            UpdateTrackingIndicator();
+            return;
+        }
+
         // Check if we detect any prey within radius
         Vector2Int? preyGrid = FindNearestPreyGrid();
         
@@ -265,8 +272,28 @@ public class PredatorAnimal : Animal
         // Attempt to hunt if we share a tile with another animal after moving
         TryHuntAtCurrentPosition();
         
+        // Allow subclasses to react after the standard predator logic completes
+        OnStandardTurnComplete();
+        
         // Update tracking indicator visibility
         UpdateTrackingIndicator();
+    }
+
+    /// <summary>
+    /// Allows subclasses to perform a special action instead of the standard predator behavior.
+    /// Return true to skip the default TakeTurn logic for this turn.
+    /// </summary>
+    protected virtual bool TryPerformSpecialTurnAction()
+    {
+        return false;
+    }
+
+    /// <summary>
+    /// Called after the standard predator logic runs (before the tracking indicator updates).
+    /// Subclasses can override to add custom behavior.
+    /// </summary>
+    protected virtual void OnStandardTurnComplete()
+    {
     }
 
     /// <summary>
@@ -360,7 +387,7 @@ public class PredatorAnimal : Animal
     /// <summary>
     /// Gets the animal at the specified grid position, if any.
     /// </summary>
-    private Animal GetAnimalAtPosition(Vector2Int position)
+    protected Animal GetAnimalAtPosition(Vector2Int position)
     {
         if (AnimalManager.Instance == null)
         {
@@ -385,7 +412,7 @@ public class PredatorAnimal : Animal
         return null;
     }
 
-    private Vector2Int? FindNearestPreyGrid()
+    protected virtual Vector2Int? FindNearestPreyGrid()
     {
         if (AnimalManager.Instance == null)
         {
@@ -437,7 +464,7 @@ public class PredatorAnimal : Animal
     /// - Predators with lower priority are valid targets
     /// - Predators with same or higher priority are ignored
     /// </summary>
-    private bool IsValidTarget(Animal target)
+    protected bool IsValidTarget(Animal target)
     {
         // Non-predator animals are always valid targets (prey)
         if (!(target is PredatorAnimal))
@@ -457,7 +484,7 @@ public class PredatorAnimal : Animal
         return targetPredator.Priority < _priority;
     }
 
-    private Vector2Int? ChooseWanderingDestination()
+    protected virtual Vector2Int? ChooseWanderingDestination()
     {
         if (EnvironmentManager.Instance == null)
         {
@@ -526,7 +553,7 @@ public class PredatorAnimal : Animal
         return null;
     }
 
-    private void TryHuntAtCurrentPosition()
+    protected virtual void TryHuntAtCurrentPosition()
     {
         if (AnimalManager.Instance == null)
         {
@@ -615,7 +642,7 @@ public class PredatorAnimal : Animal
     /// <summary>
     /// Updates the visibility of the tracking indicator based on whether the predator is hunting and not stalled.
     /// </summary>
-    private void UpdateTrackingIndicator()
+    protected void UpdateTrackingIndicator()
     {
         if (_trackingIndicator != null)
         {

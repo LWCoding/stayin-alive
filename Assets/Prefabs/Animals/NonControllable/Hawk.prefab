@@ -249,7 +249,7 @@ PrefabInstance:
     m_AddedComponents:
     - targetCorrespondingSourceObject: {fileID: 2195891697856963084, guid: 373ac555e5fbaf34c84fc9ea003210dd, type: 3}
       insertIndex: 1
-      addedObject: {fileID: 4520481472541313476}
+      addedObject: {fileID: 5304079896804822149}
   m_SourcePrefab: {fileID: 100100000, guid: 373ac555e5fbaf34c84fc9ea003210dd, type: 3}
 --- !u!4 &114691058271250153 stripped
 Transform:
@@ -272,7 +272,7 @@ GameObject:
   m_CorrespondingSourceObject: {fileID: 2195891697856963084, guid: 373ac555e5fbaf34c84fc9ea003210dd, type: 3}
   m_PrefabInstance: {fileID: 6431273789033064601}
   m_PrefabAsset: {fileID: 0}
---- !u!114 &4520481472541313476
+--- !u!114 &5304079896804822149
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -281,7 +281,7 @@ MonoBehaviour:
   m_GameObject: {fileID: 5132175799388392085}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 33b4556f43b8d214aaeef45cc4121e01, type: 3}
+  m_Script: {fileID: 11500000, guid: 840cf66690326cd4fa4ffd247a0d5e01, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
   _animalData: {fileID: 0}
@@ -298,3 +298,4 @@ MonoBehaviour:
   _stallTurnsAfterHunt: 5
   _trackingIndicator: {fileID: 3376862248153723975}
   _denSprite: {fileID: 21300000, guid: 6e499fb707a4ac64f81984607f69c26d, type: 3}
+  _dashDistance: 3
