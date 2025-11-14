@@ -1532,7 +1532,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 1}
   m_AnchorMax: {x: 0, y: 1}
-  m_AnchoredPosition: {x: 48, y: -37.711}
+  m_AnchoredPosition: {x: 48, y: -37.710938}
   m_SizeDelta: {x: 400, y: 50}
   m_Pivot: {x: 0, y: 1}
 --- !u!114 &870660986
@@ -2254,7 +2254,7 @@ MonoBehaviour:
   _itemTilemap: {fileID: 1931653255}
   _itemTiles:
   - itemName: Food
-    tile: {fileID: 11400000, guid: 1eda418d029255f4691a5bd3bea7bba2, type: 2}
+    tile: {fileID: 11400000, guid: 9760f246b4bc26e4981a1404253fb6fc, type: 2}
 --- !u!1 &1144474249
 GameObject:
   m_ObjectHideFlags: 0
