@@ -15,6 +15,7 @@ public class Den : MonoBehaviour
     [SerializeField] private SpriteRenderer _spriteRenderer;
     [SerializeField] private Sprite _unoccupiedSprite;
     [SerializeField] private Sprite _occupiedSprite;
+    [SerializeField] private GameObject _playerInDenObject;
     
     // Track which animals are currently in this den
     private HashSet<Animal> _animalsInDen = new HashSet<Animal>();
@@ -29,6 +30,12 @@ public class Den : MonoBehaviour
         if (_spriteRenderer == null)
         {
             _spriteRenderer = GetComponent<SpriteRenderer>();
+        }
+        
+        // Hide the player in den object by default
+        if (_playerInDenObject != null)
+        {
+            _playerInDenObject.SetActive(false);
         }
     }
     
@@ -194,20 +201,26 @@ public class Den : MonoBehaviour
     
     private void UpdateDenVisualState()
     {
-        if (_spriteRenderer == null)
-        {
-            return;
-        }
-        
         bool hasAnimals = _animalsInDen.Count > 0;
-        Sprite targetSprite = hasAnimals ? _occupiedSprite : _unoccupiedSprite;
         
-        if (targetSprite != null)
+        // Update sprite renderer
+        if (_spriteRenderer != null)
         {
-            _spriteRenderer.sprite = targetSprite;
+            Sprite targetSprite = hasAnimals ? _occupiedSprite : _unoccupiedSprite;
+            
+            if (targetSprite != null)
+            {
+                _spriteRenderer.sprite = targetSprite;
+            }
+            
+            _spriteRenderer.enabled = targetSprite != null || _spriteRenderer.sprite != null;
         }
         
-        _spriteRenderer.enabled = targetSprite != null || _spriteRenderer.sprite != null;
+        // Update player in den object visibility
+        if (_playerInDenObject != null)
+        {
+            _playerInDenObject.SetActive(hasAnimals);
+        }
     }
 }
 

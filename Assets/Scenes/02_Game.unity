@@ -896,8 +896,8 @@ MonoBehaviour:
   _levelHeight: 35
   _terrainNoiseScale: 0.1
   _obstacleNoiseScale: 0.15
-  _waterThreshold: 0.3
-  _grassThreshold: 0.7
+  _waterThreshold: 0.25
+  _grassThreshold: 0.75
   _obstacleThreshold: 0.85
   _randomSeed: 0
   _addBorderWalls: 1
