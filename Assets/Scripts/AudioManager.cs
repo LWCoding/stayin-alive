@@ -2,10 +2,8 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class AudioManager : MonoBehaviour
+public class AudioManager : Singleton<AudioManager>
 {
-    public static AudioManager Instance;
-
     // ======================
     // 🎚 ENUM TYPES
     // ======================
@@ -71,21 +69,13 @@ public class AudioManager : MonoBehaviour
     private Coroutine currentMusicFade;
 
     // ======================
-    // 🔧 SINGLETON & SETUP
+    // 🔧 SETUP
     // ======================
 
-    void Awake()
+    protected override void Awake()
     {
-        if (Instance == null)
-        {
-            Instance = this;
-            DontDestroyOnLoad(gameObject);
-            BuildDictionaries();
-        }
-        else
-        {
-            Destroy(gameObject);
-        }
+        base.Awake();
+        BuildDictionaries();
     }
 
     private void BuildDictionaries()
