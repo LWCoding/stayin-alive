@@ -10,6 +10,7 @@ public class AudioManager : Singleton<AudioManager>
 
     public enum SFXType
     {
+        None = 0,
         Damage, 
         Hawk, 
         Coyote,
@@ -188,6 +189,11 @@ public class AudioManager : Singleton<AudioManager>
 
     public void PlaySFX(SFXType type, float volume = -1f)
     {
+        if (type == SFXType.None)
+        {
+            return;
+        }
+
         if (!sfxDict.TryGetValue(type, out var entry))
         {
             Debug.LogWarning($"AudioManager: No SFX entry found for {type}");
@@ -196,6 +202,16 @@ public class AudioManager : Singleton<AudioManager>
 
         float finalVolume = (volume >= 0f) ? Mathf.Clamp01(volume) : entry.volume;
         sfxSource.PlayOneShot(entry.clip, finalVolume);
+    }
+
+    public void PlaySFX(AudioClip clip, float volume = 1f)
+    {
+        if (clip == null || sfxSource == null)
+        {
+            return;
+        }
+
+        sfxSource.PlayOneShot(clip, Mathf.Clamp01(volume));
     }
 
     public void StopSFX()

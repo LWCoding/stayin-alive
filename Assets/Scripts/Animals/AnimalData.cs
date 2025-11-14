@@ -30,5 +30,11 @@ public class AnimalData : ScriptableObject
     [Tooltip("Maximum hunger value. When hunger reaches 0, the animal dies. Hunger decreases by 1 each turn.")]
     [Min(1)]
     public int maxHunger = 100;
+    
+    [Header("Audio")]
+    [Tooltip("Sound to play when this animal takes damage (AudioManager SFX type).")]
+    public AudioManager.SFXType damageSFX = AudioManager.SFXType.None;
+    [Tooltip("Sound to play when this animal starts chasing a controllable target.")]
+    public AudioManager.SFXType chasingSFX = AudioManager.SFXType.None;
 }
 

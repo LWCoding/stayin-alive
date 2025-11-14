@@ -27,6 +27,7 @@ public class PredatorAnimal : Animal
     protected Vector2Int? _wanderingDestination = null;
     protected Vector2Int? _huntingDestination = null;
     protected PredatorDen _predatorDen = null;
+    private ControllableAnimal _controllableTargetInSight = null;
 
     /// <summary>
     /// Gets the priority level of this predator.
@@ -416,6 +417,7 @@ public class PredatorAnimal : Animal
     {
         if (AnimalManager.Instance == null)
         {
+            UpdateChasingAudio(null);
             return null;
         }
 
@@ -455,6 +457,7 @@ public class PredatorAnimal : Animal
             }
         }
 
+        UpdateChasingAudio(nearest);
         return nearest != null ? nearest.GridPosition : (Vector2Int?)null;
     }
 
@@ -482,6 +485,40 @@ public class PredatorAnimal : Animal
         // Only target predators with lower priority
         // Ignore predators with same or higher priority
         return targetPredator.Priority < _priority;
+    }
+
+    private void UpdateChasingAudio(Animal detectedPrey)
+    {
+        ControllableAnimal controllable = detectedPrey as ControllableAnimal;
+
+        if (controllable != null)
+        {
+            if (_controllableTargetInSight != controllable)
+            {
+                _controllableTargetInSight = controllable;
+                PlayChasingAudio();
+            }
+        }
+        else if (_controllableTargetInSight != null)
+        {
+            _controllableTargetInSight = null;
+        }
+    }
+
+    private void PlayChasingAudio()
+    {
+        if (AnimalData == null || AudioManager.Instance == null)
+        {
+            return;
+        }
+
+        AudioManager.SFXType chasingType = AnimalData.chasingSFX;
+        if (chasingType == AudioManager.SFXType.None)
+        {
+            return;
+        }
+
+        AudioManager.Instance.PlaySFX(chasingType);
     }
 
     protected virtual Vector2Int? ChooseWanderingDestination()
