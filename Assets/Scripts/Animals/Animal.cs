@@ -39,6 +39,11 @@ public class Animal : MonoBehaviour
     private List<GameObject> _followers = new List<GameObject>();
     private Coroutine _followerUpdateCoroutine;
 
+    [Header("Hunger")]
+    [Tooltip("Current hunger value. Decreases by 1 each turn. When it reaches 0, the animal dies.")]
+    [SerializeField] private int _currentHunger = 100;
+    private int _maxHunger = 100;
+
     public AnimalData AnimalData => _animalData;
     public Vector2Int GridPosition => _gridPosition;
     public Vector2Int PreviousGridPosition => _previousGridPosition;
@@ -55,6 +60,9 @@ public class Animal : MonoBehaviour
 
     public int AnimalCount => _animalCount;
     public bool CanGoOnWater => _canGoOnWater;
+    public int CurrentHunger => _currentHunger;
+    public int MaxHunger => _maxHunger;
+    public float HungerRatio => _maxHunger > 0 ? (float)_currentHunger / _maxHunger : 0f;
 
     /// <summary>
     /// Gets a copy of the inventory dictionary. Returns a new dictionary to prevent external modification.
@@ -277,7 +285,39 @@ public class Animal : MonoBehaviour
     /// </summary>
     public virtual void TakeTurn()
     {
-        // Base implementation does nothing
+        // Decrease hunger each turn
+        DecreaseHunger(1);
+    }
+
+    /// <summary>
+    /// Decreases hunger by the specified amount. If hunger reaches 0 or below, the animal dies.
+    /// </summary>
+    public virtual void DecreaseHunger(int amount)
+    {
+        if (amount <= 0)
+        {
+            return;
+        }
+
+        _currentHunger -= amount;
+        if (_currentHunger <= 0)
+        {
+            _currentHunger = 0;
+            Die();
+        }
+    }
+
+    /// <summary>
+    /// Increases hunger by the specified amount, clamped to max hunger.
+    /// </summary>
+    public virtual void IncreaseHunger(int amount)
+    {
+        if (amount <= 0)
+        {
+            return;
+        }
+
+        _currentHunger = Mathf.Min(_currentHunger + amount, _maxHunger);
     }
 
     private void Awake()
@@ -298,6 +338,13 @@ public class Animal : MonoBehaviour
         _gridPosition = gridPosition;
         _previousGridPosition = gridPosition;
         _encounteredAnimalDuringMove = false;
+
+        // Initialize hunger from AnimalData
+        if (_animalData != null)
+        {
+            _maxHunger = _animalData.maxHunger;
+            _currentHunger = _maxHunger;
+        }
 
         // Setup two-frame animation if data is available
         SetupTwoFrameAnimation();

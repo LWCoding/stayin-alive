@@ -25,5 +25,10 @@ public class AnimalData : ScriptableObject
     [Header("Prefab")]
     [Tooltip("Prefab to instantiate when spawning this animal")]
     public GameObject prefab;
+
+    [Header("Hunger")]
+    [Tooltip("Maximum hunger value. When hunger reaches 0, the animal dies. Hunger decreases by 1 each turn.")]
+    [Min(1)]
+    public int maxHunger = 100;
 }
 

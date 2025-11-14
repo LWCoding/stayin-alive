@@ -16,6 +16,87 @@ public class ControllableAnimal : Animal
     // Track the den this animal is currently in (if any)
     private Den _currentDen = null;
 
+    // Track if we're subscribed to TimeManager events
+    private bool _isSubscribedToTimeManager = false;
+
+    private void OnEnable()
+    {
+        // Subscribe to turn advancement to decrease hunger
+        SubscribeToTimeManager();
+
+        // Update UI when enabled
+        UpdateHungerUI();
+    }
+
+    private void OnDisable()
+    {
+        // Unsubscribe from turn advancement
+        UnsubscribeFromTimeManager();
+    }
+
+    private void Start()
+    {
+        // Ensure we're subscribed if TimeManager wasn't available in OnEnable
+        SubscribeToTimeManager();
+    }
+
+    private void SubscribeToTimeManager()
+    {
+        if (!_isSubscribedToTimeManager && TimeManager.Instance != null)
+        {
+            TimeManager.Instance.OnTurnAdvanced += OnTurnAdvanced;
+            _isSubscribedToTimeManager = true;
+        }
+    }
+
+    private void UnsubscribeFromTimeManager()
+    {
+        if (_isSubscribedToTimeManager && TimeManager.Instance != null)
+        {
+            TimeManager.Instance.OnTurnAdvanced -= OnTurnAdvanced;
+            _isSubscribedToTimeManager = false;
+        }
+    }
+
+    /// <summary>
+    /// Called when a turn advances. Decreases hunger for controllable animals.
+    /// </summary>
+    private void OnTurnAdvanced(int turnCount)
+    {
+        // Decrease hunger each turn (controllable animals don't go through TakeTurn)
+        // UI will be updated automatically via DecreaseHunger override
+        DecreaseHunger(1);
+    }
+
+    /// <summary>
+    /// Updates the hunger UI if UIManager is available.
+    /// </summary>
+    private void UpdateHungerUI()
+    {
+        if (UIManager.Instance != null)
+        {
+            UIManager.Instance.UpdateHungerBar();
+        }
+    }
+
+    /// <summary>
+    /// Override to update UI when hunger decreases.
+    /// </summary>
+    public override void DecreaseHunger(int amount)
+    {
+        base.DecreaseHunger(amount);
+        UpdateHungerUI();
+    }
+
+    /// <summary>
+    /// Override to update UI when hunger increases.
+    /// </summary>
+    public override void IncreaseHunger(int amount)
+    {
+        base.IncreaseHunger(amount);
+        UpdateHungerUI();
+    }
+
     /// <summary>
     /// Sets the current den this animal is in. Used internally and by InteractableManager.
     /// </summary>
@@ -61,6 +142,12 @@ public class ControllableAnimal : Animal
                 den.OnAnimalEnter(this);
                 _currentDen = den;
             }
+        }
+
+        // Register with UIManager for hunger display
+        if (UIManager.Instance != null)
+        {
+            UIManager.Instance.SetTrackedAnimal(this);
         }
     }
 
@@ -275,11 +362,20 @@ public class ControllableAnimal : Animal
 
     private void OnDestroy()
     {
+        // Unsubscribe from events
+        UnsubscribeFromTimeManager();
+
         // Clean up den references (leave den if in one)
         if (_currentDen != null)
         {
             _currentDen.OnAnimalLeave(this);
             _currentDen = null;
+        }
+
+        // Clear UI tracking if this animal is currently tracked
+        if (UIManager.Instance != null && UIManager.Instance.IsTrackingAnimal(this))
+        {
+            UIManager.Instance.SetTrackedAnimal(null);
         }
     }
 }
