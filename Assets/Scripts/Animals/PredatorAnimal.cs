@@ -14,6 +14,10 @@ public class PredatorAnimal : Animal
     [SerializeField] private int _priority = 0;
 
     [SerializeField] private int _stallTurnsAfterHunt = 5;
+    
+    [Header("Visual Indicators")]
+    [Tooltip("Visual indicator shown above the predator's head when tracking/hunting prey.")]
+    [SerializeField] private GameObject _trackingIndicator;
 
     private int _stallTurnsRemaining = 0;
     private Vector2Int? _wanderingDestination = null;
@@ -24,6 +28,12 @@ public class PredatorAnimal : Animal
     /// </summary>
     public int Priority => _priority;
 
+    private void Awake()
+    {
+        // Hide tracking indicator by default
+        UpdateTrackingIndicator();
+    }
+
     public override void TakeTurn()
     {
         // If stalled, skip this turn and decrement stall counter
@@ -31,6 +41,8 @@ public class PredatorAnimal : Animal
         {
             _stallTurnsRemaining--;
             Debug.Log($"Predator '{name}' is stalled. {_stallTurnsRemaining} turns remaining.");
+            // Hide tracking indicator while stalled
+            UpdateTrackingIndicator();
             return;
         }
 
@@ -122,6 +134,9 @@ public class PredatorAnimal : Animal
 
         // Attempt to hunt if we share a tile with another animal after moving
         TryHuntAtCurrentPosition();
+        
+        // Update tracking indicator visibility
+        UpdateTrackingIndicator();
     }
 
     /// <summary>
@@ -454,6 +469,19 @@ public class PredatorAnimal : Animal
             // Draw destination point
             Gizmos.color = gizmoColor;
             Gizmos.DrawWireSphere(destWorldPos, 0.3f);
+        }
+    }
+
+    /// <summary>
+    /// Updates the visibility of the tracking indicator based on whether the predator is hunting and not stalled.
+    /// </summary>
+    private void UpdateTrackingIndicator()
+    {
+        if (_trackingIndicator != null)
+        {
+            // Show indicator only when hunting (has a hunting destination) AND not stalled
+            bool shouldShow = _huntingDestination.HasValue && _stallTurnsRemaining == 0;
+            _trackingIndicator.SetActive(shouldShow);
         }
     }
 }
