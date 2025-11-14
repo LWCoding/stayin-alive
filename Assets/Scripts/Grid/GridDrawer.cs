@@ -10,8 +10,8 @@ public class GridDrawer : MonoBehaviour
 {
     [Header("Tile References")]
     [SerializeField] private TileBase _emptyTile;
-    [SerializeField] private TileBase _waterTile;
-    [SerializeField] private TileBase _grassTile;
+    [SerializeField] private TileBase[] _waterTiles;
+    [SerializeField] private TileBase[] _grassTiles;
     [SerializeField] private TileBase _obstacleTile;
 
     [Header("Settings")]
@@ -112,15 +112,24 @@ public class GridDrawer : MonoBehaviour
 
     /// <summary>
     /// Gets the appropriate tile asset for a given tile type.
+    /// Randomly selects from available tiles for water and grass types.
     /// </summary>
     private TileBase GetTileForType(TileType type)
     {
         switch (type)
         {
             case TileType.Water:
-                return _waterTile;
+                if (_waterTiles != null && _waterTiles.Length > 0)
+                {
+                    return _waterTiles[Random.Range(0, _waterTiles.Length)];
+                }
+                return null;
             case TileType.Grass:
-                return _grassTile;
+                if (_grassTiles != null && _grassTiles.Length > 0)
+                {
+                    return _grassTiles[Random.Range(0, _grassTiles.Length)];
+                }
+                return null;
             case TileType.Obstacle:
                 return _obstacleTile;
             case TileType.Empty:

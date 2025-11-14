@@ -560,8 +560,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _emptyTile: {fileID: 11400000, guid: 3d88d5ab1e68a2f4c8cca3487cb5a30c, type: 2}
-  _waterTile: {fileID: 11400000, guid: 98275d2b0faa9ff4988f394e4fcc070a, type: 2}
-  _grassTile: {fileID: 11400000, guid: e6c41526ec08fc949ba2801a472005a9, type: 2}
+  _waterTiles: []
+  _grassTiles: []
   _obstacleTile: {fileID: 11400000, guid: 872b1e52ba833394fa53c37ab4d630e0, type: 2}
   _updateOnGridChange: 1
   _drawOnStart: 1
@@ -3235,8 +3235,14 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _emptyTile: {fileID: 11400000, guid: 3d88d5ab1e68a2f4c8cca3487cb5a30c, type: 2}
-  _waterTile: {fileID: 11400000, guid: 16cb841d64520d3408e569488f4a5e1e, type: 2}
-  _grassTile: {fileID: 11400000, guid: 4d613257fb476ef44b2156696f2d09e4, type: 2}
+  _waterTiles:
+  - {fileID: 11400000, guid: 30d6ac2ff339634498ac20d9dd5c2c23, type: 2}
+  - {fileID: 11400000, guid: c2218ec321e75eb4988973ba501a20d2, type: 2}
+  _grassTiles:
+  - {fileID: 11400000, guid: 2128fd3ef7d3a6e41a1f746a12d244cd, type: 2}
+  - {fileID: 11400000, guid: 7153c7f2e31375c4fa75b016ed86162e, type: 2}
+  - {fileID: 11400000, guid: 6bc6bdb161367b94a950abb7943d74c2, type: 2}
+  - {fileID: 11400000, guid: a497f8ac1b4527c42962a3c57d9877b3, type: 2}
   _obstacleTile: {fileID: 11400000, guid: 872b1e52ba833394fa53c37ab4d630e0, type: 2}
   _updateOnGridChange: 1
   _drawOnStart: 1
