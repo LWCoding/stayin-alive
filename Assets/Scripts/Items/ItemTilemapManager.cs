@@ -1,20 +1,6 @@
 using System.Collections.Generic;
-using System.Linq;
 using UnityEngine;
 using UnityEngine.Tilemaps;
-
-/// <summary>
-/// Serializable class to map item names to their tile assets.
-/// </summary>
-[System.Serializable]
-public class ItemTileEntry
-{
-    [Tooltip("Name identifier for this item type (must match names used in level files)")]
-    public string itemName;
-    
-    [Tooltip("Tile asset to use for this item type")]
-    public TileBase tile;
-}
 
 /// <summary>
 /// Manages items by placing them on a tilemap. Items are drawn as special tiles that can be picked up.
@@ -26,15 +12,17 @@ public class ItemTilemapManager : Singleton<ItemTilemapManager>
     [SerializeField] [Tooltip("Tilemap for items. Must be assigned via Inspector. Should be on a separate layer above the environment tiles.")]
     private Tilemap _itemTilemap;
 
-    [Header("Item Tile Types")]
-    [SerializeField] [Tooltip("List of item types and their corresponding tiles. Item names must match those used in level files.")]
-    private List<ItemTileEntry> _itemTiles = new List<ItemTileEntry>();
+    [Header("Item Database")]
+    [SerializeField] [Tooltip("Resource path (relative to a Resources folder) to the ItemDatabase asset.")]
+    private string _itemDatabaseResourcePath = "ItemDatabase";
+
+    private ItemDatabase _itemDatabase;
 
     // Track which positions have items (itemName -> positions)
-    private Dictionary<Vector2Int, string> _itemPositions = new Dictionary<Vector2Int, string>();
+    private readonly Dictionary<Vector2Int, string> _itemPositions = new Dictionary<Vector2Int, string>();
     
-    // Dictionary to map item names to their tile assets (built from serialized list)
-    private Dictionary<string, TileBase> _itemTileDictionary = new Dictionary<string, TileBase>();
+    // Dictionary to map item names to their definitions (built from scriptable object)
+    private readonly Dictionary<string, ItemDatabase.ItemDefinition> _itemDefinitionLookup = new Dictionary<string, ItemDatabase.ItemDefinition>();
 
     protected override void Awake()
     {
@@ -46,58 +34,80 @@ public class ItemTilemapManager : Singleton<ItemTilemapManager>
             Debug.LogError("ItemTilemapManager: Item tilemap is not assigned! Please assign a Tilemap component in the Inspector.");
         }
 
-        // Build dictionary from serialized list
-        BuildItemTileDictionary();
+        // Load definitions from the scriptable object database
+        LoadItemDatabase();
     }
 
     /// <summary>
-    /// Builds the item tile dictionary from the serialized list.
+    /// Loads the item database from Resources and builds a lookup of definitions.
     /// </summary>
-    private void BuildItemTileDictionary()
+    private void LoadItemDatabase()
     {
-        _itemTileDictionary.Clear();
+        _itemDefinitionLookup.Clear();
+        _itemDatabase = Resources.Load<ItemDatabase>(_itemDatabaseResourcePath);
 
-        foreach (ItemTileEntry entry in _itemTiles)
+        if (_itemDatabase == null)
         {
-            if (entry == null)
-            {
-                continue;
-            }
-
-            if (string.IsNullOrEmpty(entry.itemName))
-            {
-                Debug.LogWarning("ItemTilemapManager: Found item tile entry with null or empty name. Skipping.");
-                continue;
-            }
-
-            if (entry.tile == null)
-            {
-                Debug.LogWarning($"ItemTilemapManager: Item tile entry '{entry.itemName}' has no tile assigned. Skipping.");
-                continue;
-            }
-
-            if (_itemTileDictionary.ContainsKey(entry.itemName))
-            {
-                Debug.LogWarning($"ItemTilemapManager: Duplicate item name '{entry.itemName}' found. Keeping first occurrence.");
-                continue;
-            }
-
-            _itemTileDictionary[entry.itemName] = entry.tile;
+            Debug.LogError($"ItemTilemapManager: Failed to load ItemDatabase at Resources path '{_itemDatabaseResourcePath}'. Items cannot be placed.");
+            return;
         }
 
-        Debug.Log($"ItemTilemapManager: Built item tile dictionary with {_itemTileDictionary.Count} entries.");
+        IReadOnlyList<ItemDatabase.ItemDefinition> definitions = _itemDatabase.Items;
+        for (int i = 0; i < definitions.Count; i++)
+        {
+            ItemDatabase.ItemDefinition definition = definitions[i];
+            if (definition == null)
+            {
+                continue;
+            }
+
+            if (string.IsNullOrEmpty(definition.itemName))
+            {
+                Debug.LogWarning("ItemTilemapManager: Found item definition with null or empty name. Skipping.");
+                continue;
+            }
+
+            if (definition.tile == null)
+            {
+                Debug.LogWarning($"ItemTilemapManager: Item definition '{definition.itemName}' has no tile assigned. Skipping.");
+                continue;
+            }
+
+            if (_itemDefinitionLookup.ContainsKey(definition.itemName))
+            {
+                Debug.LogWarning($"ItemTilemapManager: Duplicate item name '{definition.itemName}' found in database. Keeping first occurrence.");
+                continue;
+            }
+
+            _itemDefinitionLookup[definition.itemName] = definition;
+        }
+
+        Debug.Log($"ItemTilemapManager: Loaded {_itemDefinitionLookup.Count} item definitions from '{_itemDatabaseResourcePath}'.");
     }
 
     /// <summary>
     /// Gets the tile for a given item name. Returns null if not found.
     /// </summary>
+    private ItemDatabase.ItemDefinition GetDefinitionForItem(string itemName)
+    {
+        if (string.IsNullOrEmpty(itemName))
+        {
+            return null;
+        }
+
+        if (_itemDefinitionLookup.TryGetValue(itemName, out ItemDatabase.ItemDefinition definition))
+        {
+            return definition;
+        }
+
+        Debug.LogWarning($"ItemTilemapManager: Item definition not found for '{itemName}'. Ensure the ItemDatabase contains this item.");
+        return null;
+    }
+
     private TileBase GetTileForItemName(string itemName)
     {
-        if (_itemTileDictionary.TryGetValue(itemName, out TileBase tile))
-        {
-            return tile;
-        }
-        return null;
+        ItemDatabase.ItemDefinition definition = GetDefinitionForItem(itemName);
+        return definition?.tile;
     }
 
     /// <summary>
@@ -114,7 +124,7 @@ public class ItemTilemapManager : Singleton<ItemTilemapManager>
         TileBase tile = GetTileForItemName(itemName);
         if (tile == null)
         {
-            Debug.LogError($"ItemTilemapManager: Item tile not found for '{itemName}'. Make sure the item name is defined in the Item Tile Types list with an assigned tile.");
+            Debug.LogError($"ItemTilemapManager: Item tile not found for '{itemName}'. Make sure the ItemDatabase contains this definition with an assigned tile.");
             return;
         }
 
@@ -277,15 +287,39 @@ public class ItemTilemapManager : Singleton<ItemTilemapManager>
     /// Gets the sprite from the tile at the specified grid position.
     /// Returns null if no tile exists or sprite cannot be extracted.
     /// </summary>
-    public Sprite GetSpriteAt(Vector2Int gridPosition)
+    public Sprite GetItemSprite(string itemName)
     {
-        TileBase tile = GetTileAt(gridPosition);
-        if (tile == null)
+        ItemDatabase.ItemDefinition definition = GetDefinitionForItem(itemName);
+        if (definition == null)
         {
             return null;
         }
 
-        return GetSpriteFromTile(tile);
+        if (definition.inventorySprite != null)
+        {
+            return definition.inventorySprite;
+        }
+
+        if (definition.tile != null)
+        {
+            return GetSpriteFromTile(definition.tile);
+        }
+
+        return null;
+    }
+
+    /// <summary>
+    /// Gets the sprite from the item currently occupying the specified grid position.
+    /// </summary>
+    public Sprite GetSpriteAt(Vector2Int gridPosition)
+    {
+        string itemName = GetItemNameAt(gridPosition);
+        if (string.IsNullOrEmpty(itemName))
+        {
+            return null;
+        }
+
+        return GetItemSprite(itemName);
     }
 }
 

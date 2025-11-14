@@ -68,6 +68,9 @@ public class ProceduralLevelLoader : MonoBehaviour
 
 	[Tooltip("Number of rabbit spawner interactables to spawn")]
 	[SerializeField] private int _rabbitSpawnerCount = 2;
+
+	[Tooltip("Number of worm spawner interactables to spawn")]
+	[SerializeField] private int _wormSpawnerCount = 2;
     
     [Tooltip("Number of food items to spawn")]
     [SerializeField] private int _foodItemCount = 5;
@@ -111,10 +114,11 @@ public class ProceduralLevelLoader : MonoBehaviour
 			InteractableManager.Instance.SpawnDensFromLevelData(levelData.Dens);
 			InteractableManager.Instance.SpawnRabbitSpawnersFromLevelData(levelData.RabbitSpawners);
 			InteractableManager.Instance.SpawnPredatorDensFromLevelData(levelData.PredatorDens);
+			InteractableManager.Instance.SpawnWormSpawnersFromLevelData(levelData.WormSpawners);
         }
         else
         {
-			Debug.LogWarning("ProceduralLevelLoader: InteractableManager instance not found! Dens and rabbit spawners will not be spawned.");
+			Debug.LogWarning("ProceduralLevelLoader: InteractableManager instance not found! Interactables will not be spawned.");
         }
 
         // Spawn animals using AnimalManager
@@ -164,7 +168,7 @@ public class ProceduralLevelLoader : MonoBehaviour
         // Set virtual camera to follow the controllable animal
         SetupCameraFollow();
 
-		Debug.Log($"ProceduralLevelLoader: Successfully generated level with {levelData.Tiles.Count} tiles, {levelData.Animals.Count} animals, {levelData.Items.Count} items, {levelData.Dens.Count} dens, {levelData.RabbitSpawners.Count} rabbit spawners, and {levelData.PredatorDens.Count} predator dens");
+		Debug.Log($"ProceduralLevelLoader: Successfully generated level with {levelData.Tiles.Count} tiles, {levelData.Animals.Count} animals, {levelData.Items.Count} items, {levelData.Dens.Count} dens, {levelData.RabbitSpawners.Count} rabbit spawners, {levelData.WormSpawners.Count} worm spawners, and {levelData.PredatorDens.Count} predator dens");
     }
 
     /// <summary>
@@ -243,6 +247,7 @@ public class ProceduralLevelLoader : MonoBehaviour
 		levelData.Dens = new List<(int x, int y)>();
 		levelData.RabbitSpawners = new List<(int x, int y)>();
 		levelData.PredatorDens = new List<(int x, int y, string predatorType)>();
+		levelData.WormSpawners = new List<(int x, int y)>();
         levelData.FoodCount = 0;
 
         // Generate spawn positions for animals, dens, and items
@@ -332,6 +337,53 @@ public class ProceduralLevelLoader : MonoBehaviour
 
 				// Remove so animals/items don't overlap
 				spawnPositions.RemoveAt(index);
+				walkablePositions.Remove(spawnerPos);
+			}
+		}
+
+		// Spawn worm spawners at random positions (preferably on grass tiles)
+		if (_wormSpawnerCount > 0 && spawnPositions.Count > 0)
+		{
+			// Collect grass positions for worm spawners
+			List<Vector2Int> grassPositions = new List<Vector2Int>();
+			foreach (Vector2Int pos in spawnPositions)
+			{
+				// Find the tile type for this position
+				TileType tileType = TileType.Empty;
+				foreach (var (tx, ty, tt) in levelData.Tiles)
+				{
+					if (tx == pos.x && ty == pos.y)
+					{
+						tileType = tt;
+						break;
+					}
+				}
+
+				if (tileType == TileType.Grass)
+				{
+					grassPositions.Add(pos);
+				}
+			}
+
+			// Use grass positions if available, otherwise fall back to all spawn positions
+			List<Vector2Int> wormSpawnerPositions = grassPositions.Count > 0 ? grassPositions : spawnPositions;
+
+			int spawnersSpawned = 0;
+			int attempts = 0;
+			int maxAttempts = wormSpawnerPositions.Count * 2;
+
+			while (spawnersSpawned < _wormSpawnerCount && wormSpawnerPositions.Count > 0 && attempts < maxAttempts)
+			{
+				attempts++;
+				int index = Random.Range(0, wormSpawnerPositions.Count);
+				Vector2Int spawnerPos = wormSpawnerPositions[index];
+
+				levelData.WormSpawners.Add((spawnerPos.x, spawnerPos.y));
+				spawnersSpawned++;
+
+				// Remove so animals/items don't overlap
+				wormSpawnerPositions.RemoveAt(index);
+				spawnPositions.Remove(spawnerPos);
 				walkablePositions.Remove(spawnerPos);
 			}
 		}

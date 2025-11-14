@@ -1002,6 +1002,7 @@ MonoBehaviour:
   _rabbitCount: 8
   _rabbitsPerGroup: 3
   _rabbitSpawnerCount: 2
+  _wormSpawnerCount: 2
   _foodItemCount: 5
 --- !u!1 &476097330
 GameObject:
@@ -1666,7 +1667,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _pointsText: {fileID: 870660986}
-  _pointsFormat: 'Food Stored: {0}'
+  _pointsFormat: 'Food Stored In Den: {0}'
 --- !u!1 &861405191
 GameObject:
   m_ObjectHideFlags: 0
@@ -3762,6 +3763,7 @@ MonoBehaviour:
   _denPrefab: {fileID: 2062690371380645069, guid: da51f67c3c0174e4cbcc8647c2721208, type: 3}
   _rabbitSpawnerPrefab: {fileID: 1762848270398535883, guid: e39eeb602175d5741a7546f0f6ce32bc, type: 3}
   _predatorDenPrefab: {fileID: 5993506532279619143, guid: fdd1ac81e13714a4fb1915700a0e8a3e, type: 3}
+  _wormSpawnerPrefab: {fileID: 3932865139140560728, guid: 44e40e634051f58408480a0b2e7ca54a, type: 3}
 --- !u!1 &1931653250
 GameObject:
   m_ObjectHideFlags: 0

@@ -9,7 +9,7 @@ public class InventoryManager : Singleton<InventoryManager>
 {
     [Header("Inventory Settings")]
     [SerializeField] [Tooltip("Maximum number of inventory slots")]
-    private int _maxInventorySize = 10;
+    private int _maxInventorySize;
     
     [Header("UI References")]
     [SerializeField] [Tooltip("Transform container where inventory slots will be instantiated")]
@@ -100,8 +100,9 @@ public class InventoryManager : Singleton<InventoryManager>
     
     /// <summary>
     /// Attempts to add an item to the inventory. Returns true if successful, false if inventory is full.
+    /// The corresponding sprite is resolved automatically using the ItemTilemapManager database.
     /// </summary>
-    public bool AddItem(string itemName, Sprite itemSprite)
+    public bool AddItem(string itemName)
     {
         if (string.IsNullOrEmpty(itemName))
         {
@@ -114,6 +115,16 @@ public class InventoryManager : Singleton<InventoryManager>
             Debug.Log($"InventoryManager: Cannot add item '{itemName}' - inventory is full ({CurrentItemCount}/{_maxInventorySize}).");
             return false;
         }
+
+        Sprite itemSprite = null;
+        if (ItemTilemapManager.Instance != null)
+        {
+            itemSprite = ItemTilemapManager.Instance.GetItemSprite(itemName);
+        }
+        else
+        {
+            Debug.LogWarning("InventoryManager: ItemTilemapManager instance not found. Item will be added without a sprite.");
+        }
         
         // Find the first empty slot
         foreach (InventorySlot slot in _inventorySlots)
@@ -122,7 +133,7 @@ public class InventoryManager : Singleton<InventoryManager>
             {
                 if (slot.SetItem(itemName, itemSprite))
                 {
-                    Debug.Log($"InventoryManager: Added item '{itemName}' to inventory. ({CurrentItemCount}/{_maxInventorySize}) Sprite: {(itemSprite != null ? itemSprite.name : "NULL")}");
+                    Debug.Log($"InventoryManager: Added item '{itemName}' to inventory. ({CurrentItemCount}/{_maxInventorySize})");
                     return true;
                 }
             }

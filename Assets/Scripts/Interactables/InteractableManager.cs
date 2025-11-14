@@ -22,9 +22,14 @@ public class InteractableManager : Singleton<InteractableManager>
 	[Tooltip("Prefab to use when spawning predator dens. Must have a PredatorDen component.")]
 	[SerializeField] private GameObject _predatorDenPrefab;
 	
+	[Header("Worm Spawner Prefab")]
+	[Tooltip("Prefab to use when spawning worm spawners. Must have a WormSpawner component.")]
+	[SerializeField] private GameObject _wormSpawnerPrefab;
+	
     private List<Den> _dens = new List<Den>();
 	private List<RabbitSpawner> _rabbitSpawners = new List<RabbitSpawner>();
 	private List<PredatorDen> _predatorDens = new List<PredatorDen>();
+	private List<WormSpawner> _wormSpawners = new List<WormSpawner>();
     
     protected override void Awake()
     {
@@ -69,6 +74,15 @@ public class InteractableManager : Singleton<InteractableManager>
 			}
 		}
 		_predatorDens.Clear();
+
+		foreach (WormSpawner spawner in _wormSpawners)
+		{
+			if (spawner != null)
+			{
+				Destroy(spawner.gameObject);
+			}
+		}
+		_wormSpawners.Clear();
     }
     
     /// <summary>
@@ -440,6 +454,127 @@ public class InteractableManager : Singleton<InteractableManager>
 		if (predatorDen != null && _predatorDens != null)
 		{
 			_predatorDens.Remove(predatorDen);
+		}
+	}
+
+	/// <summary>
+	/// Spawns a worm spawner at the specified grid position.
+	/// </summary>
+	/// <param name="gridPosition">Grid position to spawn the worm spawner at</param>
+	/// <returns>The spawned WormSpawner component, or null if prefab is not assigned</returns>
+	public WormSpawner SpawnWormSpawner(Vector2Int gridPosition)
+	{
+		if (_wormSpawnerPrefab == null)
+		{
+			Debug.LogError("InteractableManager: Worm spawner prefab is not assigned! Please assign a worm spawner prefab in the Inspector.");
+			return null;
+		}
+
+		if (EnvironmentManager.Instance == null)
+		{
+			Debug.LogError("InteractableManager: EnvironmentManager instance not found!");
+			return null;
+		}
+
+		if (!EnvironmentManager.Instance.IsValidPosition(gridPosition))
+		{
+			Debug.LogWarning($"InteractableManager: Cannot spawn worm spawner at invalid position ({gridPosition.x}, {gridPosition.y}).");
+			return null;
+		}
+
+		GameObject spawnerObj = Instantiate(_wormSpawnerPrefab, _interactableParent);
+		WormSpawner spawner = spawnerObj.GetComponent<WormSpawner>();
+
+		if (spawner == null)
+		{
+			Debug.LogError("InteractableManager: Worm spawner prefab does not have a WormSpawner component!");
+			Destroy(spawnerObj);
+			return null;
+		}
+
+		spawner.Initialize(gridPosition);
+		_wormSpawners.Add(spawner);
+
+		Debug.Log($"InteractableManager: Spawned worm spawner at ({gridPosition.x}, {gridPosition.y})");
+
+		return spawner;
+	}
+
+	/// <summary>
+	/// Spawns worm spawners from level data.
+	/// </summary>
+	public void SpawnWormSpawnersFromLevelData(List<(int x, int y)> spawners)
+	{
+		if (spawners == null)
+		{
+			return;
+		}
+
+		foreach (var (x, y) in spawners)
+		{
+			Vector2Int gridPos = new Vector2Int(x, y);
+			if (EnvironmentManager.Instance != null && EnvironmentManager.Instance.IsValidPosition(gridPos))
+			{
+				SpawnWormSpawner(gridPos);
+			}
+			else
+			{
+				Debug.LogWarning($"InteractableManager: Worm spawner at ({x}, {y}) is out of bounds!");
+			}
+		}
+	}
+
+	/// <summary>
+	/// Gets the worm spawner at the specified grid position, if any.
+	/// </summary>
+	public WormSpawner GetWormSpawnerAtPosition(Vector2Int gridPosition)
+	{
+		for (int i = _wormSpawners.Count - 1; i >= 0; i--)
+		{
+			if (_wormSpawners[i] == null)
+			{
+				_wormSpawners.RemoveAt(i);
+				continue;
+			}
+
+			if (_wormSpawners[i].GridPosition == gridPosition)
+			{
+				return _wormSpawners[i];
+			}
+		}
+
+		return null;
+	}
+
+	/// <summary>
+	/// Gets all worm spawners in the scene.
+	/// </summary>
+	public List<WormSpawner> GetAllWormSpawners()
+	{
+		List<WormSpawner> validSpawners = new List<WormSpawner>();
+		for (int i = _wormSpawners.Count - 1; i >= 0; i--)
+		{
+			if (_wormSpawners[i] == null)
+			{
+				_wormSpawners.RemoveAt(i);
+			}
+			else
+			{
+				validSpawners.Add(_wormSpawners[i]);
+			}
+		}
+
+		return validSpawners;
+	}
+
+	/// <summary>
+	/// Removes a worm spawner from the spawner list. Called when a spawner is destroyed.
+	/// </summary>
+	public void RemoveWormSpawner(WormSpawner spawner)
+	{
+		if (spawner != null && _wormSpawners != null)
+		{
+			_wormSpawners.Remove(spawner);
 		}
 	}
     

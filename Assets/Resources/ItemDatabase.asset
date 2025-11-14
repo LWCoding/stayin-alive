@@ -1,0 +1,18 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 8465ad702fec54d44a6a7f9d77731e25, type: 3}
+  m_Name: ItemDatabase
+  m_EditorClassIdentifier: 
+  _items:
+  - itemName: Worm
+    tile: {fileID: 11400000, guid: 9760f246b4bc26e4981a1404253fb6fc, type: 2}
+    inventorySprite: {fileID: 21300000, guid: 80b064f05c5448a4384059eaa0e0977d, type: 3}

@@ -102,16 +102,15 @@ public class ControllableAnimal : Animal
         {
             if (ItemTilemapManager.Instance.HasItemAt(gridPosition))
             {
-                // Get the item name and sprite from the tile before removing it
+                // Get the item name before removing it
                 string itemName = ItemTilemapManager.Instance.GetItemNameAt(gridPosition);
-                Sprite itemSprite = ItemTilemapManager.Instance.GetSpriteAt(gridPosition);
                 
                 if (!string.IsNullOrEmpty(itemName))
                 {
                     // Try to add item to inventory using InventoryManager
                     if (InventoryManager.Instance != null)
                     {
-                        if (InventoryManager.Instance.AddItem(itemName, itemSprite))
+                        if (InventoryManager.Instance.AddItem(itemName))
                         {
                             // Remove item from tilemap only if successfully added to inventory
                             ItemTilemapManager.Instance.RemoveItem(gridPosition);
