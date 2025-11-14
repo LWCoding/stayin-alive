@@ -25,10 +25,5 @@ public class AnimalData : ScriptableObject
     [Header("Prefab")]
     [Tooltip("Prefab to instantiate when spawning this animal")]
     public GameObject prefab;
-
-    [Header("Fog of War")]
-    [Tooltip("Radius in grid cells for fog of war visibility around this animal")]
-    [Min(0)]
-    public int fogOfWarRadius = 2;
 }
 

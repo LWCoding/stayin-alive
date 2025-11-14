@@ -9,7 +9,8 @@ public class ControllableAnimal : Animal
     [Tooltip("Whether this animal can be controlled by keyboard input")]
     [SerializeField] private bool _canReceiveInput = true;
 
-    private bool _hasMovedThisFrame = false;
+    // Track the last time the animal moved (for rate limiting)
+    private float _lastMoveTime = 0f;
 
     // Track the den this animal is currently in (if any)
     private Den _currentDen = null;
@@ -140,40 +141,41 @@ public class ControllableAnimal : Animal
         }
 
 
-        // Handle WASD or Arrow key input
+        // Check if enough time has passed since last movement (rate limiting)
+        float timeSinceLastMove = Time.time - _lastMoveTime;
+        if (timeSinceLastMove < Globals.MoveDurationSeconds)
+        {
+            return;
+        }
+
+        // Handle WASD or Arrow key input (supports held keys)
         Vector2Int moveDirection = Vector2Int.zero;
 
-        // Check for movement input (WASD or Arrow keys)
-        if (Input.GetKeyDown(KeyCode.W) || Input.GetKeyDown(KeyCode.UpArrow))
+        // Check for movement input (WASD or Arrow keys) - using GetKey to support held keys
+        if (Input.GetKey(KeyCode.W) || Input.GetKey(KeyCode.UpArrow))
         {
             moveDirection = Vector2Int.up;
         }
-        else if (Input.GetKeyDown(KeyCode.S) || Input.GetKeyDown(KeyCode.DownArrow))
+        else if (Input.GetKey(KeyCode.S) || Input.GetKey(KeyCode.DownArrow))
         {
             moveDirection = Vector2Int.down;
         }
-        else if (Input.GetKeyDown(KeyCode.A) || Input.GetKeyDown(KeyCode.LeftArrow))
+        else if (Input.GetKey(KeyCode.A) || Input.GetKey(KeyCode.LeftArrow))
         {
             moveDirection = Vector2Int.left;
         }
-        else if (Input.GetKeyDown(KeyCode.D) || Input.GetKeyDown(KeyCode.RightArrow))
+        else if (Input.GetKey(KeyCode.D) || Input.GetKey(KeyCode.RightArrow))
         {
             moveDirection = Vector2Int.right;
         }
 
-        // If a movement key was pressed, try to move
-        if (moveDirection != Vector2Int.zero && !_hasMovedThisFrame)
+        // If a movement key is held, try to move
+        if (moveDirection != Vector2Int.zero)
         {
             TryMove(moveDirection);
-            _hasMovedThisFrame = true;
         }
     }
 
-    private void LateUpdate()
-    {
-        // Reset movement flag at end of frame
-        _hasMovedThisFrame = false;
-    }
 
     /// <summary>
     /// Attempts to move the animal one step in the specified direction.
@@ -206,6 +208,9 @@ public class ControllableAnimal : Animal
         {
             AnimalManager.Instance.ResolveTileConflictsForAnimal(this);
         }
+
+        // Update last move time for rate limiting
+        _lastMoveTime = Time.time;
 
         // Notify TimeManager that the player has moved
         if (TimeManager.Instance != null)

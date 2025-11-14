@@ -139,19 +139,6 @@ public class FogOfWarManager : Singleton<FogOfWarManager>
             return;
         }
 
-        // Reset all tiles to hidden first (if we want fog to re-hide areas animals have left)
-        // For now, we'll keep revealed tiles revealed (explored areas stay visible)
-        // If you want fog to re-hide, uncomment the following:
-        // for (int x = 0; x < _gridWidth; x++)
-        // {
-        //     for (int y = 0; y < _gridHeight; y++)
-        //     {
-        //         _revealedTiles[x, y] = false;
-        //         Vector3Int tilePosition = new Vector3Int(x, y, 0);
-        //         _fogTilemap.SetTile(tilePosition, _darknessTile);
-        //     }
-        // }
-
         // Get all controllable animals
         if (AnimalManager.Instance == null)
         {
@@ -169,12 +156,8 @@ public class FogOfWarManager : Singleton<FogOfWarManager>
                 continue;
             }
 
-            if (animal.AnimalData == null)
-            {
-                continue;
-            }
-
-            int radius = animal.AnimalData.fogOfWarRadius;
+            // Use global fog of war radius for controllable animals
+            int radius = Globals.FogOfWarRadius;
             Vector2Int animalPosition = animal.GridPosition;
 
             // Reveal tiles in radius around the animal

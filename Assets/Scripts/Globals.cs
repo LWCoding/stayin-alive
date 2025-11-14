@@ -27,5 +27,10 @@ public static class Globals
     /// Seconds between automatic NextTurn() calls when animals are in a den.
     /// </summary>
     public static float DenTimeProgressionDelay = 0.5f;
+
+    /// <summary>
+    /// Radius in grid cells for fog of war visibility around controllable animals.
+    /// </summary>
+    public static int FogOfWarRadius = 5;
 }
 
