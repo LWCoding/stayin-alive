@@ -288,6 +288,7 @@ MonoBehaviour:
   _gridPosition: {x: 0, y: 0}
   _previousGridPosition: {x: 0, y: 0}
   _encounteredAnimalDuringMove: 0
+  _canGoOnWater: 1
   _spriteRenderer: {fileID: 0}
   _animalCount: 1
   _countText: {fileID: 4839799939517079635}

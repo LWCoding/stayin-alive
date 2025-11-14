@@ -206,6 +206,13 @@ public class ControllableAnimal : Animal
             return;
         }
 
+        // Check if the target position is water and if this animal can go on water
+        TileType tileType = EnvironmentManager.Instance.GetTileType(targetPos);
+        if (tileType == TileType.Water && !CanGoOnWater)
+        {
+            return; // Cannot move on water
+        }
+
         // Move to the new position
         SetGridPosition(targetPos);
 

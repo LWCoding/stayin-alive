@@ -14,6 +14,10 @@ public class Animal : MonoBehaviour
     [HideInInspector] [SerializeField] private Vector2Int _gridPosition;
     [HideInInspector] [SerializeField] private Vector2Int _previousGridPosition;
     [HideInInspector] [SerializeField] private bool _encounteredAnimalDuringMove;
+    
+    [Header("Movement Settings")]
+    [Tooltip("Whether this animal can move on water tiles. If false, water tiles will be treated as non-walkable.")]
+    [SerializeField] private bool _canGoOnWater = false;
 
     [HideInInspector] [SerializeField] protected SpriteRenderer _spriteRenderer;
     private TwoFrameAnimator _twoFrameAnimator;
@@ -50,6 +54,7 @@ public class Animal : MonoBehaviour
     public virtual bool IsControllable => false;
 
     public int AnimalCount => _animalCount;
+    public bool CanGoOnWater => _canGoOnWater;
 
     /// <summary>
     /// Gets a copy of the inventory dictionary. Returns a new dictionary to prevent external modification.

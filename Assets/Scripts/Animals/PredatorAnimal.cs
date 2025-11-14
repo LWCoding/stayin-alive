@@ -40,7 +40,6 @@ public class PredatorAnimal : Animal
         if (_stallTurnsRemaining > 0)
         {
             _stallTurnsRemaining--;
-            Debug.Log($"Predator '{name}' is stalled. {_stallTurnsRemaining} turns remaining.");
             // Hide tracking indicator while stalled
             UpdateTrackingIndicator();
             return;
@@ -156,6 +155,8 @@ public class PredatorAnimal : Animal
         Vector3 destWorld = EnvironmentManager.Instance.GridToWorldPosition(destGrid);
 
         var path = ABPath.Construct(startWorld, destWorld, null);
+        // Set custom traversal provider to filter water tiles based on animal's water walkability
+        path.traversalProvider = new WaterTraversalProvider(CanGoOnWater);
         AstarPath.StartPath(path, true);
         path.BlockUntilCalculated();
 
