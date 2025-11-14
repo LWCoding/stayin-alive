@@ -69,8 +69,12 @@ public class ProceduralLevelLoader : MonoBehaviour
 	[Tooltip("Number of rabbit spawner interactables to spawn")]
 	[SerializeField] private int _rabbitSpawnerCount = 2;
 
+    [Header("Item Spawn Settings")]
 	[Tooltip("Number of worm spawner interactables to spawn")]
 	[SerializeField] private int _wormSpawnerCount = 2;
+    
+    [Tooltip("Name of the food item to spawn")]
+    [SerializeField] private string _foodItemName = "Food";
     
     [Tooltip("Number of food items to spawn")]
     [SerializeField] private int _foodItemCount = 5;
@@ -501,7 +505,7 @@ public class ProceduralLevelLoader : MonoBehaviour
                 attempts++;
                 Vector2Int foodPos = spawnPositions[Random.Range(0, spawnPositions.Count)];
                 
-                levelData.Items.Add(("Food", foodPos.x, foodPos.y));
+                levelData.Items.Add((_foodItemName, foodPos.x, foodPos.y));
                 levelData.FoodCount++;
                 foodSpawned++;
                 

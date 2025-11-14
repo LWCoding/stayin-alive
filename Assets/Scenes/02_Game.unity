@@ -1003,6 +1003,7 @@ MonoBehaviour:
   _rabbitsPerGroup: 3
   _rabbitSpawnerCount: 2
   _wormSpawnerCount: 2
+  _foodItemName: Worm
   _foodItemCount: 5
 --- !u!1 &476097330
 GameObject:
@@ -2453,9 +2454,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _itemTilemap: {fileID: 1931653255}
-  _itemTiles:
-  - itemName: Food
-    tile: {fileID: 11400000, guid: 9760f246b4bc26e4981a1404253fb6fc, type: 2}
+  _itemDatabaseResourcePath: ItemDatabase
 --- !u!1 &1144474249
 GameObject:
   m_ObjectHideFlags: 0

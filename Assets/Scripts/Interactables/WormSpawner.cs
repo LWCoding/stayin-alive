@@ -173,8 +173,16 @@ public class WormSpawner : MonoBehaviour
 
 		foreach (Vector2Int spawnPos in validGrassPositions)
 		{
+			// Skip if there's already an item at this position
 			if (ItemTilemapManager.Instance.HasItemAt(spawnPos))
 			{
+				// Specifically check if it's a worm - ensure we don't spawn on top of other worms
+				string existingItemName = ItemTilemapManager.Instance.GetItemNameAt(spawnPos);
+				if (existingItemName == _wormItemName)
+				{
+					continue; // Don't spawn worm on top of another worm
+				}
+				// If it's a different item, also skip (can't place worm on top of other items)
 				continue;
 			}
 
