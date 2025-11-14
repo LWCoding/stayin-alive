@@ -197,10 +197,12 @@ public class ControllableAnimal : Animal
                     // Try to add item to inventory using InventoryManager
                     if (InventoryManager.Instance != null)
                     {
-                        if (InventoryManager.Instance.AddItem(itemName))
+                    if (InventoryManager.Instance.AddItem(itemName))
                         {
                             // Remove item from tilemap only if successfully added to inventory
                             ItemTilemapManager.Instance.RemoveItem(gridPosition);
+                            // Restore hunger to full when picking up an item
+                            IncreaseHunger(MaxHunger);
                         }
                         else
                         {

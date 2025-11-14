@@ -296,6 +296,7 @@ MonoBehaviour:
   _spriteRenderer: {fileID: 0}
   _animalCount: 1
   _countText: {fileID: 6540347268615922553}
+  _currentHunger: 100
   _detectionRadius: 7
   _priority: 0
   _stallTurnsAfterHunt: 5
