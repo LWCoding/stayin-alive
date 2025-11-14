@@ -3561,6 +3561,7 @@ MonoBehaviour:
   _interactableParent: {fileID: 1781482500}
   _denPrefab: {fileID: 2062690371380645069, guid: da51f67c3c0174e4cbcc8647c2721208, type: 3}
   _rabbitSpawnerPrefab: {fileID: 1762848270398535883, guid: e39eeb602175d5741a7546f0f6ce32bc, type: 3}
+  _predatorDenPrefab: {fileID: 5993506532279619143, guid: fdd1ac81e13714a4fb1915700a0e8a3e, type: 3}
 --- !u!1 &1931653250
 GameObject:
   m_ObjectHideFlags: 0

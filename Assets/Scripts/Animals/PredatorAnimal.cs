@@ -18,10 +18,15 @@ public class PredatorAnimal : Animal
     [Header("Visual Indicators")]
     [Tooltip("Visual indicator shown above the predator's head when tracking/hunting prey.")]
     [SerializeField] private GameObject _trackingIndicator;
+    
+    [Header("Den Visuals")]
+    [Tooltip("Sprite to set on the predator den when this predator associates with it.")]
+    [SerializeField] private Sprite _denSprite;
 
     private int _stallTurnsRemaining = 0;
     private Vector2Int? _wanderingDestination = null;
     private Vector2Int? _huntingDestination = null;
+    private PredatorDen _predatorDen = null;
 
     /// <summary>
     /// Gets the priority level of this predator.
@@ -32,6 +37,126 @@ public class PredatorAnimal : Animal
     {
         // Hide tracking indicator by default
         UpdateTrackingIndicator();
+    }
+    
+    private void Start()
+    {
+        // Find the nearest predator den to this predator's spawn position
+        FindNearestPredatorDen();
+    }
+    
+    /// <summary>
+    /// Finds the nearest predator den to this predator that matches its type and associates with it.
+    /// </summary>
+    private void FindNearestPredatorDen()
+    {
+        if (InteractableManager.Instance == null)
+        {
+            return;
+        }
+        
+        // Get this predator's type name
+        string myPredatorType = null;
+        if (AnimalData != null && !string.IsNullOrEmpty(AnimalData.animalName))
+        {
+            myPredatorType = AnimalData.animalName;
+        }
+        
+        if (string.IsNullOrEmpty(myPredatorType))
+        {
+            Debug.LogWarning($"PredatorAnimal '{name}': Cannot find predator type (AnimalData is null or animalName is empty)");
+            return;
+        }
+        
+        List<PredatorDen> allDens = InteractableManager.Instance.GetAllPredatorDens();
+        if (allDens == null || allDens.Count == 0)
+        {
+            return;
+        }
+        
+        Vector2Int myPos = GridPosition;
+        PredatorDen nearest = null;
+        int bestDistance = int.MaxValue;
+        
+        foreach (PredatorDen den in allDens)
+        {
+            if (den == null)
+            {
+                continue;
+            }
+            
+            // Only consider dens that match this predator's type
+            if (den.PredatorType != myPredatorType)
+            {
+                continue;
+            }
+            
+            Vector2Int denPos = den.GridPosition;
+            int distance = Mathf.Abs(denPos.x - myPos.x) + Mathf.Abs(denPos.y - myPos.y);
+            
+            if (distance < bestDistance)
+            {
+                bestDistance = distance;
+                nearest = den;
+            }
+        }
+        
+        if (nearest != null)
+        {
+            _predatorDen = nearest;
+            
+            // Set the den's sprite if we have one
+            if (_denSprite != null)
+            {
+                nearest.SetSprite(_denSprite);
+            }
+            
+            Debug.Log($"PredatorAnimal '{name}' (type: {myPredatorType}) associated with predator den at ({nearest.GridPosition.x}, {nearest.GridPosition.y})");
+        }
+        else
+        {
+            Debug.LogWarning($"PredatorAnimal '{name}' (type: {myPredatorType}): No matching predator den found!");
+        }
+    }
+    
+    /// <summary>
+    /// Sets the predator den for this predator. Used when spawning predators near specific dens.
+    /// Only sets the den if it matches this predator's type.
+    /// </summary>
+    public void SetPredatorDen(PredatorDen predatorDen)
+    {
+        if (predatorDen == null)
+        {
+            _predatorDen = null;
+            return;
+        }
+        
+        // Verify the den type matches this predator's type
+        string myPredatorType = null;
+        if (AnimalData != null && !string.IsNullOrEmpty(AnimalData.animalName))
+        {
+            myPredatorType = AnimalData.animalName;
+        }
+        
+        if (string.IsNullOrEmpty(myPredatorType))
+        {
+            Debug.LogWarning($"PredatorAnimal '{name}': Cannot set predator den (AnimalData is null or animalName is empty)");
+            return;
+        }
+        
+        if (predatorDen.PredatorType != myPredatorType)
+        {
+            Debug.LogWarning($"PredatorAnimal '{name}' (type: {myPredatorType}): Cannot associate with den of type '{predatorDen.PredatorType}'");
+            return;
+        }
+        
+        _predatorDen = predatorDen;
+        
+        // Set the den's sprite if we have one
+        if (_denSprite != null)
+        {
+            predatorDen.SetSprite(_denSprite);
+        }
     }
 
     public override void TakeTurn()
@@ -64,7 +189,7 @@ public class PredatorAnimal : Animal
                 }
                 else
                 {
-                    // No prey found, start wandering
+                    // No prey found, return to territory and start wandering
                     _huntingDestination = null;
                     _wanderingDestination = ChooseWanderingDestination();
                     if (_wanderingDestination.HasValue)
@@ -102,7 +227,13 @@ public class PredatorAnimal : Animal
                         }
                         else
                         {
+                            // Lost sight of prey, return to territory
                             _huntingDestination = null;
+                            _wanderingDestination = ChooseWanderingDestination();
+                            if (_wanderingDestination.HasValue)
+                            {
+                                MoveOneStepTowards(_wanderingDestination.Value);
+                            }
                         }
                     }
                 }
@@ -333,6 +464,17 @@ public class PredatorAnimal : Animal
             return null;
         }
 
+        // If we have a predator den, wander within its territory
+        if (_predatorDen != null)
+        {
+            Vector2Int? territoryPos = _predatorDen.GetRandomPositionInTerritory();
+            if (territoryPos.HasValue)
+            {
+                return territoryPos.Value;
+            }
+        }
+        
+        // Fallback: wander randomly if no den is assigned
         Vector2Int myPos = GridPosition;
         Vector2Int gridSize = EnvironmentManager.Instance.GetGridSize();
         

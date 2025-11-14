@@ -110,6 +110,7 @@ public class ProceduralLevelLoader : MonoBehaviour
 			InteractableManager.Instance.ClearAllInteractables();
 			InteractableManager.Instance.SpawnDensFromLevelData(levelData.Dens);
 			InteractableManager.Instance.SpawnRabbitSpawnersFromLevelData(levelData.RabbitSpawners);
+			InteractableManager.Instance.SpawnPredatorDensFromLevelData(levelData.PredatorDens);
         }
         else
         {
@@ -164,7 +165,7 @@ public class ProceduralLevelLoader : MonoBehaviour
         // Set virtual camera to follow the controllable animal
         SetupCameraFollow();
 
-		Debug.Log($"ProceduralLevelLoader: Successfully generated level with {levelData.Tiles.Count} tiles, {levelData.Animals.Count} animals, {levelData.Items.Count} items, {levelData.Dens.Count} dens, and {levelData.RabbitSpawners.Count} rabbit spawners");
+		Debug.Log($"ProceduralLevelLoader: Successfully generated level with {levelData.Tiles.Count} tiles, {levelData.Animals.Count} animals, {levelData.Items.Count} items, {levelData.Dens.Count} dens, {levelData.RabbitSpawners.Count} rabbit spawners, and {levelData.PredatorDens.Count} predator dens");
     }
 
     /// <summary>
@@ -242,6 +243,7 @@ public class ProceduralLevelLoader : MonoBehaviour
 		levelData.Items = new List<(string itemName, int x, int y)>();
 		levelData.Dens = new List<(int x, int y)>();
 		levelData.RabbitSpawners = new List<(int x, int y)>();
+		levelData.PredatorDens = new List<(int x, int y, string predatorType)>();
         levelData.FoodCount = 0;
 
         // Generate spawn positions for animals, dens, and items
@@ -335,7 +337,7 @@ public class ProceduralLevelLoader : MonoBehaviour
 			}
 		}
 
-        // 2. Spawn predators in patches
+        // 2. Spawn predators in patches with predator dens
         if (_predatorNames != null && _predatorNames.Length > 0 && walkablePositions.Count > 0)
         {
             for (int patch = 0; patch < _predatorPatchCount; patch++)
@@ -343,8 +345,21 @@ public class ProceduralLevelLoader : MonoBehaviour
                 if (walkablePositions.Count == 0)
                     break;
                 
-                // Pick a random center position for this patch
+                // Pick a random center position for this patch (this will be the predator den location)
                 Vector2Int patchCenter = walkablePositions[Random.Range(0, walkablePositions.Count)];
+                
+                // Pick ONE predator type for this entire patch (all predators in this patch will be the same type)
+                string patchPredatorType = _predatorNames[Random.Range(0, _predatorNames.Length)];
+                
+                // Spawn a predator den at the patch center with the selected predator type
+                levelData.PredatorDens.Add((patchCenter.x, patchCenter.y, patchPredatorType));
+                
+                // Remove patch center from available positions (den occupies it)
+                walkablePositions.Remove(patchCenter);
+                if (spawnPositions.Contains(patchCenter))
+                {
+                    spawnPositions.Remove(patchCenter);
+                }
                 
                 // Spawn predators around the center
                 List<Vector2Int> patchPositions = new List<Vector2Int>();
@@ -379,7 +394,7 @@ public class ProceduralLevelLoader : MonoBehaviour
                     }
                 }
                 
-                // Shuffle patch positions and spawn predators
+                // Shuffle patch positions and spawn predators (all of the same type for this patch)
                 for (int i = 0; i < patchPositions.Count && i < _predatorsPerPatch; i++)
                 {
                     int randomIndex = Random.Range(i, patchPositions.Count);
@@ -390,9 +405,8 @@ public class ProceduralLevelLoader : MonoBehaviour
                     patchPositions[i] = patchPositions[randomIndex];
                     patchPositions[randomIndex] = temp;
                     
-                    // Pick a random predator type
-                    string predatorName = _predatorNames[Random.Range(0, _predatorNames.Length)];
-                    levelData.Animals.Add((predatorName, predatorPos.x, predatorPos.y, 1));
+                    // Use the same predator type for all predators in this patch
+                    levelData.Animals.Add((patchPredatorType, predatorPos.x, predatorPos.y, 1));
                     
                     // Remove from available positions
                     walkablePositions.Remove(predatorPos);

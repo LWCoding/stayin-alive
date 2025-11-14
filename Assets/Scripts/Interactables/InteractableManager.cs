@@ -18,8 +18,13 @@ public class InteractableManager : Singleton<InteractableManager>
 	[Tooltip("Prefab to use when spawning rabbit spawners. Must have a RabbitSpawner component.")]
 	[SerializeField] private GameObject _rabbitSpawnerPrefab;
 	
+	[Header("Predator Den Prefab")]
+	[Tooltip("Prefab to use when spawning predator dens. Must have a PredatorDen component.")]
+	[SerializeField] private GameObject _predatorDenPrefab;
+	
     private List<Den> _dens = new List<Den>();
 	private List<RabbitSpawner> _rabbitSpawners = new List<RabbitSpawner>();
+	private List<PredatorDen> _predatorDens = new List<PredatorDen>();
     
     protected override void Awake()
     {
@@ -55,6 +60,15 @@ public class InteractableManager : Singleton<InteractableManager>
 			}
 		}
 		_rabbitSpawners.Clear();
+
+		foreach (PredatorDen predatorDen in _predatorDens)
+		{
+			if (predatorDen != null)
+			{
+				Destroy(predatorDen.gameObject);
+			}
+		}
+		_predatorDens.Clear();
     }
     
     /// <summary>
@@ -304,6 +318,128 @@ public class InteractableManager : Singleton<InteractableManager>
 		if (spawner != null && _rabbitSpawners != null)
 		{
 			_rabbitSpawners.Remove(spawner);
+		}
+	}
+
+	/// <summary>
+	/// Spawns a predator den at the specified grid position with a specific predator type.
+	/// </summary>
+	/// <param name="gridPosition">Grid position to spawn the predator den at</param>
+	/// <param name="predatorType">Type of predator this den is for (e.g., "Wolf", "Hawk")</param>
+	/// <returns>The spawned PredatorDen component, or null if prefab is not assigned</returns>
+	public PredatorDen SpawnPredatorDen(Vector2Int gridPosition, string predatorType)
+	{
+		if (_predatorDenPrefab == null)
+		{
+			Debug.LogError("InteractableManager: Predator den prefab is not assigned! Please assign a predator den prefab in the Inspector.");
+			return null;
+		}
+
+		if (EnvironmentManager.Instance == null)
+		{
+			Debug.LogError("InteractableManager: EnvironmentManager instance not found!");
+			return null;
+		}
+
+		if (!EnvironmentManager.Instance.IsValidPosition(gridPosition))
+		{
+			Debug.LogWarning($"InteractableManager: Cannot spawn predator den at invalid position ({gridPosition.x}, {gridPosition.y}).");
+			return null;
+		}
+
+		GameObject denObj = Instantiate(_predatorDenPrefab, _interactableParent);
+		PredatorDen predatorDen = denObj.GetComponent<PredatorDen>();
+
+		if (predatorDen == null)
+		{
+			Debug.LogError("InteractableManager: Predator den prefab does not have a PredatorDen component!");
+			Destroy(denObj);
+			return null;
+		}
+
+		predatorDen.Initialize(gridPosition, predatorType);
+		_predatorDens.Add(predatorDen);
+
+		Debug.Log($"InteractableManager: Spawned predator den for '{predatorType}' at ({gridPosition.x}, {gridPosition.y})");
+
+		return predatorDen;
+	}
+
+	/// <summary>
+	/// Spawns predator dens from level data.
+	/// </summary>
+	public void SpawnPredatorDensFromLevelData(List<(int x, int y, string predatorType)> predatorDens)
+	{
+		if (predatorDens == null)
+		{
+			return;
+		}
+
+		foreach (var (x, y, predatorType) in predatorDens)
+		{
+			Vector2Int gridPos = new Vector2Int(x, y);
+			if (EnvironmentManager.Instance != null && EnvironmentManager.Instance.IsValidPosition(gridPos))
+			{
+				SpawnPredatorDen(gridPos, predatorType);
+			}
+			else
+			{
+				Debug.LogWarning($"InteractableManager: Predator den at ({x}, {y}) is out of bounds!");
+			}
+		}
+	}
+
+	/// <summary>
+	/// Gets the predator den at the specified grid position, if any.
+	/// </summary>
+	public PredatorDen GetPredatorDenAtPosition(Vector2Int gridPosition)
+	{
+		for (int i = _predatorDens.Count - 1; i >= 0; i--)
+		{
+			if (_predatorDens[i] == null)
+			{
+				_predatorDens.RemoveAt(i);
+				continue;
+			}
+
+			if (_predatorDens[i].GridPosition == gridPosition)
+			{
+				return _predatorDens[i];
+			}
+		}
+
+		return null;
+	}
+
+	/// <summary>
+	/// Gets all predator dens in the scene.
+	/// </summary>
+	public List<PredatorDen> GetAllPredatorDens()
+	{
+		List<PredatorDen> validDens = new List<PredatorDen>();
+		for (int i = _predatorDens.Count - 1; i >= 0; i--)
+		{
+			if (_predatorDens[i] == null)
+			{
+				_predatorDens.RemoveAt(i);
+			}
+			else
+			{
+				validDens.Add(_predatorDens[i]);
+			}
+		}
+
+		return validDens;
+	}
+
+	/// <summary>
+	/// Removes a predator den from the dens list. Called when a den is destroyed.
+	/// </summary>
+	public void RemovePredatorDen(PredatorDen predatorDen)
+	{
+		if (predatorDen != null && _predatorDens != null)
+		{
+			_predatorDens.Remove(predatorDen);
 		}
 	}
     
