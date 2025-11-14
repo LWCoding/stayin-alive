@@ -363,6 +363,9 @@ public class Animal : MonoBehaviour
             {
                 _encounteredAnimalDuringMove = true;
             }
+
+            // Update sprite facing direction based on horizontal movement
+            UpdateFacingDirection();
         }
         Vector3 targetWorld;
         if (EnvironmentManager.Instance != null)
@@ -376,6 +379,71 @@ public class Animal : MonoBehaviour
         StartMoveToWorldPosition(targetWorld, Globals.MoveDurationSeconds);
         
         // Update follower positions will be handled by the follower update coroutine
+    }
+
+    /// <summary>
+    /// Updates the sprite facing direction based on horizontal movement.
+    /// Flips the sprite to face left when moving left, right when moving right.
+    /// Only flips the sprite, not the entire GameObject (preserves counter text orientation).
+    /// </summary>
+    private void UpdateFacingDirection()
+    {
+        // Calculate horizontal movement direction
+        int horizontalMovement = _gridPosition.x - _previousGridPosition.x;
+        
+        // Only update if there's horizontal movement
+        if (horizontalMovement == 0)
+        {
+            return;
+        }
+
+        // Flip only the sprite using SpriteRenderer.flipX
+        // When flipX is true, sprite faces left; when false, sprite faces right
+        // Assuming sprites face right by default (flipX = false means facing right)
+        if (_spriteRenderer != null)
+        {
+            if (horizontalMovement > 0)
+            {
+                // Moving right - sprite should face right (flipX = false)
+                _spriteRenderer.flipX = false;
+            }
+            else // horizontalMovement < 0
+            {
+                // Moving left - sprite should face left (flipX = true)
+                _spriteRenderer.flipX = true;
+            }
+        }
+        
+        // Update followers' facing direction as well
+        UpdateFollowersFacingDirection(horizontalMovement > 0);
+    }
+
+    /// <summary>
+    /// Updates the facing direction of all followers to match the main animal.
+    /// Only flips the sprite, not the entire GameObject.
+    /// </summary>
+    private void UpdateFollowersFacingDirection(bool facingRight)
+    {
+        foreach (GameObject follower in _followers)
+        {
+            if (follower == null)
+            {
+                continue;
+            }
+
+            // Get the follower's sprite renderer
+            SpriteRenderer followerSpriteRenderer = follower.GetComponent<SpriteRenderer>();
+            if (followerSpriteRenderer == null)
+            {
+                followerSpriteRenderer = follower.GetComponentInChildren<SpriteRenderer>();
+            }
+
+            if (followerSpriteRenderer != null)
+            {
+                // Flip only the sprite
+                followerSpriteRenderer.flipX = !facingRight;
+            }
+        }
     }
 
     /// <summary>
@@ -558,6 +626,16 @@ public class Animal : MonoBehaviour
             followerSpriteRenderer = followerAnimal._spriteRenderer;
             followerAnimal.enabled = false;
         }
+        
+        // Fallback: try to get sprite renderer directly if not found
+        if (followerSpriteRenderer == null)
+        {
+            followerSpriteRenderer = followerObj.GetComponent<SpriteRenderer>();
+            if (followerSpriteRenderer == null)
+            {
+                followerSpriteRenderer = followerObj.GetComponentInChildren<SpriteRenderer>();
+            }
+        }
 
         // Also disable ControllableAnimal if it exists
         ControllableAnimal followerControllable = followerObj.GetComponent<ControllableAnimal>();
@@ -590,6 +668,8 @@ public class Animal : MonoBehaviour
         if (followerSpriteRenderer != null && _spriteRenderer != null)
         {
             followerSpriteRenderer.sortingOrder = _spriteRenderer.sortingOrder + 1;
+            // Match the flipX state of the main sprite
+            followerSpriteRenderer.flipX = _spriteRenderer.flipX;
         }
 
         ApplyVisibilityToFollower(followerObj, _areVisualsVisible);
