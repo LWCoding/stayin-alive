@@ -198,8 +198,7 @@ public class PreyAnimal : Animal
         foreach (Vector2Int dir in directions)
         {
             Vector2Int testPos = myPos + dir;
-            if (EnvironmentManager.Instance.IsValidPosition(testPos) &&
-                EnvironmentManager.Instance.IsWalkable(testPos))
+            if (IsTileTraversable(testPos))
             {
                 _fleeDestination = testPos;
                 if (MoveOneStepTowards(testPos))
@@ -249,8 +248,7 @@ public class PreyAnimal : Animal
         }
 
         // First check if the target position itself is valid
-        if (EnvironmentManager.Instance.IsValidPosition(targetPos) &&
-            EnvironmentManager.Instance.IsWalkable(targetPos))
+        if (IsTileTraversable(targetPos))
         {
             return targetPos;
         }
@@ -277,8 +275,7 @@ public class PreyAnimal : Animal
                         continue;
                     }
 
-                    if (EnvironmentManager.Instance.IsValidPosition(testPos) &&
-                        EnvironmentManager.Instance.IsWalkable(testPos))
+                    if (IsTileTraversable(testPos))
                     {
                         return testPos;
                     }
@@ -351,8 +348,7 @@ public class PreyAnimal : Animal
         Vector2Int nextGrid = axisAlignedGrid[1];
         
         // Check if the next position is valid and walkable
-        if (EnvironmentManager.Instance.IsValidPosition(nextGrid) &&
-            EnvironmentManager.Instance.IsWalkable(nextGrid))
+        if (IsTileTraversable(nextGrid))
         {
             // Check if there's another animal at this position
             // Prey animals should not move onto other animals (no interactions between prey)
@@ -404,8 +400,7 @@ public class PreyAnimal : Animal
             targetPos.y = Mathf.Clamp(targetPos.y, 0, gridSize.y - 1);
             
             // Check if this position is valid and walkable
-            if (EnvironmentManager.Instance.IsValidPosition(targetPos) && 
-                EnvironmentManager.Instance.IsWalkable(targetPos))
+            if (IsTileTraversable(targetPos))
             {
                 return targetPos;
             }
@@ -419,8 +414,7 @@ public class PreyAnimal : Animal
                 Random.Range(0, gridSize.y)
             );
             
-            if (EnvironmentManager.Instance.IsValidPosition(targetPos) && 
-                EnvironmentManager.Instance.IsWalkable(targetPos))
+            if (IsTileTraversable(targetPos))
             {
                 return targetPos;
             }
@@ -469,6 +463,38 @@ public class PreyAnimal : Animal
             Gizmos.color = gizmoColor;
             Gizmos.DrawWireSphere(destWorldPos, 0.3f);
         }
+    }
+
+    /// <summary>
+    /// Determines if a tile can be traversed by this prey, factoring in water walkability.
+    /// </summary>
+    private bool IsTileTraversable(Vector2Int position)
+    {
+        if (EnvironmentManager.Instance == null)
+        {
+            return false;
+        }
+
+        if (!EnvironmentManager.Instance.IsValidPosition(position))
+        {
+            return false;
+        }
+
+        if (!EnvironmentManager.Instance.IsWalkable(position))
+        {
+            return false;
+        }
+
+        if (!CanGoOnWater)
+        {
+            TileType tileType = EnvironmentManager.Instance.GetTileType(position);
+            if (tileType == TileType.Water)
+            {
+                return false;
+            }
+        }
+
+        return true;
     }
 }
 

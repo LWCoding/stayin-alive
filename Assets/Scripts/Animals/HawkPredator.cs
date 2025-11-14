@@ -180,6 +180,17 @@ public class HawkPredator : PredatorAnimal
         return _lastFacingDirection;
     }
 
+    protected override bool ShouldShowTrackingIndicator()
+    {
+        if (IsEatingStallActive)
+        {
+            return false;
+        }
+
+        Vector2Int? detected = FindNearestPreyGrid();
+        return detected.HasValue;
+    }
+
     private void EnsureMinimumStallTurns(int minTurns)
     {
         if (_stallTurnsRemaining < minTurns)

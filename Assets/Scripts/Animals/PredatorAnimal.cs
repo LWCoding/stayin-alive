@@ -27,6 +27,7 @@ public class PredatorAnimal : Animal
     protected Vector2Int? _wanderingDestination = null;
     protected Vector2Int? _huntingDestination = null;
     protected PredatorDen _predatorDen = null;
+    protected bool _isEatingStallActive = false;
     private ControllableAnimal _controllableTargetInSight = null;
 
     /// <summary>
@@ -34,6 +35,7 @@ public class PredatorAnimal : Animal
     /// </summary>
     public int Priority => _priority;
     protected int DetectionRadius => _detectionRadius;
+    protected bool IsEatingStallActive => _isEatingStallActive;
 
     private void Awake()
     {
@@ -167,6 +169,10 @@ public class PredatorAnimal : Animal
         if (_stallTurnsRemaining > 0)
         {
             _stallTurnsRemaining--;
+            if (_stallTurnsRemaining == 0)
+            {
+                _isEatingStallActive = false;
+            }
             // Hide tracking indicator while stalled
             UpdateTrackingIndicator();
             return;
@@ -630,6 +636,7 @@ public class PredatorAnimal : Animal
                 
                 // Stall this predator for the configured number of turns
                 _stallTurnsRemaining = Mathf.Max(0, _stallTurnsAfterHunt);
+                _isEatingStallActive = _stallTurnsRemaining > 0;
                 break;
             }
         }
@@ -683,10 +690,14 @@ public class PredatorAnimal : Animal
     {
         if (_trackingIndicator != null)
         {
-            // Show indicator only when hunting (has a hunting destination) AND not stalled
-            bool shouldShow = _huntingDestination.HasValue && _stallTurnsRemaining == 0;
+            bool shouldShow = ShouldShowTrackingIndicator();
             _trackingIndicator.SetActive(shouldShow);
         }
+    }
+
+    protected virtual bool ShouldShowTrackingIndicator()
+    {
+        return _huntingDestination.HasValue && _stallTurnsRemaining == 0;
     }
 }
 
