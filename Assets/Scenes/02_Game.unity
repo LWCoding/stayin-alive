@@ -1050,6 +1050,7 @@ MonoBehaviour:
   _wormSpawnerCount: 2
   _foodItemName: Worm
   _foodItemCount: 5
+  _bushCount: 10
 --- !u!1 &476097330
 GameObject:
   m_ObjectHideFlags: 0
@@ -4343,6 +4344,7 @@ MonoBehaviour:
   _rabbitSpawnerPrefab: {fileID: 1762848270398535883, guid: e39eeb602175d5741a7546f0f6ce32bc, type: 3}
   _predatorDenPrefab: {fileID: 5993506532279619143, guid: fdd1ac81e13714a4fb1915700a0e8a3e, type: 3}
   _wormSpawnerPrefab: {fileID: 3932865139140560728, guid: 44e40e634051f58408480a0b2e7ca54a, type: 3}
+  _bushPrefab: {fileID: 7190123244994547298, guid: ebc09e35edd2c194e8a55411b8405b09, type: 3}
 --- !u!1 &1931653250
 GameObject:
   m_ObjectHideFlags: 0

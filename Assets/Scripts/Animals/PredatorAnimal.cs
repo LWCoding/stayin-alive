@@ -440,8 +440,8 @@ public class PredatorAnimal : Animal
                 continue;
             }
 
-            // Skip controllable animals that are in a den
-            if (other.IsControllable && Den.IsControllableAnimalInDen(other))
+            // Skip controllable animals that are in a den or bush
+            if (other.IsControllable && (Den.IsControllableAnimalInDen(other) || Bush.IsControllableAnimalInBush(other)))
             {
                 continue;
             }
@@ -619,8 +619,8 @@ public class PredatorAnimal : Animal
             }
             if (other.GridPosition == GridPosition)
             {
-                // Skip controllable animals that are in a den (they are safe)
-                if (other.IsControllable && Den.IsControllableAnimalInDen(other))
+                // Skip controllable animals that are in a den or bush (they are safe)
+                if (other.IsControllable && (Den.IsControllableAnimalInDen(other) || Bush.IsControllableAnimalInBush(other)))
                 {
                     continue;
                 }

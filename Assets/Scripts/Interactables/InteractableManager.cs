@@ -26,10 +26,15 @@ public class InteractableManager : Singleton<InteractableManager>
 	[Tooltip("Prefab to use when spawning worm spawners. Must have a WormSpawner component.")]
 	[SerializeField] private GameObject _wormSpawnerPrefab;
 	
+	[Header("Bush Prefab")]
+	[Tooltip("Prefab to use when spawning bushes. Must have a Bush component.")]
+	[SerializeField] private GameObject _bushPrefab;
+	
     private List<Den> _dens = new List<Den>();
 	private List<RabbitSpawner> _rabbitSpawners = new List<RabbitSpawner>();
 	private List<PredatorDen> _predatorDens = new List<PredatorDen>();
 	private List<WormSpawner> _wormSpawners = new List<WormSpawner>();
+	private List<Bush> _bushes = new List<Bush>();
     
     protected override void Awake()
     {
@@ -83,6 +88,15 @@ public class InteractableManager : Singleton<InteractableManager>
 			}
 		}
 		_wormSpawners.Clear();
+
+		foreach (Bush bush in _bushes)
+		{
+			if (bush != null)
+			{
+				Destroy(bush.gameObject);
+			}
+		}
+		_bushes.Clear();
     }
     
     /// <summary>
@@ -575,6 +589,127 @@ public class InteractableManager : Singleton<InteractableManager>
 		if (spawner != null && _wormSpawners != null)
 		{
 			_wormSpawners.Remove(spawner);
+		}
+	}
+
+	/// <summary>
+	/// Spawns a bush at the specified grid position.
+	/// </summary>
+	/// <param name="gridPosition">Grid position to spawn the bush at</param>
+	/// <returns>The spawned Bush component, or null if prefab is not assigned</returns>
+	public Bush SpawnBush(Vector2Int gridPosition)
+	{
+		if (_bushPrefab == null)
+		{
+			Debug.LogError("InteractableManager: Bush prefab is not assigned! Please assign a bush prefab in the Inspector.");
+			return null;
+		}
+
+		if (EnvironmentManager.Instance == null)
+		{
+			Debug.LogError("InteractableManager: EnvironmentManager instance not found!");
+			return null;
+		}
+
+		if (!EnvironmentManager.Instance.IsValidPosition(gridPosition))
+		{
+			Debug.LogWarning($"InteractableManager: Cannot spawn bush at invalid position ({gridPosition.x}, {gridPosition.y}).");
+			return null;
+		}
+
+		GameObject bushObj = Instantiate(_bushPrefab, _interactableParent);
+		Bush bush = bushObj.GetComponent<Bush>();
+
+		if (bush == null)
+		{
+			Debug.LogError("InteractableManager: Bush prefab does not have a Bush component!");
+			Destroy(bushObj);
+			return null;
+		}
+
+		bush.Initialize(gridPosition);
+		_bushes.Add(bush);
+
+		Debug.Log($"InteractableManager: Spawned bush at ({gridPosition.x}, {gridPosition.y})");
+
+		return bush;
+	}
+
+	/// <summary>
+	/// Spawns bushes from level data.
+	/// </summary>
+	public void SpawnBushesFromLevelData(List<(int x, int y)> bushes)
+	{
+		if (bushes == null)
+		{
+			return;
+		}
+
+		foreach (var (x, y) in bushes)
+		{
+			Vector2Int gridPos = new Vector2Int(x, y);
+			if (EnvironmentManager.Instance != null && EnvironmentManager.Instance.IsValidPosition(gridPos))
+			{
+				SpawnBush(gridPos);
+			}
+			else
+			{
+				Debug.LogWarning($"InteractableManager: Bush at ({x}, {y}) is out of bounds!");
+			}
+		}
+	}
+
+	/// <summary>
+	/// Gets the bush at the specified grid position, if any.
+	/// </summary>
+	public Bush GetBushAtPosition(Vector2Int gridPosition)
+	{
+		for (int i = _bushes.Count - 1; i >= 0; i--)
+		{
+			if (_bushes[i] == null)
+			{
+				_bushes.RemoveAt(i);
+				continue;
+			}
+
+			if (_bushes[i].GridPosition == gridPosition)
+			{
+				return _bushes[i];
+			}
+		}
+
+		return null;
+	}
+
+	/// <summary>
+	/// Gets all bushes in the scene.
+	/// </summary>
+	public List<Bush> GetAllBushes()
+	{
+		List<Bush> validBushes = new List<Bush>();
+		for (int i = _bushes.Count - 1; i >= 0; i--)
+		{
+			if (_bushes[i] == null)
+			{
+				_bushes.RemoveAt(i);
+			}
+			else
+			{
+				validBushes.Add(_bushes[i]);
+			}
+		}
+
+		return validBushes;
+	}
+
+	/// <summary>
+	/// Removes a bush from the bushes list. Called when a bush is destroyed.
+	/// </summary>
+	public void RemoveBush(Bush bush)
+	{
+		if (bush != null && _bushes != null)
+		{
+			_bushes.Remove(bush);
 		}
 	}
     

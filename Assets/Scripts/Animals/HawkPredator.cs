@@ -156,7 +156,7 @@ public class HawkPredator : PredatorAnimal
             return false;
         }
 
-        if (target.IsControllable && Den.IsControllableAnimalInDen(target))
+        if (target.IsControllable && (Den.IsControllableAnimalInDen(target) || Bush.IsControllableAnimalInBush(target)))
         {
             return false;
         }

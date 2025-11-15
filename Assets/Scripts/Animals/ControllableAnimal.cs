@@ -16,6 +16,9 @@ public class ControllableAnimal : Animal
     // Track the den this animal is currently in (if any)
     private Den _currentDen = null;
 
+    // Track the bush this animal is currently in (if any)
+    private Bush _currentBush = null;
+
     // Track if we're subscribed to TimeManager events
     private bool _isSubscribedToTimeManager = false;
 
@@ -105,6 +108,14 @@ public class ControllableAnimal : Animal
         _currentDen = den;
     }
 
+    /// <summary>
+    /// Sets the current bush this animal is in. Used internally.
+    /// </summary>
+    internal void SetCurrentBush(Bush bush)
+    {
+        _currentBush = bush;
+    }
+
 
     /// <summary>
     /// Override to indicate this animal is controllable.
@@ -141,6 +152,14 @@ public class ControllableAnimal : Animal
             {
                 den.OnAnimalEnter(this);
                 _currentDen = den;
+            }
+
+            // Handle bush entry if animal spawns on a bush
+            Bush bush = InteractableManager.Instance.GetBushAtPosition(gridPosition);
+            if (bush != null && !HasPredatorAtPosition(gridPosition))
+            {
+                bush.OnAnimalEnter(this);
+                _currentBush = bush;
             }
         }
 
@@ -180,6 +199,28 @@ public class ControllableAnimal : Animal
                 {
                     newDen.OnAnimalEnter(this);
                     _currentDen = newDen;
+                }
+            }
+
+            // Handle bush entry/exit
+            Bush previousBush = _currentBush;
+            Bush newBush = InteractableManager.Instance.GetBushAtPosition(gridPosition);
+
+            // If we left a bush, notify it
+            if (previousBush != null && previousBush != newBush)
+            {
+                previousBush.OnAnimalLeave(this);
+                _currentBush = null;
+            }
+
+            // If we entered a new bush, notify it (only if no predator is blocking the bush)
+            if (newBush != null && newBush != previousBush)
+            {
+                // Check if there's a predator at this position - if so, prevent bush entry
+                if (!HasPredatorAtPosition(gridPosition))
+                {
+                    newBush.OnAnimalEnter(this);
+                    _currentBush = newBush;
                 }
             }
         }
@@ -372,6 +413,13 @@ public class ControllableAnimal : Animal
         {
             _currentDen.OnAnimalLeave(this);
             _currentDen = null;
+        }
+
+        // Clean up bush references (leave bush if in one)
+        if (_currentBush != null)
+        {
+            _currentBush.OnAnimalLeave(this);
+            _currentBush = null;
         }
 
         // Clear UI tracking if this animal is currently tracked
