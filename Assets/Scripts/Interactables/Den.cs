@@ -79,6 +79,7 @@ public class Den : MonoBehaviour
     {
         if (animal != null && animal.IsControllable)
         {
+          
             _animalsInDen.Add(animal);
             Debug.Log($"Animal '{animal.name}' entered den at ({_gridPosition.x}, {_gridPosition.y})");
             
