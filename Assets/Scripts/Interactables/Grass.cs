@@ -1,29 +1,77 @@
+using System.Collections.Generic;
 using UnityEngine;
 
 /// <summary>
-/// Interactable that periodically grows grass (spawns a "Grass" item) on its tile.
-/// Spawn cadence is turn-based. Once grass is grown, it stops growing until the grass is harvested.
+/// Interactable that periodically grows grass on its tile.
+/// Can be harvested twice: first harvest changes to growing sprite, second harvest deletes it.
 /// </summary>
 public class Grass : MonoBehaviour
 {
 	[Header("Grass Settings")]
-	[Tooltip("Name of the item to spawn when grass grows. Should be 'Grass'.")]
-	[SerializeField] private string _grassItemName = "Grass";
-	[Tooltip("Average number of turns between spawn attempts.")]
+	[Tooltip("Average number of turns between growth attempts.")]
 	[SerializeField] private int _averageTurnsBetweenSpawns = 10;
 	[Tooltip("Random variance applied to the turns between spawns (0 = none, 0.25 = ±25%).")]
 	[SerializeField, Range(0f, 1f)] private float _turnsVariance = 0.25f;
 
+	[Header("Visuals")]
+	[Tooltip("Sprite shown when grass is fully grown.")]
+	[SerializeField] private Sprite _fullSprite;
+	[Tooltip("Sprite shown when grass is growing (after first harvest).")]
+	[SerializeField] private Sprite _growingSprite;
+	[Tooltip("SpriteRenderer component for displaying the grass sprite.")]
+	[SerializeField] private SpriteRenderer _spriteRenderer;
+	[Tooltip("GameObject that shows/hides when the player is on the same tile (e.g., interaction indicator)")]
+	[SerializeField] private GameObject _interactionIndicator;
+
+	[Header("Season Growth Multipliers")]
+	[Tooltip("Multiplier applied to growth rate during Spring. Higher values = faster growth (fewer turns).")]
+	[SerializeField] private float _springGrowthMultiplier = 1.5f;
+	[Tooltip("Multiplier applied to growth rate during Summer. Higher values = faster growth (fewer turns).")]
+	[SerializeField] private float _summerGrowthMultiplier = 1.2f;
+	[Tooltip("Multiplier applied to growth rate during Fall. Higher values = faster growth (fewer turns).")]
+	[SerializeField] private float _fallGrowthMultiplier = 0.8f;
+	[Tooltip("Multiplier applied to growth rate during Winter. Higher values = faster growth (fewer turns).")]
+	[SerializeField] private float _winterGrowthMultiplier = 0.5f;
+
+	[Header("Spreading Settings")]
+	[Tooltip("Average number of turns between spread attempts when grass is fully grown.")]
+	[SerializeField] private int _averageTurnsBetweenSpreads = 15;
+	[Tooltip("Random variance applied to the turns between spreads (0 = none, 0.25 = ±25%).")]
+	[SerializeField, Range(0f, 1f)] private float _spreadVariance = 0.25f;
+
+	private enum GrassState
+	{
+		Growing,  // Growing state (after first harvest)
+		Full      // Fully grown state
+	}
+
 	private Vector2Int _gridPosition;
 	private int _turnsSinceLastSpawn;
 	private int _turnsUntilNextSpawn;
+	private int _turnsSinceLastSpread;
+	private int _turnsUntilNextSpread;
 	private bool _initialized;
-	private bool _hadGrassLastTurn;
+	private GrassState _currentState;
+	private bool _isPlayerOnTile;
 
 	/// <summary>
 	/// Grid position used for spawning and tile placement.
 	/// </summary>
 	public Vector2Int GridPosition => _gridPosition;
+
+	private void Awake()
+	{
+		if (_spriteRenderer == null)
+		{
+			_spriteRenderer = GetComponent<SpriteRenderer>();
+		}
+
+		// Hide interaction indicator by default
+		if (_interactionIndicator != null)
+		{
+			_interactionIndicator.SetActive(false);
+		}
+	}
 
 	private void OnEnable()
 	{
@@ -35,6 +83,26 @@ public class Grass : MonoBehaviour
 		EnsureInitializationFromWorld();
 		UpdateWorldPosition();
 		CalculateNextSpawnTime();
+		CalculateNextSpreadTime();
+		UpdateSprite();
+	}
+
+	private void Update()
+	{
+		// Check if player is on the same tile
+		_isPlayerOnTile = IsPlayerOnSameTile();
+
+		// Show/hide interaction indicator
+		if (_interactionIndicator != null)
+		{
+			_interactionIndicator.SetActive(_isPlayerOnTile);
+		}
+
+		// If player is on the same tile and E key is pressed, attempt harvest
+		if (_isPlayerOnTile && Input.GetKeyDown(KeyCode.E))
+		{
+			AttemptHarvest();
+		}
 	}
 
 	private void OnDisable()
@@ -59,11 +127,14 @@ public class Grass : MonoBehaviour
 	{
 		_gridPosition = gridPosition;
 		_turnsSinceLastSpawn = 0;
-		_hadGrassLastTurn = false;
+		_turnsSinceLastSpread = 0;
+		_currentState = GrassState.Full;
 		_initialized = true;
 
 		UpdateWorldPosition();
 		CalculateNextSpawnTime();
+		CalculateNextSpreadTime();
+		UpdateSprite();
 	}
 
 	private void SubscribeToTurnEvents()
@@ -101,7 +172,8 @@ public class Grass : MonoBehaviour
 		}
 
 		_turnsSinceLastSpawn = 0;
-		_hadGrassLastTurn = false;
+		_turnsSinceLastSpread = 0;
+		_currentState = GrassState.Full;
 		_initialized = true;
 	}
 
@@ -134,27 +206,36 @@ public class Grass : MonoBehaviour
 		if (currentTurn == 0)
 		{
 			_turnsSinceLastSpawn = 0;
-			_hadGrassLastTurn = false;
+			_turnsSinceLastSpread = 0;
+			_currentState = GrassState.Full;
 			CalculateNextSpawnTime();
+			CalculateNextSpreadTime();
+			UpdateSprite();
 			return;
 		}
 
-		// Check if there's already grass on this tile
-		bool hasGrassNow = HasGrassOnTile();
-
-		// If grass was just harvested (had grass last turn, but not now), reset the counter
-		if (_hadGrassLastTurn && !hasGrassNow)
+		// Handle spreading when grass is fully grown
+		if (_currentState == GrassState.Full)
 		{
-			_turnsSinceLastSpawn = 0;
-			CalculateNextSpawnTime();
+			_turnsSinceLastSpread++;
+			if (_turnsSinceLastSpread >= _turnsUntilNextSpread)
+			{
+				TrySpreadToAdjacentTiles();
+				_turnsSinceLastSpread = 0;
+				CalculateNextSpreadTime();
+			}
+			return;
 		}
 
-		// Update state for next turn
-		_hadGrassLastTurn = hasGrassNow;
-
-		// Don't increment counter while grass is present - wait for it to be harvested
-		if (hasGrassNow)
+		// Handle growth when grass is in growing state
+		// On turn 1, immediately try to grow to full
+		if (currentTurn == 1)
 		{
+			if (GrowToFull())
+			{
+				_turnsSinceLastSpawn = 0;
+				CalculateNextSpawnTime();
+			}
 			return;
 		}
 
@@ -165,8 +246,8 @@ public class Grass : MonoBehaviour
 			return;
 		}
 
-		// Try to spawn grass
-		if (TrySpawnGrass())
+		// Try to grow to full
+		if (GrowToFull())
 		{
 			_turnsSinceLastSpawn = 0;
 			CalculateNextSpawnTime();
@@ -174,72 +255,269 @@ public class Grass : MonoBehaviour
 	}
 
 	/// <summary>
-	/// Calculates the number of turns until the next spawn attempt, with variance applied.
+	/// Calculates the number of turns until the next growth attempt, with variance and season multiplier applied.
 	/// </summary>
 	private void CalculateNextSpawnTime()
 	{
+		float seasonMultiplier = GetSeasonMultiplier();
 		float variance = Mathf.Clamp01(_turnsVariance);
 		float randomFactor = variance > 0f ? Random.Range(1f - variance, 1f + variance) : 1f;
-		_turnsUntilNextSpawn = Mathf.Max(1, Mathf.RoundToInt(_averageTurnsBetweenSpawns * randomFactor));
+		
+		// Divide by multiplier: higher multiplier = fewer turns (faster growth)
+		float adjustedTurns = _averageTurnsBetweenSpawns / Mathf.Max(0.01f, seasonMultiplier) * randomFactor;
+		_turnsUntilNextSpawn = Mathf.Max(1, Mathf.RoundToInt(adjustedTurns));
 	}
 
 	/// <summary>
-	/// Checks if there's already a "Grass" item on this tile.
+	/// Gets the growth rate multiplier for the current season.
 	/// </summary>
-	private bool HasGrassOnTile()
+	private float GetSeasonMultiplier()
 	{
-		if (ItemManager.Instance == null)
+		if (TimeManager.Instance == null)
+		{
+			return 1f;
+		}
+
+		switch (TimeManager.Instance.CurrentSeason)
+		{
+			case TimeManager.Season.Spring:
+				return _springGrowthMultiplier;
+			case TimeManager.Season.Summer:
+				return _summerGrowthMultiplier;
+			case TimeManager.Season.Fall:
+				return _fallGrowthMultiplier;
+			case TimeManager.Season.Winter:
+				return _winterGrowthMultiplier;
+			default:
+				return 1f;
+		}
+	}
+
+	/// <summary>
+	/// Grows the grass from Growing state to Full state.
+	/// </summary>
+	private bool GrowToFull()
+	{
+		if (_currentState != GrassState.Growing)
 		{
 			return false;
 		}
 
-		Item item = ItemManager.Instance.GetItemAtPosition(_gridPosition);
-		if (item != null && item.ItemName == _grassItemName)
+		_currentState = GrassState.Full;
+		UpdateSprite();
+		Debug.Log($"Grass: Grew to full at ({_gridPosition.x}, {_gridPosition.y}).");
+		return true;
+	}
+
+	/// <summary>
+	/// Updates the sprite based on the current state.
+	/// </summary>
+	private void UpdateSprite()
+	{
+		if (_spriteRenderer == null)
 		{
-			return true;
+			return;
 		}
 
+		switch (_currentState)
+		{
+			case GrassState.Full:
+				if (_fullSprite != null)
+				{
+					_spriteRenderer.sprite = _fullSprite;
+				}
+				break;
+			case GrassState.Growing:
+				if (_growingSprite != null)
+				{
+					_spriteRenderer.sprite = _growingSprite;
+				}
+				break;
+		}
+	}
+
+	/// <summary>
+	/// Attempts to harvest the grass when the player presses E.
+	/// </summary>
+	private void AttemptHarvest()
+	{
+		// Get the player
+		ControllableAnimal player = GetPlayer();
+		if (player == null)
+		{
+			Debug.LogWarning("Grass: Cannot harvest - no controllable animal found.");
+			return;
+		}
+
+		// Try to add grass item to inventory
+		if (InventoryManager.Instance != null)
+		{
+			bool added = InventoryManager.Instance.AddItem("Grass");
+			
+			if (added)
+			{
+				if (_currentState == GrassState.Full)
+				{
+					// First harvest: change to growing state
+					_currentState = GrassState.Growing;
+					UpdateSprite();
+					_turnsSinceLastSpawn = 0;
+					CalculateNextSpawnTime();
+				}
+				else if (_currentState == GrassState.Growing)
+				{
+					Destroy(gameObject);
+				}
+			}
+			else
+			{
+				// Inventory full
+				Debug.Log("Cannot harvest grass - inventory is full!");
+			}
+		}
+		else
+		{
+			Debug.LogWarning("Grass: InventoryManager instance not found! Cannot add grass to inventory.");
+		}
+	}
+
+	/// <summary>
+	/// Checks if the player (ControllableAnimal) is on the same tile as this grass.
+	/// </summary>
+	private bool IsPlayerOnSameTile()
+	{
+		if (AnimalManager.Instance == null)
+		{
+			return false;
+		}
+		
+		// Get all animals and find the controllable one (player)
+		List<Animal> animals = AnimalManager.Instance.GetAllAnimals();
+		foreach (Animal animal in animals)
+		{
+			if (animal != null && animal.IsControllable && animal is ControllableAnimal)
+			{
+				// Check if player is on the same tile
+				if (animal.GridPosition == _gridPosition)
+				{
+					return true;
+				}
+			}
+		}
+		
 		return false;
 	}
 
 	/// <summary>
-	/// Attempts to spawn a "Grass" item on this tile.
+	/// Gets the player (ControllableAnimal) if one exists.
 	/// </summary>
-	private bool TrySpawnGrass()
+	private ControllableAnimal GetPlayer()
 	{
-		if (ItemManager.Instance == null)
+		if (AnimalManager.Instance == null)
 		{
-			Debug.LogWarning("Grass: ItemManager instance not found. Cannot spawn grass.");
-			return false;
+			return null;
+		}
+		
+		List<Animal> animals = AnimalManager.Instance.GetAllAnimals();
+		foreach (Animal animal in animals)
+		{
+			if (animal != null && animal.IsControllable && animal is ControllableAnimal controllable)
+			{
+				return controllable;
+			}
+		}
+		
+		return null;
+	}
+
+	/// <summary>
+	/// Calculates the number of turns until the next spread attempt, with variance and season multiplier applied.
+	/// </summary>
+	private void CalculateNextSpreadTime()
+	{
+		float seasonMultiplier = GetSeasonMultiplier();
+		float variance = Mathf.Clamp01(_spreadVariance);
+		float randomFactor = variance > 0f ? Random.Range(1f - variance, 1f + variance) : 1f;
+		
+		// Divide by multiplier: higher multiplier = fewer turns (faster spread)
+		float adjustedTurns = _averageTurnsBetweenSpreads / Mathf.Max(0.01f, seasonMultiplier) * randomFactor;
+		_turnsUntilNextSpread = Mathf.Max(1, Mathf.RoundToInt(adjustedTurns));
+	}
+
+	/// <summary>
+	/// Attempts to spread grass to adjacent tiles that are valid (not water, no interactables).
+	/// </summary>
+	private void TrySpreadToAdjacentTiles()
+	{
+		if (InteractableManager.Instance == null)
+		{
+			Debug.LogWarning("Grass: InteractableManager instance not found. Cannot spread grass.");
+			return;
 		}
 
 		if (EnvironmentManager.Instance == null)
 		{
-			Debug.LogWarning("Grass: EnvironmentManager instance not found. Cannot spawn grass.");
+			Debug.LogWarning("Grass: EnvironmentManager instance not found. Cannot spread grass.");
+			return;
+		}
+
+		// Get adjacent tiles (4-directional)
+		Vector2Int[] directions = { Vector2Int.up, Vector2Int.down, Vector2Int.left, Vector2Int.right };
+		
+		foreach (Vector2Int dir in directions)
+		{
+			Vector2Int adjacentPos = _gridPosition + dir;
+			
+			// Check if the adjacent tile is valid for spreading
+			if (IsValidTileForSpreading(adjacentPos))
+			{
+				// Spawn a new grass interactable at the adjacent position
+				Grass newGrass = InteractableManager.Instance.SpawnGrass(adjacentPos);
+				if (newGrass != null)
+				{
+					Debug.Log($"Grass: Spread to adjacent tile ({adjacentPos.x}, {adjacentPos.y}).");
+					// Only spread to one tile per attempt to prevent rapid expansion
+					return;
+				}
+			}
+		}
+	}
+
+	/// <summary>
+	/// Checks if a tile is valid for grass spreading (not water, no interactables, valid position).
+	/// </summary>
+	private bool IsValidTileForSpreading(Vector2Int position)
+	{
+		if (EnvironmentManager.Instance == null)
+		{
 			return false;
 		}
 
-		if (!EnvironmentManager.Instance.IsValidPosition(_gridPosition))
-		{
-			Debug.LogWarning($"Grass: Grid position {_gridPosition} is not valid for spawning.");
-			return false;
-		}
-
-		// Check if there's already grass on this tile (double-check)
-		if (HasGrassOnTile())
+		// Check if position is valid
+		if (!EnvironmentManager.Instance.IsValidPosition(position))
 		{
 			return false;
 		}
 
-		// Spawn the grass item
-		Item grassItem = ItemManager.Instance.SpawnItem(_grassItemName, _gridPosition);
-		if (grassItem != null)
+		// Check if tile is water
+		TileType tileType = EnvironmentManager.Instance.GetTileType(position);
+		if (tileType == TileType.Water)
 		{
-			Debug.Log($"Grass: Grew grass at ({_gridPosition.x}, {_gridPosition.y}).");
-			return true;
+			return false;
 		}
 
-		return false;
+		// Check if there's already an interactable at this position
+		if (InteractableManager.Instance == null)
+		{
+			return false;
+		}
+
+		// Check for any type of interactable
+		if (InteractableManager.Instance.HasInteractableAtPosition(position))
+		{
+			return false;
+		}
+
+		return true;
 	}
 }
-

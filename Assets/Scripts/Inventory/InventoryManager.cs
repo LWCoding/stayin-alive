@@ -34,7 +34,6 @@ public class InventoryManager : Singleton<InventoryManager>
     
     // Store original position of inventory container for shake animation
     private Vector3 _originalContainerPosition;
-    private bool _hasStoredOriginalPosition = false;
     
     // Track if shake coroutine is running
     private Coroutine _shakeCoroutine;
@@ -86,7 +85,6 @@ public class InventoryManager : Singleton<InventoryManager>
         {
             // Store original position for shake animation
             _originalContainerPosition = _inventoryContainer.localPosition;
-            _hasStoredOriginalPosition = true;
         }
         
         if (_inventorySlotPrefab == null)
@@ -403,14 +401,13 @@ public class InventoryManager : Singleton<InventoryManager>
         if (_shakeCoroutine != null)
         {
             StopCoroutine(_shakeCoroutine);
+            // Reset to original position before starting new shake
+            _inventoryContainer.localPosition = _originalContainerPosition;
         }
         
-        // Store original position if not already stored
-        if (!_hasStoredOriginalPosition && _inventoryContainer != null)
-        {
-            _originalContainerPosition = _inventoryContainer.localPosition;
-            _hasStoredOriginalPosition = true;
-        }
+        // Always capture the current position right before shaking to ensure we use the correct base position
+        // This prevents teleportation issues if the UI was repositioned after Awake()
+        _originalContainerPosition = _inventoryContainer.localPosition;
         
         // Start shake coroutine
         _shakeCoroutine = StartCoroutine(ShakeCoroutine());

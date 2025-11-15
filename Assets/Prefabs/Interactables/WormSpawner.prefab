@@ -100,3 +100,7 @@ MonoBehaviour:
   _wormItemName: Worm
   _turnsBetweenSpawns: 80
   _spawnRadius: 3
+  _springSpawnMultiplier: 1
+  _summerSpawnMultiplier: 0.8
+  _fallSpawnMultiplier: 0.8
+  _winterSpawnMultiplier: 0.2

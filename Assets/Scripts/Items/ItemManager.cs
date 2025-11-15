@@ -30,14 +30,7 @@ public class ItemManager : Singleton<ItemManager>
     protected override void Awake()
     {
         base.Awake();
-        
-        // Create parent if not assigned
-        if (_itemParent == null)
-        {
-            GameObject parentObj = new GameObject("Items");
-            _itemParent = parentObj.transform;
-        }
-        
+
         // Build prefab lookup dictionary
         BuildPrefabLookup();
     }

@@ -92,7 +92,7 @@ MonoBehaviour:
   _spriteRenderer: {fileID: 0}
   _animalCount: 1
   _countText: {fileID: 509629430653039027}
-  _currentHunger: 100
+  _currentHunger: 150
   _canReceiveInput: 1
 --- !u!114 &6255441453869236274
 MonoBehaviour:
