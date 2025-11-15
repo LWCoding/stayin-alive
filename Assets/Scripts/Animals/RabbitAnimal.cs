@@ -10,8 +10,6 @@ public class RabbitAnimal : PreyAnimal
 	[Header("Rabbit Settings")]
 	[Tooltip("Hunger threshold below which the rabbit will seek food. When hunger is below this value, the rabbit will look for grass.")]
 	[SerializeField] private int _hungerThreshold = 50;
-	[Tooltip("Amount of hunger restored when eating fully grown grass.")]
-	[SerializeField] private int _hungerRestoredPerGrass = 30;
 	[Tooltip("Detection radius for finding grass. Only grass within this distance will be considered.")]
 	[SerializeField] private int _grassDetectionRadius = 10;
 	[Tooltip("Target food type name. This is used for identification purposes.")]
@@ -225,13 +223,20 @@ public class RabbitAnimal : PreyAnimal
 		// Eat the grass (change it to growing state)
 		HarvestGrass(grass);
 
-		// Restore hunger
-		IncreaseHunger(_hungerRestoredPerGrass);
+		// Restore hunger based on the grass's food item prefab hunger restoration value
+		int hungerRestored = grass.HungerRestored;
+		if (hungerRestored > 0)
+		{
+			IncreaseHunger(hungerRestored);
+			Debug.Log($"Rabbit '{name}' ate grass at ({GridPosition.x}, {GridPosition.y}). Hunger restored by {hungerRestored} to {CurrentHunger}.");
+		}
+		else
+		{
+			Debug.LogWarning($"Rabbit '{name}' ate grass at ({GridPosition.x}, {GridPosition.y}), but no hunger was restored (food item prefab not set or invalid).");
+		}
 
 		// Clear food destination since we've eaten
 		_foodDestination = null;
-
-		Debug.Log($"Rabbit '{name}' ate grass at ({GridPosition.x}, {GridPosition.y}). Hunger restored to {CurrentHunger}.");
 	}
 
 	/// <summary>

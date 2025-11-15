@@ -11,7 +11,7 @@ public abstract class Item : MonoBehaviour, IItem
     [SerializeField] [Tooltip("Unique name identifier for this item.")]
     private string _itemName;
     
-    [SerializeField] [Tooltip("Grid position of this item")]
+    [HideInInspector] [Tooltip("Grid position of this item")]
     private Vector2Int _gridPosition;
     
     [SerializeField] [Tooltip("Sprite used when displaying this item in UI (e.g., inventory).")]

@@ -100,9 +100,9 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _itemName: Worm
-  _gridPosition: {x: 0, y: 0}
   _inventorySprite: {fileID: 21300000, guid: 80b064f05c5448a4384059eaa0e0977d, type: 3}
   _interactionIndicator: {fileID: 5002926863957130536}
+  _hungerRestored: 60
 --- !u!114 &770505084073483997
 MonoBehaviour:
   m_ObjectHideFlags: 0

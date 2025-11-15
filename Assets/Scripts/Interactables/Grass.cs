@@ -12,6 +12,8 @@ public class Grass : MonoBehaviour
 	[SerializeField] private int _averageTurnsBetweenSpawns = 10;
 	[Tooltip("Random variance applied to the turns between spawns (0 = none, 0.25 = ±25%).")]
 	[SerializeField, Range(0f, 1f)] private float _turnsVariance = 0.25f;
+	[Tooltip("Food item prefab that defines the hunger restoration value for this grass.")]
+	[SerializeField] private FoodItem _foodItemPrefab;
 
 	[Header("Visuals")]
 	[Tooltip("Sprite shown when grass is fully grown.")]
@@ -58,6 +60,22 @@ public class Grass : MonoBehaviour
 	/// Grid position used for spawning and tile placement.
 	/// </summary>
 	public Vector2Int GridPosition => _gridPosition;
+
+	/// <summary>
+	/// Amount of hunger restored when an animal eats this grass.
+	/// Gets the value from the referenced food item prefab.
+	/// </summary>
+	public int HungerRestored
+	{
+		get
+		{
+			if (_foodItemPrefab != null)
+			{
+				return _foodItemPrefab.HungerRestored;
+			}
+			return 0; // Default to 0 if no food item prefab is set
+		}
+	}
 
 	/// <summary>
 	/// Checks if the grass is fully grown and ready to be eaten.

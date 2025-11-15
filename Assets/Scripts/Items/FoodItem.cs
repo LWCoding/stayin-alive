@@ -1,12 +1,21 @@
 using UnityEngine;
 
 /// <summary>
-/// Food item that restores the player's hunger to maximum when used.
+/// Food item that restores a certain amount of hunger when used.
 /// </summary>
 public class FoodItem : Item
 {
+    [Header("Food Settings")]
+    [Tooltip("Amount of hunger restored when this food item is consumed.")]
+    [SerializeField] private int _hungerRestored;
+    
     /// <summary>
-    /// When food is used, restore hunger to maximum.
+    /// Amount of hunger restored when this food item is consumed.
+    /// </summary>
+    public int HungerRestored => _hungerRestored;
+    
+    /// <summary>
+    /// When food is used, restore the configured amount of hunger.
     /// </summary>
     public override bool OnUse(ControllableAnimal user)
     {
@@ -15,10 +24,10 @@ public class FoodItem : Item
             return false;
         }
         
-        // Restore hunger to maximum
-        user.IncreaseHunger(user.MaxHunger);
+        // Restore the configured amount of hunger
+        user.IncreaseHunger(_hungerRestored);
         
-        Debug.Log($"FoodItem: Restored hunger to maximum for {user.name}.");
+        Debug.Log($"FoodItem: Restored {_hungerRestored} hunger for {user.name}. Current hunger: {user.CurrentHunger}/{user.MaxHunger}.");
         return true; // Item is consumed
     }
 }

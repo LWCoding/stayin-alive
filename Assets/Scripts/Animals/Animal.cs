@@ -41,7 +41,7 @@ public class Animal : MonoBehaviour
 
     [Header("Hunger")]
     [Tooltip("Current hunger value. Decreases by 1 each turn. When it reaches 0, the animal dies.")]
-    [SerializeField] private int _currentHunger = 100;
+    [HideInInspector] private int _currentHunger = 100;
     private int _maxHunger = 100;
 
     public AnimalData AnimalData => _animalData;
