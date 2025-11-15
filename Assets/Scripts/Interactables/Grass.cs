@@ -59,6 +59,30 @@ public class Grass : MonoBehaviour
 	/// </summary>
 	public Vector2Int GridPosition => _gridPosition;
 
+	/// <summary>
+	/// Checks if the grass is fully grown and ready to be eaten.
+	/// </summary>
+	public bool IsFullyGrown()
+	{
+		return _currentState == GrassState.Full;
+	}
+
+	/// <summary>
+	/// Harvests the grass for an animal (changes from Full to Growing state).
+	/// This is called when an animal eats the grass.
+	/// </summary>
+	public void HarvestForAnimal()
+	{
+		if (_currentState == GrassState.Full)
+		{
+			// Change to growing state (animal has eaten it)
+			_currentState = GrassState.Growing;
+			UpdateSprite();
+			_turnsSinceLastSpawn = 0;
+			CalculateNextSpawnTime();
+		}
+	}
+
 	private void Awake()
 	{
 		if (_spriteRenderer == null)

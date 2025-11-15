@@ -13,7 +13,7 @@ public class PreyAnimal : Animal
     [Tooltip("Distance to flee from predators. The prey will try to move this many cells away from detected predators.")]
     [SerializeField] private int _fleeDistance = 3;
 
-    private Vector2Int? _wanderingDestination = null;
+    protected Vector2Int? _wanderingDestination = null;
     private Vector2Int? _fleeDestination = null;
     private int _turnCounter = 0;
 
@@ -74,7 +74,7 @@ public class PreyAnimal : Animal
     /// <summary>
     /// Finds the nearest predator within detection radius.
     /// </summary>
-    private PredatorAnimal FindNearestPredator()
+    protected PredatorAnimal FindNearestPredator()
     {
         if (AnimalManager.Instance == null)
         {
@@ -123,7 +123,7 @@ public class PreyAnimal : Animal
     /// <summary>
     /// Calculates a flee destination away from the predator and moves one step towards it.
     /// </summary>
-    private void FleeFromPredator(PredatorAnimal predator)
+    protected void FleeFromPredator(PredatorAnimal predator)
     {
         if (EnvironmentManager.Instance == null)
         {
@@ -289,7 +289,7 @@ public class PreyAnimal : Animal
     /// <summary>
     /// Moves one step towards the destination using pathfinding.
     /// </summary>
-    private bool MoveOneStepTowards(Vector2Int destinationGrid)
+    protected bool MoveOneStepTowards(Vector2Int destinationGrid)
     {
         if (EnvironmentManager.Instance == null || AstarPath.active == null)
         {
@@ -368,7 +368,7 @@ public class PreyAnimal : Animal
     /// <summary>
     /// Chooses a random wandering destination.
     /// </summary>
-    private Vector2Int? ChooseWanderingDestination()
+    protected Vector2Int? ChooseWanderingDestination()
     {
         if (EnvironmentManager.Instance == null)
         {
