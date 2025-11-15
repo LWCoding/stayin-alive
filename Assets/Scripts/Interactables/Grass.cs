@@ -244,6 +244,13 @@ public class Grass : MonoBehaviour
 			return;
 		}
 
+		// Check if this grass tile is revealed by fog of war
+		// If not revealed, don't process any growth or spreading -- this is for balancing :)
+		if (FogOfWarManager.Instance != null && !FogOfWarManager.Instance.IsTileRevealed(_gridPosition))
+		{
+			return;
+		}
+
 		// Reset on fresh level start
 		if (currentTurn == 0)
 		{
