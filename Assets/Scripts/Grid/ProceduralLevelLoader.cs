@@ -628,6 +628,7 @@ public class ProceduralLevelLoader : MonoBehaviour
 
     /// <summary>
     /// Forces A* graphs to rebuild and aligns GridGraph node walkability with EnvironmentManager.
+    /// Marks water tiles and obstacles as non-walkable in the base graph.
     /// </summary>
     private void RefreshAStarGraphs()
     {
@@ -648,8 +649,23 @@ public class ProceduralLevelLoader : MonoBehaviour
             {
                 Vector3 world = (Vector3)node.position;
                 Vector2Int grid = EnvironmentManager.Instance.WorldToGridPosition(world);
-                bool walk = EnvironmentManager.Instance.IsValidPosition(grid) && EnvironmentManager.Instance.IsWalkable(grid);
-                node.Walkable = walk;
+                
+                if (!EnvironmentManager.Instance.IsValidPosition(grid))
+                {
+                    node.Walkable = false;
+                    return;
+                }
+                
+                // Check if position is walkable (not an obstacle)
+                bool isWalkable = EnvironmentManager.Instance.IsWalkable(grid);
+                
+                // Also check if it's a water tile - mark water as non-walkable in base graph
+                // (WaterTraversalProvider will handle allowing water for animals that can swim)
+                TileType tileType = EnvironmentManager.Instance.GetTileType(grid);
+                bool isWater = (tileType == TileType.Water);
+                
+                // Node is walkable only if it's not an obstacle AND not water
+                node.Walkable = isWalkable && !isWater;
             });
 
             // Connected components are handled by the hierarchical graph automatically in recent versions
@@ -658,7 +674,7 @@ public class ProceduralLevelLoader : MonoBehaviour
         // Ensure any pending work is completed
         AstarPath.active.FlushWorkItems();
         AstarPath.active.FlushGraphUpdates();
-        Debug.Log("ProceduralLevelLoader: A* Pathfinding graph force-refreshed and nodes synced with EnvironmentManager.");
+        Debug.Log("ProceduralLevelLoader: A* Pathfinding graph force-refreshed and nodes synced with EnvironmentManager (water tiles marked as non-walkable).");
     }
 }
 

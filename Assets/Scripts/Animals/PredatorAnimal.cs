@@ -537,14 +537,18 @@ public class PredatorAnimal : Animal
         // If we have a predator den, wander within its territory
         if (_predatorDen != null)
         {
-            Vector2Int? territoryPos = _predatorDen.GetRandomPositionInTerritory();
-            if (territoryPos.HasValue)
+            // Try multiple times to get a valid territory position that accounts for water walkability
+            for (int attempts = 0; attempts < 10; attempts++)
             {
-                return territoryPos.Value;
+                Vector2Int? territoryPos = _predatorDen.GetRandomPositionInTerritory();
+                if (territoryPos.HasValue && IsTileTraversable(territoryPos.Value))
+                {
+                    return territoryPos.Value;
+                }
             }
         }
         
-        // Fallback: wander randomly if no den is assigned
+        // Fallback: wander randomly if no den is assigned or no valid territory position found
         Vector2Int myPos = GridPosition;
         Vector2Int gridSize = EnvironmentManager.Instance.GetGridSize();
         
@@ -569,9 +573,8 @@ public class PredatorAnimal : Animal
             targetPos.x = Mathf.Clamp(targetPos.x, 0, gridSize.x - 1);
             targetPos.y = Mathf.Clamp(targetPos.y, 0, gridSize.y - 1);
             
-            // Check if this position is valid and walkable (dens are allowed)
-            if (EnvironmentManager.Instance.IsValidPosition(targetPos) && 
-                EnvironmentManager.Instance.IsWalkable(targetPos))
+            // Check if this position is traversable (accounts for water walkability)
+            if (IsTileTraversable(targetPos))
             {
                 return targetPos;
             }
@@ -585,8 +588,7 @@ public class PredatorAnimal : Animal
                 Random.Range(0, gridSize.y)
             );
             
-            if (EnvironmentManager.Instance.IsValidPosition(targetPos) && 
-                EnvironmentManager.Instance.IsWalkable(targetPos))
+            if (IsTileTraversable(targetPos))
             {
                 return targetPos;
             }
@@ -640,6 +642,39 @@ public class PredatorAnimal : Animal
                 break;
             }
         }
+    }
+
+    /// <summary>
+    /// Checks if a tile is traversable by this predator, accounting for water walkability.
+    /// </summary>
+    private bool IsTileTraversable(Vector2Int position)
+    {
+        if (EnvironmentManager.Instance == null)
+        {
+            return false;
+        }
+
+        if (!EnvironmentManager.Instance.IsValidPosition(position))
+        {
+            return false;
+        }
+
+        if (!EnvironmentManager.Instance.IsWalkable(position))
+        {
+            return false;
+        }
+
+        // Check if this is a water tile and if the predator can go on water
+        if (!CanGoOnWater)
+        {
+            TileType tileType = EnvironmentManager.Instance.GetTileType(position);
+            if (tileType == TileType.Water)
+            {
+                return false;
+            }
+        }
+
+        return true;
     }
 
     /// <summary>

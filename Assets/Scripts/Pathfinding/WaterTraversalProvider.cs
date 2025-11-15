@@ -70,22 +70,10 @@ public class WaterTraversalProvider : ITraversalProvider
     /// </summary>
     public bool CanTraverse(Path path, GraphNode node)
     {
-        // First check default traversal (walkable and tags)
-        if (!DefaultITraversalProvider.CanTraverse(path, node))
-        {
-            return false;
-        }
-
-        // If the animal can go on water, allow all walkable nodes
-        if (_canGoOnWater)
-        {
-            return true;
-        }
-
-        // If no grid data is available, fall back to allowing traversal
+        // If no grid data is available, fall back to default traversal
         if (!_hasGridData || _gridSnapshot == null)
         {
-            return true;
+            return DefaultITraversalProvider.CanTraverse(path, node);
         }
 
         // Get grid coordinates directly from the node (thread-safe, no Unity API calls)
@@ -108,20 +96,30 @@ public class WaterTraversalProvider : ITraversalProvider
         // Bounds check
         if (x < 0 || x >= _gridWidth || y < 0 || y >= _gridHeight)
         {
-            // Out of bounds - allow traversal (or could return false, depends on design)
-            return true;
+            // Out of bounds - use default traversal check
+            return DefaultITraversalProvider.CanTraverse(path, node);
         }
 
         // Check if this is a water tile (reading from cached snapshot - thread-safe)
         TileType tileType = _gridSnapshot[x, y];
         if (tileType == TileType.Water)
         {
-            // Animal cannot go on water, so this node is not traversable
-            return false;
+            // For water tiles, check if the animal can go on water
+            if (_canGoOnWater)
+            {
+                // Animal can go on water - allow traversal even if node is marked non-walkable
+                // Still check tags from default traversal
+                return (path.enabledTags >> (int)node.Tag & 0x1) != 0;
+            }
+            else
+            {
+                // Animal cannot go on water, so this node is not traversable
+                return false;
+            }
         }
 
-        // Not a water tile, so it's traversable
-        return true;
+        // Not a water tile - use default traversal check (walkable and tags)
+        return DefaultITraversalProvider.CanTraverse(path, node);
     }
 
     /// <summary>

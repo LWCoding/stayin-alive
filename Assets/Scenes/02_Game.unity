@@ -605,7 +605,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _emptyTile: {fileID: 11400000, guid: 3d88d5ab1e68a2f4c8cca3487cb5a30c, type: 2}
-  _waterTiles: []
+  _waterTiles:
+  - {fileID: 11400000, guid: d16b64193f8441342a2c1a526110bc14, type: 2}
   _grassTiles: []
   _obstacleTile: {fileID: 11400000, guid: 872b1e52ba833394fa53c37ab4d630e0, type: 2}
   _updateOnGridChange: 1
