@@ -347,7 +347,6 @@ public class Grass : MonoBehaviour
 
 		_currentState = GrassState.Full;
 		UpdateSprite();
-		Debug.Log($"Grass: Grew to full at ({_gridPosition.x}, {_gridPosition.y}).");
 		return true;
 	}
 
@@ -504,7 +503,6 @@ public class Grass : MonoBehaviour
 				Grass newGrass = InteractableManager.Instance.SpawnGrass(adjacentPos);
 				if (newGrass != null)
 				{
-					Debug.Log($"Grass: Spread to adjacent tile ({adjacentPos.x}, {adjacentPos.y}).");
 					// Only spread to one tile per attempt to prevent rapid expansion
 					return;
 				}
