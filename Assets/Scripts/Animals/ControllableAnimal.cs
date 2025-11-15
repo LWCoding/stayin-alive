@@ -226,41 +226,9 @@ public class ControllableAnimal : Animal
                 }
             }
         }
-
-        // Check for items at this position and pick them up
-        if (ItemManager.Instance != null)
-        {
-            Item item = ItemManager.Instance.GetItemAtPosition(gridPosition);
-            
-            if (item != null)
-            {
-                string itemName = item.ItemName;
-                
-                if (!string.IsNullOrEmpty(itemName))
-                {
-                    // Try to add item to inventory using InventoryManager
-                    if (InventoryManager.Instance != null)
-                    {
-                        if (InventoryManager.Instance.AddItem(itemName))
-                        {
-                            // Call OnPickup on the item
-                            item.OnPickup(this);
-                            
-                            // Remove item from world (destroy the GameObject)
-                            item.DestroyItem();
-                        }
-                        else
-                        {
-                            Debug.Log($"Cannot pick up '{itemName}' - inventory is full!");
-                        }
-                    }
-                    else
-                    {
-                        Debug.LogWarning("ControllableAnimal: InventoryManager instance not found! Cannot add item to inventory.");
-                    }
-                }
-            }
-        }
+        
+        // Items are no longer automatically picked up - player must press E when on the same tile
+        // This is handled by the Item class itself
     }
 
     /// <summary>

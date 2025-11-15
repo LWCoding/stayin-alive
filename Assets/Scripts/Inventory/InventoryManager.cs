@@ -1,3 +1,4 @@
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -18,11 +19,25 @@ public class InventoryManager : Singleton<InventoryManager>
     [SerializeField] [Tooltip("Prefab for inventory slot UI")]
     private GameObject _inventorySlotPrefab;
     
+    [Header("Shake Settings")]
+    [SerializeField] [Tooltip("Intensity of the shake when inventory is full")]
+    private float _shakeIntensity = 10f;
+    
+    [SerializeField] [Tooltip("Duration of the shake animation in seconds")]
+    private float _shakeDuration = 0.5f;
+    
     // List of all inventory slots
     private List<InventorySlot> _inventorySlots = new List<InventorySlot>();
     
     // Currently selected slot index (-1 if none selected)
     private int _selectedSlotIndex = -1;
+    
+    // Store original position of inventory container for shake animation
+    private Vector3 _originalContainerPosition;
+    private bool _hasStoredOriginalPosition = false;
+    
+    // Track if shake coroutine is running
+    private Coroutine _shakeCoroutine;
     
     /// <summary>
     /// Current number of items in the inventory.
@@ -66,6 +81,12 @@ public class InventoryManager : Singleton<InventoryManager>
         if (_inventoryContainer == null)
         {
             Debug.LogError("InventoryManager: Inventory container is not assigned! Please assign a Transform in the Inspector.");
+        }
+        else
+        {
+            // Store original position for shake animation
+            _originalContainerPosition = _inventoryContainer.localPosition;
+            _hasStoredOriginalPosition = true;
         }
         
         if (_inventorySlotPrefab == null)
@@ -160,6 +181,10 @@ public class InventoryManager : Singleton<InventoryManager>
         if (IsFull)
         {
             Debug.Log($"InventoryManager: Cannot add item '{itemName}' - inventory is full ({CurrentItemCount}/{_maxInventorySize}).");
+            
+            // Trigger shake animation
+            ShakeInventory();
+            
             return false;
         }
 
@@ -362,6 +387,63 @@ public class InventoryManager : Singleton<InventoryManager>
             }
         }
         _inventorySlots.Clear();
+    }
+    
+    /// <summary>
+    /// Shakes the inventory UI to indicate that the inventory is full.
+    /// </summary>
+    private void ShakeInventory()
+    {
+        if (_inventoryContainer == null)
+        {
+            return;
+        }
+        
+        // Stop any existing shake coroutine
+        if (_shakeCoroutine != null)
+        {
+            StopCoroutine(_shakeCoroutine);
+        }
+        
+        // Store original position if not already stored
+        if (!_hasStoredOriginalPosition && _inventoryContainer != null)
+        {
+            _originalContainerPosition = _inventoryContainer.localPosition;
+            _hasStoredOriginalPosition = true;
+        }
+        
+        // Start shake coroutine
+        _shakeCoroutine = StartCoroutine(ShakeCoroutine());
+    }
+    
+    /// <summary>
+    /// Coroutine that shakes the inventory container.
+    /// </summary>
+    private IEnumerator ShakeCoroutine()
+    {
+        if (_inventoryContainer == null)
+        {
+            yield break;
+        }
+        
+        float elapsed = 0f;
+        
+        while (elapsed < _shakeDuration)
+        {
+            // Calculate random offset for shake
+            float offsetX = Random.Range(-_shakeIntensity, _shakeIntensity);
+            float offsetY = Random.Range(-_shakeIntensity, _shakeIntensity);
+            
+            // Apply shake offset
+            _inventoryContainer.localPosition = _originalContainerPosition + new Vector3(offsetX, offsetY, 0f);
+            
+            elapsed += Time.deltaTime;
+            yield return null;
+        }
+        
+        // Reset to original position
+        _inventoryContainer.localPosition = _originalContainerPosition;
+        _shakeCoroutine = null;
     }
 }
 

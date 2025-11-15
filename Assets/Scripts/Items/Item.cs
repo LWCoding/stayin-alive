@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using UnityEngine;
 
 /// <summary>
@@ -15,6 +16,10 @@ public abstract class Item : MonoBehaviour, IItem
     
     [SerializeField] [Tooltip("Sprite used when displaying this item in UI (e.g., inventory).")]
     private Sprite _inventorySprite;
+    
+    [Header("Interaction")]
+    [SerializeField] [Tooltip("GameObject that shows/hides when the player is on the same tile (e.g., interaction indicator)")]
+    private GameObject _interactionIndicator;
     
     /// <summary>
     /// The grid position of this item.
@@ -58,6 +63,12 @@ public abstract class Item : MonoBehaviour, IItem
             Vector3 worldPos = EnvironmentManager.Instance.GridToWorldPosition(gridPosition);
             transform.position = worldPos;
         }
+        
+        // Hide interaction indicator by default
+        if (_interactionIndicator != null)
+        {
+            _interactionIndicator.SetActive(false);
+        }
     }
     
     /// <summary>
@@ -85,6 +96,111 @@ public abstract class Item : MonoBehaviour, IItem
         }
         
         Destroy(gameObject);
+    }
+    
+    private void Update()
+    {
+        // Check if player is on the same tile
+        bool isPlayerOnTile = IsPlayerOnSameTile();
+        
+        // Show/hide interaction indicator
+        if (_interactionIndicator != null)
+        {
+            _interactionIndicator.SetActive(isPlayerOnTile);
+        }
+        
+        // If player is on the same tile and presses E, attempt pickup
+        if (isPlayerOnTile && Input.GetKeyDown(KeyCode.E))
+        {
+            AttemptPickup();
+        }
+    }
+    
+    /// <summary>
+    /// Checks if the player (ControllableAnimal) is on the same tile as this item.
+    /// </summary>
+    private bool IsPlayerOnSameTile()
+    {
+        if (AnimalManager.Instance == null)
+        {
+            return false;
+        }
+        
+        // Get all animals and find the controllable one (player)
+        List<Animal> animals = AnimalManager.Instance.GetAllAnimals();
+        foreach (Animal animal in animals)
+        {
+            if (animal != null && animal.IsControllable && animal is ControllableAnimal)
+            {
+                // Check if player is on the same tile
+                if (animal.GridPosition == _gridPosition)
+                {
+                    return true;
+                }
+            }
+        }
+        
+        return false;
+    }
+    
+    /// <summary>
+    /// Attempts to pick up this item when the player presses E.
+    /// </summary>
+    private void AttemptPickup()
+    {
+        // Get the player
+        ControllableAnimal player = GetPlayer();
+        if (player == null)
+        {
+            Debug.LogWarning("Item: Cannot pick up item - no controllable animal found.");
+            return;
+        }
+        
+        // Try to add item to inventory
+        if (InventoryManager.Instance != null)
+        {
+            bool added = InventoryManager.Instance.AddItem(_itemName);
+            
+            if (added)
+            {
+                // Call OnPickup on the item
+                OnPickup(player);
+                
+                // Remove item from world (destroy the GameObject)
+                DestroyItem();
+            }
+            else
+            {
+                // Item was not added (inventory full), so it remains
+                Debug.Log($"Cannot pick up '{_itemName}' - inventory is full!");
+            }
+        }
+        else
+        {
+            Debug.LogWarning("Item: InventoryManager instance not found! Cannot add item to inventory.");
+        }
+    }
+    
+    /// <summary>
+    /// Gets the player (ControllableAnimal) if one exists.
+    /// </summary>
+    private ControllableAnimal GetPlayer()
+    {
+        if (AnimalManager.Instance == null)
+        {
+            return null;
+        }
+        
+        List<Animal> animals = AnimalManager.Instance.GetAllAnimals();
+        foreach (Animal animal in animals)
+        {
+            if (animal != null && animal.IsControllable && animal is ControllableAnimal controllable)
+            {
+                return controllable;
+            }
+        }
+        
+        return null;
     }
 }
 
