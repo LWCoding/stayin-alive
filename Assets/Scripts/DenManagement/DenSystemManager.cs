@@ -25,17 +25,21 @@ public class DenSystemManager : Singleton<DenSystemManager> {
   private bool panelOpen;
   
   public bool PanelOpen => panelOpen;
+
+  private void Start() {
+    validTeleports = new Dictionary<int, DenInformation>();
+  }
   
   public void OpenPanel(DenAdministrator denAdmin) {
     panelOpen = true;
-    Debug.Log("Panel Opened");
-    GetValidDenTeleportDestinations(denAdmin.Animal);
-    print(validTeleports);
+    Debug.LogError("Panel Opened");
+    ConstructValidDenTeleportInfos(denAdmin.Animal);
+    Debug.LogError(validTeleports);
   }
 
   public void ClosePanel(DenAdministrator denAdmin) {
     panelOpen = false;
-    Debug.Log("Panel Closed");
+    Debug.LogError("Panel Closed");
     validTeleports.Clear();
   }
 
@@ -51,11 +55,19 @@ public class DenSystemManager : Singleton<DenSystemManager> {
     List<DenInformation> denInfos = new List<DenInformation>();
     foreach (Den den in denList) {
       denInfos.Add(ConstructDenInformation(den));
+      Debug.LogError(ConstructDenInformation(den).denId);
     }
 
     return denInfos;
   }
 
+  public void ConstructValidDenTeleportInfos(ControllableAnimal playerAnimal) {
+    validTeleports.Clear();
+    List<DenInformation> denInfos = GetValidDenTeleportDestinations(playerAnimal);
+    foreach (DenInformation denInfo in denInfos) {
+      validTeleports.Add(denInfo.denId, denInfo);
+    }
+  }
 
   public List<DenInformation> GetValidDenTeleportDestinations(ControllableAnimal playerAnimal) {
     List<DenInformation> validDestinations = new List<DenInformation>();
@@ -70,6 +82,7 @@ public class DenSystemManager : Singleton<DenSystemManager> {
     foreach (DenInformation destination in destinations) {
       if (destination.denObject != playerAnimal.CurrentDen) {
         validDestinations.Add(destination);
+        Debug.LogError(destination.denId.ToString());
       }
     }
 
