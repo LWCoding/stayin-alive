@@ -100,7 +100,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   _averageTurnsBetweenSpawns: 50
   _turnsVariance: 0.1
-  _foodItemPrefab: {fileID: 0}
+  _foodItemPrefab: {fileID: 900334190961524197, guid: e84f021d7e9761a49bce026045791447, type: 3}
   _fullSprite: {fileID: 21300000, guid: 2e8b979decbcbec4b87668ba890a5f92, type: 3}
   _growingSprite: {fileID: 21300000, guid: fbb180a796a83c548afe620802ece1bd, type: 3}
   _spriteRenderer: {fileID: 3958714295006606625}
