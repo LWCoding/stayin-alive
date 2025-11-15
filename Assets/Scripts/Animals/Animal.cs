@@ -669,72 +669,54 @@ public class Animal : MonoBehaviour
 
     /// <summary>
     /// Spawns a new follower GameObject that follows this animal with a delay.
+    /// Creates a minimal GameObject with only SpriteRenderer and TwoFrameAnimator components.
     /// </summary>
     private void SpawnFollower()
     {
-        if (_animalData == null || _animalData.prefab == null)
+        if (_animalData == null)
         {
-            Debug.LogWarning($"Animal '{name}': Cannot spawn follower - AnimalData or prefab is null.");
+            Debug.LogWarning($"Animal '{name}': Cannot spawn follower - AnimalData is null.");
             return;
         }
 
-        // Instantiate a copy of this animal
-        GameObject followerObj = Instantiate(_animalData.prefab, transform.parent);
-        followerObj.name = $"{name}_Follower_{_followers.Count + 1}";
-
-        // Get the follower's Animal component and sprite renderer before disabling
-        Animal followerAnimal = followerObj.GetComponent<Animal>();
-        SpriteRenderer followerSpriteRenderer = null;
-        if (followerAnimal != null)
+        if (_spriteRenderer == null)
         {
-            // Get the sprite renderer from the Animal component before disabling it
-            followerSpriteRenderer = followerAnimal._spriteRenderer;
-            followerAnimal.enabled = false;
+            Debug.LogWarning($"Animal '{name}': Cannot spawn follower - SpriteRenderer is null.");
+            return;
         }
+
+        // Create a new GameObject for the follower
+        GameObject followerObj = new GameObject($"{name}_Follower_{_followers.Count + 1}");
+        followerObj.transform.SetParent(transform.parent);
         
-        // Fallback: try to get sprite renderer directly if not found
-        if (followerSpriteRenderer == null)
-        {
-            followerSpriteRenderer = followerObj.GetComponent<SpriteRenderer>();
-            if (followerSpriteRenderer == null)
-            {
-                followerSpriteRenderer = followerObj.GetComponentInChildren<SpriteRenderer>();
-            }
-        }
-
-        // Also disable ControllableAnimal if it exists
-        ControllableAnimal followerControllable = followerObj.GetComponent<ControllableAnimal>();
-        if (followerControllable != null)
-        {
-            followerControllable.enabled = false;
-        }
-
-        // Disable Rigidbody2D physics simulation if it exists
-        Rigidbody2D followerRigidbody = followerObj.GetComponent<Rigidbody2D>();
-        if (followerRigidbody != null)
-        {
-            followerRigidbody.simulated = false;
-        }
-
-        // Disable count text on followers
-        TMP_Text followerCountText = followerObj.GetComponentInChildren<TMP_Text>();
-        if (followerCountText != null)
-        {
-            followerCountText.enabled = false;
-        }
-
+        // Add SpriteRenderer component
+        SpriteRenderer followerSpriteRenderer = followerObj.AddComponent<SpriteRenderer>();
+        
+        // Copy sprite renderer properties from the original
+        followerSpriteRenderer.sprite = _spriteRenderer.sprite;
+        followerSpriteRenderer.color = _spriteRenderer.color;
+        followerSpriteRenderer.sortingLayerName = _spriteRenderer.sortingLayerName;
+        followerSpriteRenderer.sortingOrder = _spriteRenderer.sortingOrder + 1;
+        followerSpriteRenderer.flipX = _spriteRenderer.flipX;
+        followerSpriteRenderer.flipY = _spriteRenderer.flipY;
+        
         // Set initial position to match the original
         followerObj.transform.position = transform.position;
-
+        
         // Scale down the follower to the specified percentage of the original size
         followerObj.transform.localScale = transform.localScale * Globals.FollowerScale;
 
-        // Set follower sprite sorting order to be one less than the main sprite
-        if (followerSpriteRenderer != null && _spriteRenderer != null)
+        // Add and initialize TwoFrameAnimator if the original has one
+        if (_twoFrameAnimator != null && _animalData.frame1Sprite != null && _animalData.frame2Sprite != null && _animalData.animationInterval > 0)
         {
-            followerSpriteRenderer.sortingOrder = _spriteRenderer.sortingOrder + 1;
-            // Match the flipX state of the main sprite
-            followerSpriteRenderer.flipX = _spriteRenderer.flipX;
+            TwoFrameAnimator followerAnimator = followerObj.AddComponent<TwoFrameAnimator>();
+            followerAnimator.SetSpriteRenderer(followerSpriteRenderer);
+            followerAnimator.Initialize(_animalData.frame1Sprite, _animalData.frame2Sprite, _animalData.animationInterval);
+        }
+        else if (_animalData != null && _animalData.frame1Sprite != null)
+        {
+            // If we only have frame1, just set it
+            followerSpriteRenderer.sprite = _animalData.frame1Sprite;
         }
 
         ApplyVisibilityToFollower(followerObj, _areVisualsVisible);

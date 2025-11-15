@@ -4,6 +4,7 @@ using UnityEngine;
 /// <summary>
 /// Specialized prey animal that seeks out and eats grass when hungry.
 /// Wanders randomly when not hungry, but will prioritize finding fully grown grass when hunger is below threshold.
+/// </summary>
 public class RabbitAnimal : PreyAnimal
 {
 	[Header("Rabbit Settings")]
