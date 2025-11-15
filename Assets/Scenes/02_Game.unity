@@ -274,7 +274,7 @@ Camera:
   far clip plane: 1000
   field of view: 34
   orthographic: 1
-  orthographic size: 6.5
+  orthographic size: 6
   m_Depth: -1
   m_CullingMask:
     serializedVersion: 2
@@ -2821,7 +2821,7 @@ MonoBehaviour:
   m_Follow: {fileID: 0}
   m_Lens:
     FieldOfView: 34
-    OrthographicSize: 6.5
+    OrthographicSize: 6
     NearClipPlane: 0.3
     FarClipPlane: 1000
     Dutch: 0
@@ -3940,8 +3940,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   _emptyTile: {fileID: 11400000, guid: 3d88d5ab1e68a2f4c8cca3487cb5a30c, type: 2}
   _waterTiles:
-  - {fileID: 11400000, guid: 30d6ac2ff339634498ac20d9dd5c2c23, type: 2}
-  - {fileID: 11400000, guid: c2218ec321e75eb4988973ba501a20d2, type: 2}
+  - {fileID: 11400000, guid: d16b64193f8441342a2c1a526110bc14, type: 2}
   _grassTiles:
   - {fileID: 11400000, guid: 2128fd3ef7d3a6e41a1f746a12d244cd, type: 2}
   - {fileID: 11400000, guid: 7153c7f2e31375c4fa75b016ed86162e, type: 2}
