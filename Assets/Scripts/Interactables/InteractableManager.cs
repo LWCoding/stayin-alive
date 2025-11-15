@@ -847,6 +847,21 @@ public class InteractableManager : Singleton<InteractableManager>
 			_grasses.Remove(grass);
 		}
 	}
+
+	/// <summary>
+	/// Checks if there is any interactable at the specified grid position.
+	/// </summary>
+	/// <param name="gridPosition">Grid position to check</param>
+	/// <returns>True if any interactable exists at the position, false otherwise</returns>
+	public bool HasInteractableAtPosition(Vector2Int gridPosition)
+	{
+		return GetDenAtPosition(gridPosition) != null ||
+			GetBushAtPosition(gridPosition) != null ||
+			GetGrassAtPosition(gridPosition) != null ||
+			GetRabbitSpawnerAtPosition(gridPosition) != null ||
+			GetPredatorDenAtPosition(gridPosition) != null ||
+			GetWormSpawnerAtPosition(gridPosition) != null;
+	}
     
     /// <summary>
     /// Registers any existing controllable animals that are currently on dens.
