@@ -1,4 +1,5 @@
 using UnityEngine;
+using UnityEngine.SceneManagement;
 
 /// <summary>
 /// Manages the tutorial scene state and initialization.
@@ -98,6 +99,16 @@ public class TutorialManager : Singleton<TutorialManager>
         if (TimeManager.Instance != null)
         {
             TimeManager.Instance.ResetTimerAndPauseForFirstMove();
+        }
+    }
+    
+    private void Update()
+    {
+        // Check for Escape key press to return to title screen
+        if (Input.GetKeyDown(KeyCode.Escape))
+        {
+            Debug.Log("TutorialManager: Escape key pressed. Returning to title screen.");
+            SceneManager.LoadScene("01_Title");
         }
     }
 }

@@ -209,15 +209,9 @@ public class TutorialLevelLoader : MonoBehaviour
         // This must happen after level tiles are loaded to ensure fog overlaps on top
         if (FogOfWarManager.Instance != null)
         {
-            Debug.Log("TutorialLevelLoader: Initializing fog of war...");
             FogOfWarManager.Instance.InitializeFog();
             // Then update fog to reveal initial animal positions
             FogOfWarManager.Instance.UpdateFogOfWar();
-            Debug.Log("TutorialLevelLoader: Fog of war initialized and updated.");
-        }
-        else
-        {
-            Debug.LogWarning("TutorialLevelLoader: FogOfWarManager instance not found! Fog of war will not be initialized.");
         }
 
         // Force-refresh A* Pathfinding graph and sync walkability with EnvironmentManager
