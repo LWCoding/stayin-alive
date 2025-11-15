@@ -83,6 +83,10 @@ public class ProceduralLevelLoader : MonoBehaviour
 	[Tooltip("Number of bushes to spawn on grass tiles")]
 	[SerializeField] private int _bushCount = 10;
 
+	[Header("Grass Spawn Settings")]
+	[Tooltip("Number of grass interactables to spawn on grass tiles")]
+	[SerializeField] private int _grassCount = 10;
+
     /// <summary>
     /// Generates and applies a procedurally generated level.
     /// </summary>
@@ -124,6 +128,7 @@ public class ProceduralLevelLoader : MonoBehaviour
 			InteractableManager.Instance.SpawnPredatorDensFromLevelData(levelData.PredatorDens);
 			InteractableManager.Instance.SpawnWormSpawnersFromLevelData(levelData.WormSpawners);
 			InteractableManager.Instance.SpawnBushesFromLevelData(levelData.Bushes);
+			InteractableManager.Instance.SpawnGrassesFromLevelData(levelData.Grasses);
         }
         else
         {
@@ -177,7 +182,7 @@ public class ProceduralLevelLoader : MonoBehaviour
         // Set virtual camera to follow the controllable animal
         SetupCameraFollow();
 
-		Debug.Log($"ProceduralLevelLoader: Successfully generated level with {levelData.Tiles.Count} tiles, {levelData.Animals.Count} animals, {levelData.Items.Count} items, {levelData.Dens.Count} dens, {levelData.RabbitSpawners.Count} rabbit spawners, {levelData.WormSpawners.Count} worm spawners, {levelData.PredatorDens.Count} predator dens, and {levelData.Bushes.Count} bushes");
+		Debug.Log($"ProceduralLevelLoader: Successfully generated level with {levelData.Tiles.Count} tiles, {levelData.Animals.Count} animals, {levelData.Items.Count} items, {levelData.Dens.Count} dens, {levelData.RabbitSpawners.Count} rabbit spawners, {levelData.WormSpawners.Count} worm spawners, {levelData.PredatorDens.Count} predator dens, {levelData.Bushes.Count} bushes, and {levelData.Grasses.Count} grass interactables");
     }
 
     /// <summary>
@@ -258,6 +263,7 @@ public class ProceduralLevelLoader : MonoBehaviour
 		levelData.PredatorDens = new List<(int x, int y, string predatorType)>();
 		levelData.WormSpawners = new List<(int x, int y)>();
 		levelData.Bushes = new List<(int x, int y)>();
+		levelData.Grasses = new List<(int x, int y)>();
         levelData.FoodCount = 0;
 
         // Generate spawn positions for animals, dens, and items
@@ -444,6 +450,55 @@ public class ProceduralLevelLoader : MonoBehaviour
 			else
 			{
 				Debug.LogWarning("ProceduralLevelLoader: No grass tiles available for spawning bushes!");
+			}
+		}
+
+		// Spawn grass interactables at random positions on grass tiles
+		if (_grassCount > 0 && spawnPositions.Count > 0)
+		{
+			// Collect grass positions for grass interactables
+			List<Vector2Int> grassPositions = new List<Vector2Int>();
+			foreach (Vector2Int pos in spawnPositions)
+			{
+				// Find the tile type for this position
+				TileType tileType = TileType.Empty;
+				foreach (var (tx, ty, tt) in levelData.Tiles)
+				{
+					if (tx == pos.x && ty == pos.y)
+					{
+						tileType = tt;
+						break;
+					}
+				}
+
+				if (tileType == TileType.Grass)
+				{
+					grassPositions.Add(pos);
+				}
+			}
+
+			if (grassPositions.Count > 0)
+			{
+				int grassesSpawned = 0;
+				int attempts = 0;
+				int maxAttempts = grassPositions.Count * 2;
+
+				while (grassesSpawned < _grassCount && grassPositions.Count > 0 && attempts < maxAttempts)
+				{
+					attempts++;
+					int index = Random.Range(0, grassPositions.Count);
+					Vector2Int grassPos = grassPositions[index];
+
+					levelData.Grasses.Add((grassPos.x, grassPos.y));
+					grassesSpawned++;
+
+					// Remove so animals/items don't overlap (but allow multiple grasses in same area)
+					grassPositions.RemoveAt(index);
+				}
+			}
+			else
+			{
+				Debug.LogWarning("ProceduralLevelLoader: No grass tiles available for spawning grass interactables!");
 			}
 		}
 

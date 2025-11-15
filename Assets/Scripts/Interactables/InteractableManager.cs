@@ -30,11 +30,16 @@ public class InteractableManager : Singleton<InteractableManager>
 	[Tooltip("Prefab to use when spawning bushes. Must have a Bush component.")]
 	[SerializeField] private GameObject _bushPrefab;
 	
+	[Header("Grass Prefab")]
+	[Tooltip("Prefab to use when spawning grass interactables. Must have a Grass component.")]
+	[SerializeField] private GameObject _grassPrefab;
+	
     private List<Den> _dens = new List<Den>();
 	private List<RabbitSpawner> _rabbitSpawners = new List<RabbitSpawner>();
 	private List<PredatorDen> _predatorDens = new List<PredatorDen>();
 	private List<WormSpawner> _wormSpawners = new List<WormSpawner>();
 	private List<Bush> _bushes = new List<Bush>();
+	private List<Grass> _grasses = new List<Grass>();
     
     protected override void Awake()
     {
@@ -97,6 +102,15 @@ public class InteractableManager : Singleton<InteractableManager>
 			}
 		}
 		_bushes.Clear();
+
+		foreach (Grass grass in _grasses)
+		{
+			if (grass != null)
+			{
+				Destroy(grass.gameObject);
+			}
+		}
+		_grasses.Clear();
     }
     
     /// <summary>
@@ -710,6 +724,127 @@ public class InteractableManager : Singleton<InteractableManager>
 		if (bush != null && _bushes != null)
 		{
 			_bushes.Remove(bush);
+		}
+	}
+
+	/// <summary>
+	/// Spawns a grass interactable at the specified grid position.
+	/// </summary>
+	/// <param name="gridPosition">Grid position to spawn the grass at</param>
+	/// <returns>The spawned Grass component, or null if prefab is not assigned</returns>
+	public Grass SpawnGrass(Vector2Int gridPosition)
+	{
+		if (_grassPrefab == null)
+		{
+			Debug.LogError("InteractableManager: Grass prefab is not assigned! Please assign a grass prefab in the Inspector.");
+			return null;
+		}
+
+		if (EnvironmentManager.Instance == null)
+		{
+			Debug.LogError("InteractableManager: EnvironmentManager instance not found!");
+			return null;
+		}
+
+		if (!EnvironmentManager.Instance.IsValidPosition(gridPosition))
+		{
+			Debug.LogWarning($"InteractableManager: Cannot spawn grass at invalid position ({gridPosition.x}, {gridPosition.y}).");
+			return null;
+		}
+
+		GameObject grassObj = Instantiate(_grassPrefab, _interactableParent);
+		Grass grass = grassObj.GetComponent<Grass>();
+
+		if (grass == null)
+		{
+			Debug.LogError("InteractableManager: Grass prefab does not have a Grass component!");
+			Destroy(grassObj);
+			return null;
+		}
+
+		grass.Initialize(gridPosition);
+		_grasses.Add(grass);
+
+		Debug.Log($"InteractableManager: Spawned grass at ({gridPosition.x}, {gridPosition.y})");
+
+		return grass;
+	}
+
+	/// <summary>
+	/// Spawns grass interactables from level data.
+	/// </summary>
+	public void SpawnGrassesFromLevelData(List<(int x, int y)> grasses)
+	{
+		if (grasses == null)
+		{
+			return;
+		}
+
+		foreach (var (x, y) in grasses)
+		{
+			Vector2Int gridPos = new Vector2Int(x, y);
+			if (EnvironmentManager.Instance != null && EnvironmentManager.Instance.IsValidPosition(gridPos))
+			{
+				SpawnGrass(gridPos);
+			}
+			else
+			{
+				Debug.LogWarning($"InteractableManager: Grass at ({x}, {y}) is out of bounds!");
+			}
+		}
+	}
+
+	/// <summary>
+	/// Gets the grass interactable at the specified grid position, if any.
+	/// </summary>
+	public Grass GetGrassAtPosition(Vector2Int gridPosition)
+	{
+		for (int i = _grasses.Count - 1; i >= 0; i--)
+		{
+			if (_grasses[i] == null)
+			{
+				_grasses.RemoveAt(i);
+				continue;
+			}
+
+			if (_grasses[i].GridPosition == gridPosition)
+			{
+				return _grasses[i];
+			}
+		}
+
+		return null;
+	}
+
+	/// <summary>
+	/// Gets all grass interactables in the scene.
+	/// </summary>
+	public List<Grass> GetAllGrasses()
+	{
+		List<Grass> validGrasses = new List<Grass>();
+		for (int i = _grasses.Count - 1; i >= 0; i--)
+		{
+			if (_grasses[i] == null)
+			{
+				_grasses.RemoveAt(i);
+			}
+			else
+			{
+				validGrasses.Add(_grasses[i]);
+			}
+		}
+
+		return validGrasses;
+	}
+
+	/// <summary>
+	/// Removes a grass interactable from the grasses list. Called when a grass is destroyed.
+	/// </summary>
+	public void RemoveGrass(Grass grass)
+	{
+		if (grass != null && _grasses != null)
+		{
+			_grasses.Remove(grass);
 		}
 	}
     

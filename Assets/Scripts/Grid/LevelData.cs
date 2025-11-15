@@ -15,6 +15,7 @@ public class LevelData
 	public List<(int x, int y, string predatorType)> PredatorDens { get; set; }
 	public List<(int x, int y)> WormSpawners { get; set; }
 	public List<(int x, int y)> Bushes { get; set; }
+	public List<(int x, int y)> Grasses { get; set; }
     public int FoodCount { get; set; }
 
     public LevelData()
@@ -27,6 +28,7 @@ public class LevelData
 		PredatorDens = new List<(int x, int y, string predatorType)>();
 		WormSpawners = new List<(int x, int y)>();
 		Bushes = new List<(int x, int y)>();
+		Grasses = new List<(int x, int y)>();
         FoodCount = 0;
     }
 }

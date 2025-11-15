@@ -1052,6 +1052,7 @@ MonoBehaviour:
   _foodItemName: Worm
   _foodItemCount: 5
   _bushCount: 10
+  _grassCount: 10
 --- !u!1 &476097330
 GameObject:
   m_ObjectHideFlags: 0
@@ -1796,6 +1797,8 @@ MonoBehaviour:
   _maxInventorySize: 3
   _inventoryContainer: {fileID: 571582721}
   _inventorySlotPrefab: {fileID: 3916526104676833151, guid: e77f3e284adf8844380d2e2fc6051538, type: 3}
+  _shakeIntensity: 10
+  _shakeDuration: 0.5
 --- !u!1 &857893748
 GameObject:
   m_ObjectHideFlags: 0
@@ -2889,6 +2892,8 @@ MonoBehaviour:
   _itemPrefabs:
   - itemName: Worm
     prefab: {fileID: 4416297872513154777, guid: 7a38d1a2aea0ecd4583043449d91dc02, type: 3}
+  - itemName: Grass
+    prefab: {fileID: 8448244147295851740, guid: e84f021d7e9761a49bce026045791447, type: 3}
 --- !u!1 &1144474249
 GameObject:
   m_ObjectHideFlags: 0
@@ -4348,6 +4353,7 @@ MonoBehaviour:
   _predatorDenPrefab: {fileID: 5993506532279619143, guid: fdd1ac81e13714a4fb1915700a0e8a3e, type: 3}
   _wormSpawnerPrefab: {fileID: 3932865139140560728, guid: 44e40e634051f58408480a0b2e7ca54a, type: 3}
   _bushPrefab: {fileID: 7190123244994547298, guid: ebc09e35edd2c194e8a55411b8405b09, type: 3}
+  _grassPrefab: {fileID: 3330622115949650018, guid: b1e6597e20b412d44b7197791ddb2054, type: 3}
 --- !u!1 &1972867175
 GameObject:
   m_ObjectHideFlags: 0
