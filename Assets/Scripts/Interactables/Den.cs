@@ -17,8 +17,8 @@ public class Den : MonoBehaviour
     [SerializeField] private Sprite _occupiedSprite;
     [SerializeField] private GameObject _playerInDenObject;
     
-    // Track which animals are currently in this den
-    private HashSet<Animal> _animalsInDen = new HashSet<Animal>();
+    // Track which animals are currently in this den (can contain duplicates)
+    private List<Animal> _animalsInDen = new List<Animal>();
     
     // Coroutine for passive time progression
     private Coroutine _timeProgressionCoroutine;
