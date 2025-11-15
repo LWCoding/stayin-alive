@@ -1,11 +1,11 @@
 using UnityEngine;
 
 /// <summary>
-/// Manages the overall game state and initialization.
-/// Handles loading the starting level when the game begins.
-/// Manages lose conditions and displays appropriate screens.
+/// Manages the tutorial scene state and initialization.
+/// Handles loading the tutorial level when the tutorial begins.
+/// This should only be placed in the tutorial scene.
 /// </summary>
-public class GameManager : Singleton<GameManager>
+public class TutorialManager : Singleton<TutorialManager>
 {
     [Header("Game End UI")]
     [Tooltip("UI GameObject that displays the win screen. Should be inactive by default.")]
@@ -14,7 +14,7 @@ public class GameManager : Singleton<GameManager>
     [Tooltip("UI GameObject that displays the lose screen. Should be inactive by default.")]
     [SerializeField] private GameObject _loseScreen;
     
-    private ProceduralLevelLoader _proceduralLevelLoader;
+    private TutorialLevelLoader _tutorialLevelLoader;
 
     private bool _hasWon = false;
     private bool _hasLost = false;
@@ -26,11 +26,16 @@ public class GameManager : Singleton<GameManager>
     
     private void Start()
     {
-        _proceduralLevelLoader = FindObjectOfType<ProceduralLevelLoader>();
-        // Load level if procedural level loader exists
-        if (_proceduralLevelLoader != null)
+        _tutorialLevelLoader = FindObjectOfType<TutorialLevelLoader>();
+        // Load level if tutorial level loader exists
+        if (_tutorialLevelLoader != null)
         {
-            _proceduralLevelLoader.LoadAndApplyLevel();
+            Debug.Log("TutorialManager: Loading tutorial level");
+            _tutorialLevelLoader.LoadAndApplyLevel();
+        }
+        else
+        {
+            Debug.LogWarning("TutorialManager: TutorialLevelLoader not found in scene! Tutorial level will not be loaded.");
         }
     }
     
@@ -51,11 +56,11 @@ public class GameManager : Singleton<GameManager>
         if (_loseScreen != null)
         {
             _loseScreen.SetActive(true);
-            Debug.Log("GameManager: Lose condition triggered! Showing lose screen.");
+            Debug.Log("TutorialManager: Lose condition triggered! Showing lose screen.");
         }
         else
         {
-            Debug.LogWarning("GameManager: Lose condition triggered, but lose screen UI element is not assigned!");
+            Debug.LogWarning("TutorialManager: Lose condition triggered, but lose screen UI element is not assigned!");
         }
         
         // Pause time
@@ -65,14 +70,14 @@ public class GameManager : Singleton<GameManager>
         }
         else
         {
-            Debug.LogWarning("GameManager: Lose condition triggered, but TimeManager instance not found!");
+            Debug.LogWarning("TutorialManager: Lose condition triggered, but TimeManager instance not found!");
         }
     }
     
     /// <summary>
-    /// Resets the game state. Hides win/lose screens and resumes time.
+    /// Resets the tutorial state. Hides win/lose screens and resumes time.
     /// </summary>
-    public void ResetGameState()
+    public void ResetTutorialState()
     {
         _hasWon = false;
         _hasLost = false;
