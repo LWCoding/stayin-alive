@@ -1745,6 +1745,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   _hungerBarImage: {fileID: 616448819}
   _lowHungerThreshold: 0.3
+  _postProcessingVolume: {fileID: 443342604}
+  _criticalHungerVignetteIntensity: 0.45
 --- !u!1 &854610264
 GameObject:
   m_ObjectHideFlags: 0
@@ -3343,7 +3345,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 34646ea0de313664aa74bc4e06e5df15, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _turnsPerSeason: 75
+  _turnsPerSeason: 100
   _progressBarImage: {fileID: 1622132781}
   _seasonImage: {fileID: 1166810994}
   _seasonText: {fileID: 940832583}

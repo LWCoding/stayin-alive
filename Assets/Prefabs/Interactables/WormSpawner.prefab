@@ -98,5 +98,5 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _wormItemName: Worm
-  _turnsBetweenSpawns: 30
+  _turnsBetweenSpawns: 80
   _spawnRadius: 3
