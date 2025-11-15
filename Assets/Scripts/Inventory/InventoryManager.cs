@@ -21,6 +21,9 @@ public class InventoryManager : Singleton<InventoryManager>
     // List of all inventory slots
     private List<InventorySlot> _inventorySlots = new List<InventorySlot>();
     
+    // Currently selected slot index (-1 if none selected)
+    private int _selectedSlotIndex = -1;
+    
     /// <summary>
     /// Current number of items in the inventory.
     /// </summary>
@@ -45,6 +48,16 @@ public class InventoryManager : Singleton<InventoryManager>
     /// </summary>
     public bool IsFull => CurrentItemCount >= _maxInventorySize;
     
+    /// <summary>
+    /// The currently selected slot index (0-8, or -1 if none selected).
+    /// </summary>
+    public int SelectedSlotIndex => _selectedSlotIndex;
+    
+    /// <summary>
+    /// The currently selected slot, or null if none selected.
+    /// </summary>
+    public InventorySlot SelectedSlot => (_selectedSlotIndex >= 0 && _selectedSlotIndex < _inventorySlots.Count) ? _inventorySlots[_selectedSlotIndex] : null;
+    
     protected override void Awake()
     {
         base.Awake();
@@ -62,6 +75,21 @@ public class InventoryManager : Singleton<InventoryManager>
         
         // Initialize inventory slots
         InitializeInventorySlots();
+    }
+    
+    private void Update()
+    {
+        // Handle keyboard input for slot selection (keys 1-9)
+        for (int i = 0; i < 9; i++)
+        {
+            // Check if key 1-9 is pressed (KeyCode.Alpha1 through KeyCode.Alpha9)
+            KeyCode keyCode = KeyCode.Alpha1 + i;
+            if (Input.GetKeyDown(keyCode))
+            {
+                SelectSlot(i);
+                break;
+            }
+        }
     }
     
     /// <summary>
@@ -89,6 +117,13 @@ public class InventoryManager : Singleton<InventoryManager>
                 Debug.LogError($"InventoryManager: Inventory slot prefab does not have an InventorySlot component!");
                 Destroy(slotObj);
                 continue;
+            }
+            
+            // Set the slot number (1-9) for display
+            // Only show numbers 1-9, even if maxInventorySize is larger
+            if (i < 9)
+            {
+                slot.SetSlotNumber(i + 1);
             }
             
             _inventorySlots.Add(slot);
@@ -201,10 +236,48 @@ public class InventoryManager : Singleton<InventoryManager>
     }
     
     /// <summary>
+    /// Selects a slot by index (0-8). Deselects the previously selected slot.
+    /// </summary>
+    public void SelectSlot(int index)
+    {
+        // Validate index
+        if (index < 0 || index >= _inventorySlots.Count)
+        {
+            Debug.LogWarning($"InventoryManager: Cannot select slot {index} - index out of range (0-{_inventorySlots.Count - 1}).");
+            return;
+        }
+        
+        // Deselect previous slot
+        if (_selectedSlotIndex >= 0 && _selectedSlotIndex < _inventorySlots.Count)
+        {
+            _inventorySlots[_selectedSlotIndex].SetSelected(false);
+        }
+        
+        // Select new slot
+        _selectedSlotIndex = index;
+        _inventorySlots[_selectedSlotIndex].SetSelected(true);
+    }
+    
+    /// <summary>
+    /// Deselects the currently selected slot.
+    /// </summary>
+    public void DeselectSlot()
+    {
+        if (_selectedSlotIndex >= 0 && _selectedSlotIndex < _inventorySlots.Count)
+        {
+            _inventorySlots[_selectedSlotIndex].SetSelected(false);
+            _selectedSlotIndex = -1;
+        }
+    }
+    
+    /// <summary>
     /// Clears all inventory slots (destroys the GameObjects).
     /// </summary>
     private void ClearAllSlots()
     {
+        // Deselect before clearing
+        DeselectSlot();
+        
         foreach (InventorySlot slot in _inventorySlots)
         {
             if (slot != null && slot.gameObject != null)
