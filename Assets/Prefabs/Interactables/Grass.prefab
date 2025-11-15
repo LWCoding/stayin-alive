@@ -98,5 +98,9 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _grassItemName: Grass
-  _averageTurnsBetweenSpawns: 30
-  _turnsVariance: 0.25
+  _averageTurnsBetweenSpawns: 50
+  _turnsVariance: 0.1
+  _springGrowthMultiplier: 1
+  _summerGrowthMultiplier: 0.8
+  _fallGrowthMultiplier: 0.8
+  _winterGrowthMultiplier: 0.2

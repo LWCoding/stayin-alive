@@ -14,6 +14,16 @@ public class Grass : MonoBehaviour
 	[Tooltip("Random variance applied to the turns between spawns (0 = none, 0.25 = ±25%).")]
 	[SerializeField, Range(0f, 1f)] private float _turnsVariance = 0.25f;
 
+	[Header("Season Growth Multipliers")]
+	[Tooltip("Multiplier applied to growth rate during Spring. Higher values = faster growth (fewer turns).")]
+	[SerializeField] private float _springGrowthMultiplier = 1.5f;
+	[Tooltip("Multiplier applied to growth rate during Summer. Higher values = faster growth (fewer turns).")]
+	[SerializeField] private float _summerGrowthMultiplier = 1.2f;
+	[Tooltip("Multiplier applied to growth rate during Fall. Higher values = faster growth (fewer turns).")]
+	[SerializeField] private float _fallGrowthMultiplier = 0.8f;
+	[Tooltip("Multiplier applied to growth rate during Winter. Higher values = faster growth (fewer turns).")]
+	[SerializeField] private float _winterGrowthMultiplier = 0.5f;
+
 	private Vector2Int _gridPosition;
 	private int _turnsSinceLastSpawn;
 	private int _turnsUntilNextSpawn;
@@ -174,13 +184,42 @@ public class Grass : MonoBehaviour
 	}
 
 	/// <summary>
-	/// Calculates the number of turns until the next spawn attempt, with variance applied.
+	/// Calculates the number of turns until the next spawn attempt, with variance and season multiplier applied.
 	/// </summary>
 	private void CalculateNextSpawnTime()
 	{
+		float seasonMultiplier = GetSeasonMultiplier();
 		float variance = Mathf.Clamp01(_turnsVariance);
 		float randomFactor = variance > 0f ? Random.Range(1f - variance, 1f + variance) : 1f;
-		_turnsUntilNextSpawn = Mathf.Max(1, Mathf.RoundToInt(_averageTurnsBetweenSpawns * randomFactor));
+		
+		// Divide by multiplier: higher multiplier = fewer turns (faster growth)
+		float adjustedTurns = _averageTurnsBetweenSpawns / Mathf.Max(0.01f, seasonMultiplier) * randomFactor;
+		_turnsUntilNextSpawn = Mathf.Max(1, Mathf.RoundToInt(adjustedTurns));
+	}
+
+	/// <summary>
+	/// Gets the growth rate multiplier for the current season.
+	/// </summary>
+	private float GetSeasonMultiplier()
+	{
+		if (TimeManager.Instance == null)
+		{
+			return 1f;
+		}
+
+		switch (TimeManager.Instance.CurrentSeason)
+		{
+			case TimeManager.Season.Spring:
+				return _springGrowthMultiplier;
+			case TimeManager.Season.Summer:
+				return _summerGrowthMultiplier;
+			case TimeManager.Season.Fall:
+				return _fallGrowthMultiplier;
+			case TimeManager.Season.Winter:
+				return _winterGrowthMultiplier;
+			default:
+				return 1f;
+		}
 	}
 
 	/// <summary>

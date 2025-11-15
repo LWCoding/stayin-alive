@@ -15,6 +15,16 @@ public class WormSpawner : MonoBehaviour
 	[Tooltip("Radius of the spawn area around the spawner (in grid tiles).")]
 	[SerializeField] private int _spawnRadius = 3;
 
+	[Header("Season Spawn Multipliers")]
+	[Tooltip("Multiplier applied to spawn rate during Spring. Higher values = faster spawning (fewer turns).")]
+	[SerializeField] private float _springSpawnMultiplier = 1.2f;
+	[Tooltip("Multiplier applied to spawn rate during Summer. Higher values = faster spawning (fewer turns).")]
+	[SerializeField] private float _summerSpawnMultiplier = 1.5f;
+	[Tooltip("Multiplier applied to spawn rate during Fall. Higher values = faster spawning (fewer turns).")]
+	[SerializeField] private float _fallSpawnMultiplier = 1.0f;
+	[Tooltip("Multiplier applied to spawn rate during Winter. Higher values = faster spawning (fewer turns).")]
+	[SerializeField] private float _winterSpawnMultiplier = 0.6f;
+
 	private Vector2Int _gridPosition;
 	private int _turnsSinceLastSpawn;
 	private bool _initialized;
@@ -134,7 +144,11 @@ public class WormSpawner : MonoBehaviour
 
 		_turnsSinceLastSpawn++;
 
-		if (_turnsSinceLastSpawn < _turnsBetweenSpawns)
+		// Get season-adjusted spawn rate (divide by multiplier: higher multiplier = fewer turns)
+		float seasonMultiplier = GetSeasonMultiplier();
+		int adjustedTurnsBetweenSpawns = Mathf.Max(1, Mathf.RoundToInt(_turnsBetweenSpawns / Mathf.Max(0.01f, seasonMultiplier)));
+
+		if (_turnsSinceLastSpawn < adjustedTurnsBetweenSpawns)
 		{
 			return;
 		}
@@ -142,6 +156,31 @@ public class WormSpawner : MonoBehaviour
 		if (TrySpawnWormItem())
 		{
 			_turnsSinceLastSpawn = 0;
+		}
+	}
+
+	/// <summary>
+	/// Gets the spawn rate multiplier for the current season.
+	/// </summary>
+	private float GetSeasonMultiplier()
+	{
+		if (TimeManager.Instance == null)
+		{
+			return 1f;
+		}
+
+		switch (TimeManager.Instance.CurrentSeason)
+		{
+			case TimeManager.Season.Spring:
+				return _springSpawnMultiplier;
+			case TimeManager.Season.Summer:
+				return _summerSpawnMultiplier;
+			case TimeManager.Season.Fall:
+				return _fallSpawnMultiplier;
+			case TimeManager.Season.Winter:
+				return _winterSpawnMultiplier;
+			default:
+				return 1f;
 		}
 	}
 
