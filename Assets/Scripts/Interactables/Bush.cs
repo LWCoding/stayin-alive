@@ -6,7 +6,7 @@ using UnityEngine;
 /// A bush interactable that provides hiding for controllable animals.
 /// When a controllable animal is on the same tile as a bush, they are hidden and time progresses.
 /// </summary>
-public class Bush : MonoBehaviour
+public class Bush : MonoBehaviour, IHideable
 {
     [Header("Bush Settings")]
     private Vector2Int _gridPosition;
@@ -75,6 +75,14 @@ public class Bush : MonoBehaviour
     {
         return _animalsInBush.Contains(animal);
     }
+
+    /// <summary>
+    /// IHideable implementation: Checks if an animal is in this hideable location.
+    /// </summary>
+    public bool IsAnimalInHideable(Animal animal)
+    {
+        return IsAnimalInBush(animal);
+    }
     
     /// <summary>
     /// Called when an animal enters this bush.
@@ -86,6 +94,7 @@ public class Bush : MonoBehaviour
             _animalsInBush.Add(animal);
             Debug.Log($"Animal '{animal.name}' entered bush at ({_gridPosition.x}, {_gridPosition.y})");
             
+            animal.SetCurrentHideable(this);
             animal.SetVisualVisibility(false);
             
             // Start passive time progression if not already running
@@ -107,7 +116,17 @@ public class Bush : MonoBehaviour
         {
             Debug.Log($"Animal '{animal.name}' left bush at ({_gridPosition.x}, {_gridPosition.y})");
             
-            animal.SetVisualVisibility(true);
+            // Clear the hideable reference if this animal is leaving this bush
+            if (animal != null && ReferenceEquals(animal.CurrentHideable, this))
+            {
+                animal.SetCurrentHideable(null);
+            }
+            
+            // Only make animal visible if they're not entering another hideable location
+            if (animal != null && animal.CurrentHideable == null)
+            {
+                animal.SetVisualVisibility(true);
+            }
             
             // Stop passive time progression if no animals are left in the bush
             if (_animalsInBush.Count == 0 && _timeProgressionCoroutine != null)
@@ -139,19 +158,7 @@ public class Bush : MonoBehaviour
         
         _timeProgressionCoroutine = null;
     }
-    
-    /// <summary>
-    /// Checks if there is a bush at the specified grid position.
-    /// </summary>
-    public static bool IsBushAtPosition(Vector2Int gridPosition)
-    {
-        if (InteractableManager.Instance == null)
-        {
-            return false;
-        }
-        
-        return InteractableManager.Instance.GetBushAtPosition(gridPosition) != null;
-    }
+
     
     /// <summary>
     /// Checks if a controllable animal is in a bush at the specified position.
@@ -163,13 +170,8 @@ public class Bush : MonoBehaviour
             return false;
         }
         
-        if (InteractableManager.Instance == null)
-        {
-            return false;
-        }
-        
-        Bush bush = InteractableManager.Instance.GetBushAtPosition(animal.GridPosition);
-        return bush != null && bush.IsAnimalInBush(animal);
+        // Use the animal's CurrentHideable reference for efficiency
+        return animal.CurrentHideable is Bush;
     }
     
     private void UpdateBushVisualState()

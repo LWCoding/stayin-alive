@@ -13,13 +13,8 @@ public class ControllableAnimal : Animal
     // Track the last time the animal moved (for rate limiting)
     private float _lastMoveTime = 0f;
 
-    // Track the den this animal is currently in (if any)
-    private Den _currentDen = null;
-    
-    public Den CurrentDen => _currentDen;
-
-    // Track the bush this animal is currently in (if any)
-    private Bush _currentBush = null;
+    // CurrentDen property for backwards compatibility
+    public Den CurrentDen => CurrentHideable as Den;
 
     // Track if we're subscribed to TimeManager events
     private bool _isSubscribedToTimeManager = false;
@@ -103,23 +98,6 @@ public class ControllableAnimal : Animal
     }
 
     /// <summary>
-    /// Sets the current den this animal is in. Used internally and by InteractableManager.
-    /// </summary>
-    internal void SetCurrentDen(Den den)
-    {
-        _currentDen = den;
-    }
-
-    /// <summary>
-    /// Sets the current bush this animal is in. Used internally.
-    /// </summary>
-    internal void SetCurrentBush(Bush bush)
-    {
-        _currentBush = bush;
-    }
-
-
-    /// <summary>
     /// Override to indicate this animal is controllable.
     /// </summary>
     public override bool IsControllable => true;
@@ -146,22 +124,23 @@ public class ControllableAnimal : Animal
     {
         base.Initialize(animalData, gridPosition);
 
-        // Handle den entry if animal spawns on a den
+        // Handle den/bush entry if animal spawns on one
+        // OnAnimalEnter will handle setting the CurrentHideable reference
         if (InteractableManager.Instance != null)
         {
             Den den = InteractableManager.Instance.GetDenAtPosition(gridPosition);
             if (den != null && !HasPredatorAtPosition(gridPosition))
             {
                 den.OnAnimalEnter(this);
-                _currentDen = den;
             }
-
-            // Handle bush entry if animal spawns on a bush
-            Bush bush = InteractableManager.Instance.GetBushAtPosition(gridPosition);
-            if (bush != null && !HasPredatorAtPosition(gridPosition))
+            else
             {
-                bush.OnAnimalEnter(this);
-                _currentBush = bush;
+                // Handle bush entry if animal spawns on a bush (den takes priority if both exist)
+                Bush bush = InteractableManager.Instance.GetBushAtPosition(gridPosition);
+                if (bush != null && !HasPredatorAtPosition(gridPosition))
+                {
+                    bush.OnAnimalEnter(this);
+                }
             }
         }
 
@@ -180,50 +159,42 @@ public class ControllableAnimal : Animal
         Vector2Int previousPosition = GridPosition;
         base.SetGridPosition(gridPosition);
 
-        // Handle den entry/exit
+        // Handle hideable entry/exit (dens and bushes)
+        // Order: exit previous location first, then enter new location
+        // This ensures proper visibility handling when transitioning between hideables
         if (InteractableManager.Instance != null)
         {
-            Den previousDen = _currentDen;
+            IHideable previousHideable = CurrentHideable;
+            IHideable newHideable = null;
+
+            // Check for den first (dens take priority over bushes)
             Den newDen = InteractableManager.Instance.GetDenAtPosition(gridPosition);
-
-            // If we left a den, notify it
-            if (previousDen != null && previousDen != newDen)
+            if (newDen != null && !HasPredatorAtPosition(gridPosition))
             {
-                previousDen.OnAnimalLeave(this);
-                _currentDen = null;
+                newHideable = newDen;
             }
-
-            // If we entered a new den, notify it (only if no predator is blocking the den)
-            if (newDen != null && newDen != previousDen)
+            else
             {
-                // Check if there's a predator at this position - if so, prevent den entry
-                if (!HasPredatorAtPosition(gridPosition))
+                // Check for bush if no den
+                Bush newBush = InteractableManager.Instance.GetBushAtPosition(gridPosition);
+                if (newBush != null && !HasPredatorAtPosition(gridPosition))
                 {
-                    newDen.OnAnimalEnter(this);
-                    _currentDen = newDen;
+                    newHideable = newBush;
                 }
             }
 
-            // Handle bush entry/exit
-            Bush previousBush = _currentBush;
-            Bush newBush = InteractableManager.Instance.GetBushAtPosition(gridPosition);
-
-            // If we left a bush, notify it
-            if (previousBush != null && previousBush != newBush)
+            // Step 1: Leave previous hideable if we're moving to a different one
+            // OnAnimalLeave will handle clearing the CurrentHideable reference
+            if (previousHideable != null && previousHideable != newHideable)
             {
-                previousBush.OnAnimalLeave(this);
-                _currentBush = null;
+                previousHideable.OnAnimalLeave(this);
             }
 
-            // If we entered a new bush, notify it (only if no predator is blocking the bush)
-            if (newBush != null && newBush != previousBush)
+            // Step 2: Enter new hideable if it's different from previous
+            // OnAnimalEnter will handle setting the CurrentHideable reference
+            if (newHideable != null && newHideable != previousHideable)
             {
-                // Check if there's a predator at this position - if so, prevent bush entry
-                if (!HasPredatorAtPosition(gridPosition))
-                {
-                    newBush.OnAnimalEnter(this);
-                    _currentBush = newBush;
-                }
+                newHideable.OnAnimalEnter(this);
             }
         }
         
@@ -380,18 +351,11 @@ public class ControllableAnimal : Animal
         // Unsubscribe from events
         UnsubscribeFromTimeManager();
 
-        // Clean up den references (leave den if in one)
-        if (_currentDen != null)
+        // Clean up hideable references (leave hideable if in one)
+        if (CurrentHideable != null)
         {
-            _currentDen.OnAnimalLeave(this);
-            _currentDen = null;
-        }
-
-        // Clean up bush references (leave bush if in one)
-        if (_currentBush != null)
-        {
-            _currentBush.OnAnimalLeave(this);
-            _currentBush = null;
+            CurrentHideable.OnAnimalLeave(this);
+            SetCurrentHideable(null);
         }
 
         // Clear UI tracking if this animal is currently tracked

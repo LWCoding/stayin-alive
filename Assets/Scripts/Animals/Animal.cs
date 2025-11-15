@@ -44,6 +44,10 @@ public class Animal : MonoBehaviour
     [HideInInspector] private int _currentHunger = 100;
     private int _maxHunger = 100;
 
+    [Header("Hiding")]
+    [Tooltip("The hideable location this animal is currently in (e.g., bush or den), if any.")]
+    private IHideable _currentHideable = null;
+
     public AnimalData AnimalData => _animalData;
     public Vector2Int GridPosition => _gridPosition;
     public Vector2Int PreviousGridPosition => _previousGridPosition;
@@ -63,6 +67,15 @@ public class Animal : MonoBehaviour
     public int CurrentHunger => _currentHunger;
     public int MaxHunger => _maxHunger;
     public float HungerRatio => _maxHunger > 0 ? (float)_currentHunger / _maxHunger : 0f;
+    public IHideable CurrentHideable => _currentHideable;
+
+    /// <summary>
+    /// Sets the current hideable location this animal is in. Internal use only.
+    /// </summary>
+    internal void SetCurrentHideable(IHideable hideable)
+    {
+        _currentHideable = hideable;
+    }
 
     /// <summary>
     /// Gets a copy of the inventory dictionary. Returns a new dictionary to prevent external modification.

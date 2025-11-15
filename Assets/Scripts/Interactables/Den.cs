@@ -6,7 +6,7 @@ using UnityEngine;
 /// A den interactable that provides safety for controllable animals.
 /// When a controllable animal is on the same tile as a den, predators cannot target them.
 /// </summary>
-public class Den : MonoBehaviour
+public class Den : MonoBehaviour, IHideable
 {
     [Header("Den Settings")]
     private Vector2Int _gridPosition;
@@ -71,6 +71,14 @@ public class Den : MonoBehaviour
     public int NumberAnimalsInDen() {
       return _animalsInDen.Count;
     }
+
+    /// <summary>
+    /// IHideable implementation: Checks if an animal is in this hideable location.
+    /// </summary>
+    public bool IsAnimalInHideable(Animal animal)
+    {
+        return IsAnimalInDen(animal);
+    }
     
     /// <summary>
     /// Called when an animal enters this den.
@@ -83,6 +91,7 @@ public class Den : MonoBehaviour
             _animalsInDen.Add(animal);
             Debug.Log($"Animal '{animal.name}' entered den at ({_gridPosition.x}, {_gridPosition.y})");
             
+            animal.SetCurrentHideable(this);
             animal.SetVisualVisibility(false);
             // animal.SetGridPosition(_gridPosition);
             
@@ -145,7 +154,17 @@ public class Den : MonoBehaviour
         {
             Debug.Log($"Animal '{animal.name}' left den at ({_gridPosition.x}, {_gridPosition.y})");
             
-            animal.SetVisualVisibility(true);
+            // Clear the hideable reference if this animal is leaving this den
+            if (animal != null && ReferenceEquals(animal.CurrentHideable, this))
+            {
+                animal.SetCurrentHideable(null);
+            }
+            
+            // Only make animal visible if they're not entering another hideable location
+            if (animal != null && animal.CurrentHideable == null)
+            {
+                animal.SetVisualVisibility(true);
+            }
             
             // Stop passive time progression if no animals are left in the den
             if (_animalsInDen.Count == 0 && _timeProgressionCoroutine != null)
@@ -201,13 +220,8 @@ public class Den : MonoBehaviour
             return false;
         }
         
-        if (InteractableManager.Instance == null)
-        {
-            return false;
-        }
-        
-        Den den = InteractableManager.Instance.GetDenAtPosition(animal.GridPosition);
-        return den != null && den.IsAnimalInDen(animal);
+        // Use the animal's CurrentHideable reference for efficiency
+        return animal.CurrentHideable is Den;
     }
     
     private void UpdateDenVisualState()
