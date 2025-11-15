@@ -84,6 +84,7 @@ public class Den : MonoBehaviour
             Debug.Log($"Animal '{animal.name}' entered den at ({_gridPosition.x}, {_gridPosition.y})");
             
             animal.SetVisualVisibility(false);
+            animal.SetGridPosition(_gridPosition);
             
             // Handle food delivery: check for food items in inventory
             ProcessFoodDelivery(animal);

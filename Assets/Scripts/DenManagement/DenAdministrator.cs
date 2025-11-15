@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 
 /// <summary>
@@ -7,13 +8,11 @@ using UnityEngine;
 /// Deducts the amount set in the Den System Manager when successful
 /// Temporarily, purchaseDen is called on 'B' press
 /// </summary>
-public class DenPurchaser : MonoBehaviour {
+public class DenAdministrator : MonoBehaviour {
   [SerializeField]
   private ControllableAnimal playerAnimal;
-
-  private Dictionary<int, DenSystemManager.DenInformation> validTeleports;
-
-  private bool PanelOpen;
+  
+  public ControllableAnimal Animal => playerAnimal;
 
   public enum DenAdminActions {
     DEN_PURCHASE = 0,
@@ -22,41 +21,67 @@ public class DenPurchaser : MonoBehaviour {
     DEN_GET_VALID_TELEPORTS = 3,
     DEN_TELEPORT = 4,
   }
+  
+  // private List<DenAdminActions> GetViableActions() {
+  //   List<DenAdminActions> actions = new List<DenAdminActions>();
+  //   if (playerAnimal.CurrentDen == null) {
+  //     
+  //     actions.Add(DenAdminActions.DEN_PURCHASE);
+  //     return actions;
+  //   }
+  //   
+  //   if (!PanelOpen) {
+  //     actions.Add(DenAdminActions.DEN_OPEN_ADMIN_PANEL);
+  //     return actions;
+  //   }
+  //   
+  //   actions.Add(DenAdminActions.DEN_CLOSE_ADMIN_PANEL);
+  //   
+  //   if (validTeleports.Count <= 0) {
+  //     actions.Add(DenAdminActions.DEN_GET_VALID_TELEPORTS);
+  //   }
+  //
+  //   if (validTeleports.Count > 0) {
+  //     actions.Add(DenAdminActions.DEN_TELEPORT);
+  //   }
+  //   
+  //   
+  //   return actions;
+  // }
 
-  private List<DenAdminActions> GetViableActions() {
-    List<DenAdminActions> actions = new List<DenAdminActions>();
-    if (playerAnimal.CurrentDen == null) {
-      actions.Add(DenAdminActions.DEN_PURCHASE);
-      return actions;
-    }
-    
-    if (!PanelOpen) {
-      actions.Add(DenAdminActions.DEN_OPEN_ADMIN_PANEL);
-    }
-    else {
-      actions.Add(DenAdminActions.DEN_CLOSE_ADMIN_PANEL);
-    }
-    
-    actions.Add(DenAdminActions.DEN_GET_VALID_TELEPORTS);
-    actions.Add(DenAdminActions.DEN_TELEPORT);
-
-    return actions;
-  }
-
-  private void ExecuteAction(DenAdminActions action) {
-    switch (action) {
-      case DenAdminActions.DEN_PURCHASE:
-        PurchaseDen();
-        break;
-      case DenAdminActions.DEN_OPEN_ADMIN_PANEL:
-        break;
-      case DenAdminActions.DEN_TELEPORT:
-        
-        break;
-    }
-  }
-
+  // private void ExecuteAction(DenAdminActions action) {
+  //   switch (action) {
+  //     case DenAdminActions.DEN_PURCHASE:
+  //       PurchaseDen();
+  //       break;
+  //     case DenAdminActions.DEN_OPEN_ADMIN_PANEL:
+  //       break;
+  //     case DenAdminActions.DEN_TELEPORT:
+  //       break;
+  //   }
+  // }
+  
   private void Update() {
+    if (Input.GetKeyDown(KeyCode.O)) {
+      if (!DenSystemManager.Instance.PanelOpen) {
+        DenSystemManager.Instance.OpenPanel(this);
+      } else {
+        DenSystemManager.Instance.ClosePanel(this);
+      }
+    }
+
+    if (DenSystemManager.Instance.PanelOpen) {
+      if (Input.GetKeyDown(KeyCode.T)) {
+        int id = 0;
+        foreach (var den in DenSystemManager.Instance.GetValidTeleports) {
+          id = den.Key;
+          DenTeleport(id);
+          break;
+        }
+      }
+    }
+    
+    
     if (Input.GetKeyDown(KeyCode.B)) {
       PurchaseDen();
     }
@@ -80,28 +105,13 @@ public class DenPurchaser : MonoBehaviour {
   }
 
   private void DenTeleport(int DenId) {
-    if (validTeleports.ContainsKey(DenId)) {
-      
+    if (DenSystemManager.Instance.GetValidTeleports.ContainsKey(DenId)) {
+      playerAnimal.CurrentDen.OnAnimalLeave(playerAnimal);
+      DenSystemManager.Instance.GetValidTeleports[DenId].denObject.OnAnimalEnter(playerAnimal);
     }
+
+    return;
   }
 
-  private List<DenSystemManager.DenInformation> GetValidDenTeleportDestinations() {
-    List<DenSystemManager.DenInformation> validDestinations = new List<DenSystemManager.DenInformation>();
 
-    // If player not in a den, return empty lists
-    if (playerAnimal.CurrentDen == null) {
-      return validDestinations;
-    }
-
-    List<DenSystemManager.DenInformation> destinations = DenSystemManager.Instance.GetDens();
-
-    // Really inefficient way to do this, but remove den the player is in from the list of dens 
-    foreach (DenSystemManager.DenInformation destination in destinations) {
-      if (destination.denObject != playerAnimal.CurrentDen) {
-        validDestinations.Add(destination);
-      }
-    }
-
-    return validDestinations;
-  }
 }
