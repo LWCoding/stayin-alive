@@ -27,12 +27,14 @@ public class DenPurchaser : MonoBehaviour {
   private void PurchaseDen() {
     if (PointsManager.Instance.ReadinessPoints < DenSystemManager.Instance.denPrice) {
       Debug.Log("Not Enough Food To Make Den");
+      return;
     }
 
     Den newDen = InteractableManager.Instance.SpawnDen(playerAnimal.GridPosition);
 
     if (newDen == null) {
       Debug.Log("Cannot make den at specified location");
+      return;
     }
 
     // Worst case if something is out of sync, error will be in player's favor
