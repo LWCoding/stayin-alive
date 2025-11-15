@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
@@ -11,8 +12,10 @@ using UnityEngine;
 public class DenAdministrator : MonoBehaviour {
   [SerializeField]
   private ControllableAnimal playerAnimal;
-  
+
   public ControllableAnimal Animal => playerAnimal;
+
+  public static bool isInstantiated = false;
 
   public enum DenAdminActions {
     DEN_PURCHASE = 0,
@@ -21,7 +24,7 @@ public class DenAdministrator : MonoBehaviour {
     DEN_GET_VALID_TELEPORTS = 3,
     DEN_TELEPORT = 4,
   }
-  
+
   // private List<DenAdminActions> GetViableActions() {
   //   List<DenAdminActions> actions = new List<DenAdminActions>();
   //   if (playerAnimal.CurrentDen == null) {
@@ -60,28 +63,39 @@ public class DenAdministrator : MonoBehaviour {
   //       break;
   //   }
   // }
-  
+
+  private void Awake() {
+    if (isInstantiated) Component.Destroy(this);
+    isInstantiated = true;
+  }
+
   private void Update() {
     if (Input.GetKeyDown(KeyCode.O)) {
       if (!DenSystemManager.Instance.PanelOpen) {
         DenSystemManager.Instance.OpenPanel(this);
-      } else {
+      }
+      else {
         DenSystemManager.Instance.ClosePanel(this);
       }
     }
 
-    if (DenSystemManager.Instance.PanelOpen) {
-      if (Input.GetKeyDown(KeyCode.T)) {
+
+    if (Input.GetKeyDown(KeyCode.T)) {
+      Debug.LogError("T PRessed"+DenSystemManager.Instance.PanelOpen);
+      
+      if (DenSystemManager.Instance.PanelOpen) {
         int id = 0;
-        foreach (var den in DenSystemManager.Instance.GetValidTeleports) {
-          id = den.Key;
+        // Debug.LogError(id);
+        foreach (var den in DenSystemManager.Instance.GetValidTeleports.Keys) {
+          id = den;
+          Debug.LogError(id);
           DenTeleport(id);
           break;
         }
       }
     }
-    
-    
+
+
     if (Input.GetKeyDown(KeyCode.B)) {
       PurchaseDen();
     }
@@ -105,13 +119,14 @@ public class DenAdministrator : MonoBehaviour {
   }
 
   private void DenTeleport(int DenId) {
+    Debug.LogError(DenId);
     if (DenSystemManager.Instance.GetValidTeleports.ContainsKey(DenId)) {
-      playerAnimal.CurrentDen.OnAnimalLeave(playerAnimal);
+      // playerAnimal.CurrentDen.OnAnimalLeave(playerAnimal);
+      
       playerAnimal.SetGridPosition(DenSystemManager.Instance.GetValidTeleports[DenId].denObject.GridPosition);
+      Debug.LogError("Teleported");
     }
 
     return;
   }
-
-
 }

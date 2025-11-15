@@ -22,7 +22,7 @@ public class ControllableAnimal : Animal
     private void OnEnable()
     {
         // Subscribe to turn advancement to decrease hunger
-        SubscribeToTimeManager();
+        // SubscribeToTimeManager();
 
         // Update UI when enabled
         UpdateHungerUI();
