@@ -67,6 +67,10 @@ public class Den : MonoBehaviour
     {
         return _animalsInDen.Contains(animal);
     }
+
+    public int NumberAnimalsInDen() {
+      return _animalsInDen.Count;
+    }
     
     /// <summary>
     /// Called when an animal enters this den.

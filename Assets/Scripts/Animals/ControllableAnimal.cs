@@ -15,6 +15,8 @@ public class ControllableAnimal : Animal
 
     // Track the den this animal is currently in (if any)
     private Den _currentDen = null;
+    
+    public Den CurrentDen => _currentDen;
 
     // Track the bush this animal is currently in (if any)
     private Bush _currentBush = null;
