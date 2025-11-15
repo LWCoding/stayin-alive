@@ -140,14 +140,14 @@ public class ProceduralLevelLoader : MonoBehaviour
             Debug.LogWarning("ProceduralLevelLoader: AnimalManager instance not found! Animals will not be spawned.");
         }
 
-        // Spawn items using ItemTilemapManager
-        if (ItemTilemapManager.Instance != null)
+        // Spawn items using ItemManager
+        if (ItemManager.Instance != null)
         {
-            ItemTilemapManager.Instance.PlaceItemsFromLevelData(levelData.Items);
+            ItemManager.Instance.SpawnItemsFromLevelData(levelData.Items);
         }
         else
         {
-            Debug.LogWarning("ProceduralLevelLoader: ItemTilemapManager instance not found! Items will not be spawned.");
+            Debug.LogWarning("ProceduralLevelLoader: ItemManager instance not found! Items will not be spawned.");
         }
 
         // Reset points in PointsManager

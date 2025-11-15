@@ -226,24 +226,26 @@ public class ControllableAnimal : Animal
         }
 
         // Check for items at this position and pick them up
-        if (ItemTilemapManager.Instance != null)
+        if (ItemManager.Instance != null)
         {
-            if (ItemTilemapManager.Instance.HasItemAt(gridPosition))
+            Item item = ItemManager.Instance.GetItemAtPosition(gridPosition);
+            
+            if (item != null)
             {
-                // Get the item name before removing it
-                string itemName = ItemTilemapManager.Instance.GetItemNameAt(gridPosition);
+                string itemName = item.ItemName;
                 
                 if (!string.IsNullOrEmpty(itemName))
                 {
                     // Try to add item to inventory using InventoryManager
                     if (InventoryManager.Instance != null)
                     {
-                    if (InventoryManager.Instance.AddItem(itemName))
+                        if (InventoryManager.Instance.AddItem(itemName))
                         {
-                            // Remove item from tilemap only if successfully added to inventory
-                            ItemTilemapManager.Instance.RemoveItem(gridPosition);
-                            // Restore hunger to full when picking up an item
-                            IncreaseHunger(MaxHunger);
+                            // Call OnPickup on the item
+                            item.OnPickup(this);
+                            
+                            // Remove item from world (destroy the GameObject)
+                            item.DestroyItem();
                         }
                         else
                         {

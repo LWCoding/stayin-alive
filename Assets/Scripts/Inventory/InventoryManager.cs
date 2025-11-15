@@ -79,13 +79,25 @@ public class InventoryManager : Singleton<InventoryManager>
     
     private void Update()
     {
-        // Handle keyboard input for slot selection (keys 1-9)
+        // Handle keyboard input for slot selection and item usage (keys 1-9)
         for (int i = 0; i < 9; i++)
         {
             // Check if key 1-9 is pressed (KeyCode.Alpha1 through KeyCode.Alpha9)
             KeyCode keyCode = KeyCode.Alpha1 + i;
             if (Input.GetKeyDown(keyCode))
             {
+                // If this slot is already selected and has an item, use it
+                if (_selectedSlotIndex == i && _selectedSlotIndex >= 0 && _selectedSlotIndex < _inventorySlots.Count)
+                {
+                    InventorySlot slot = _inventorySlots[_selectedSlotIndex];
+                    if (!slot.IsEmpty)
+                    {
+                        UseItemInSlot(_selectedSlotIndex);
+                        break;
+                    }
+                }
+                
+                // Otherwise, select the slot
                 SelectSlot(i);
                 break;
             }
@@ -135,7 +147,7 @@ public class InventoryManager : Singleton<InventoryManager>
     
     /// <summary>
     /// Attempts to add an item to the inventory. Returns true if successful, false if inventory is full.
-    /// The corresponding sprite is resolved automatically using the ItemTilemapManager database.
+    /// The corresponding sprite is resolved automatically using the ItemManager.
     /// </summary>
     public bool AddItem(string itemName)
     {
@@ -152,13 +164,13 @@ public class InventoryManager : Singleton<InventoryManager>
         }
 
         Sprite itemSprite = null;
-        if (ItemTilemapManager.Instance != null)
+        if (ItemManager.Instance != null)
         {
-            itemSprite = ItemTilemapManager.Instance.GetItemSprite(itemName);
+            itemSprite = ItemManager.Instance.GetItemSprite(itemName);
         }
         else
         {
-            Debug.LogWarning("InventoryManager: ItemTilemapManager instance not found. Item will be added without a sprite.");
+            Debug.LogWarning("InventoryManager: ItemManager instance not found. Item will be added without a sprite.");
         }
         
         // Find the first empty slot
@@ -267,6 +279,70 @@ public class InventoryManager : Singleton<InventoryManager>
         {
             _inventorySlots[_selectedSlotIndex].SetSelected(false);
             _selectedSlotIndex = -1;
+        }
+    }
+    
+    /// <summary>
+    /// Uses the item in the specified slot. Calls the item's OnUse method if it implements IItem.
+    /// </summary>
+    public void UseItemInSlot(int slotIndex)
+    {
+        if (slotIndex < 0 || slotIndex >= _inventorySlots.Count)
+        {
+            Debug.LogWarning($"InventoryManager: Cannot use item in slot {slotIndex} - index out of range.");
+            return;
+        }
+        
+        InventorySlot slot = _inventorySlots[slotIndex];
+        if (slot.IsEmpty)
+        {
+            Debug.LogWarning($"InventoryManager: Cannot use item in slot {slotIndex} - slot is empty.");
+            return;
+        }
+        
+        string itemName = slot.ItemName;
+        
+        // Get the ControllableAnimal (player)
+        ControllableAnimal player = null;
+        if (AnimalManager.Instance != null)
+        {
+            List<Animal> animals = AnimalManager.Instance.GetAllAnimals();
+            foreach (Animal animal in animals)
+            {
+                if (animal != null && animal.IsControllable && animal is ControllableAnimal controllable)
+                {
+                    player = controllable;
+                    break;
+                }
+            }
+        }
+        
+        if (player == null)
+        {
+            Debug.LogWarning("InventoryManager: Cannot use item - no controllable animal found.");
+            return;
+        }
+        
+        // Use the item through ItemManager
+        bool itemUsed = false;
+        
+        if (ItemManager.Instance != null)
+        {
+            itemUsed = ItemManager.Instance.UseItem(itemName, player);
+        }
+        else
+        {
+            Debug.LogWarning("InventoryManager: ItemManager instance not found! Cannot use item.");
+        }
+        
+        // If item was successfully used, remove it from inventory
+        if (itemUsed)
+        {
+            slot.ClearSlot();
+        }
+        else
+        {
+            Debug.LogWarning($"InventoryManager: Item '{itemName}' could not be used.");
         }
     }
     

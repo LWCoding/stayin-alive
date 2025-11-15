@@ -153,9 +153,9 @@ public class WormSpawner : MonoBehaviour
 			return false;
 		}
 
-		if (ItemTilemapManager.Instance == null)
+		if (ItemManager.Instance == null)
 		{
-			Debug.LogWarning("WormSpawner: ItemTilemapManager instance not found. Cannot spawn worms.");
+			Debug.LogWarning("WormSpawner: ItemManager instance not found. Cannot spawn worms.");
 			return false;
 		}
 
@@ -174,11 +174,11 @@ public class WormSpawner : MonoBehaviour
 		foreach (Vector2Int spawnPos in validGrassPositions)
 		{
 			// Skip if there's already an item at this position
-			if (ItemTilemapManager.Instance.HasItemAt(spawnPos))
+			Item existingItem = ItemManager.Instance.GetItemAtPosition(spawnPos);
+			if (existingItem != null)
 			{
 				// Specifically check if it's a worm - ensure we don't spawn on top of other worms
-				string existingItemName = ItemTilemapManager.Instance.GetItemNameAt(spawnPos);
-				if (existingItemName == _wormItemName)
+				if (existingItem.ItemName == _wormItemName)
 				{
 					continue; // Don't spawn worm on top of another worm
 				}
@@ -186,7 +186,7 @@ public class WormSpawner : MonoBehaviour
 				continue;
 			}
 
-			ItemTilemapManager.Instance.PlaceItem(_wormItemName, spawnPos);
+			ItemManager.Instance.SpawnItem(_wormItemName, spawnPos);
 			Debug.Log($"WormSpawner: Spawned worm item at ({spawnPos.x}, {spawnPos.y}).");
 			return true;
 		}
