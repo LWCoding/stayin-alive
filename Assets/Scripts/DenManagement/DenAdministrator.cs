@@ -107,7 +107,7 @@ public class DenAdministrator : MonoBehaviour {
   private void DenTeleport(int DenId) {
     if (DenSystemManager.Instance.GetValidTeleports.ContainsKey(DenId)) {
       playerAnimal.CurrentDen.OnAnimalLeave(playerAnimal);
-      DenSystemManager.Instance.GetValidTeleports[DenId].denObject.OnAnimalEnter(playerAnimal);
+      playerAnimal.SetGridPosition(DenSystemManager.Instance.GetValidTeleports[DenId].denObject.GridPosition);
     }
 
     return;
