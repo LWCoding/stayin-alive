@@ -36,6 +36,8 @@ public abstract class Item : MonoBehaviour, IItem
     /// </summary>
     public Sprite InventorySprite => _inventorySprite;
     
+    bool _isPlayerOnTile = false;
+
     /// <summary>
     /// Initializes the item at the specified grid position.
     /// </summary>
@@ -70,6 +72,47 @@ public abstract class Item : MonoBehaviour, IItem
             _interactionIndicator.SetActive(false);
         }
     }
+
+    private void Start()
+    {
+        SubscribeToTimeManager();
+    }
+    
+    private void SubscribeToTimeManager()
+    {
+        TimeManager.Instance.OnTurnAdvanced += OnTurnAdvanced;
+    }
+    
+    private void OnDisable()
+    {
+        TimeManager.Instance.OnTurnAdvanced -= OnTurnAdvanced;
+    }
+    
+    /// <summary>
+    /// Called when a turn advances (after all animals have moved).
+    /// Checks if the player is on the same tile, updates the interaction indicator,
+    /// and handles E key press for item pickup.
+    /// </summary>
+    private void OnTurnAdvanced(int turnCount)
+    {
+        // Check if player is on the same tile
+        _isPlayerOnTile = IsPlayerOnSameTile();
+        
+        // Show/hide interaction indicator
+        if (_interactionIndicator != null)
+        {
+            _interactionIndicator.SetActive(_isPlayerOnTile);
+        }
+    }
+
+    private void Update() 
+    {
+        // If player is on the same tile and E key is pressed, attempt pickup
+        if (_isPlayerOnTile && Input.GetKeyDown(KeyCode.E))
+        {
+            AttemptPickup();
+        }
+    }
     
     /// <summary>
     /// Called when the item is picked up. Override to add custom pickup behavior.
@@ -96,24 +139,6 @@ public abstract class Item : MonoBehaviour, IItem
         }
         
         Destroy(gameObject);
-    }
-    
-    private void Update()
-    {
-        // Check if player is on the same tile
-        bool isPlayerOnTile = IsPlayerOnSameTile();
-        
-        // Show/hide interaction indicator
-        if (_interactionIndicator != null)
-        {
-            _interactionIndicator.SetActive(isPlayerOnTile);
-        }
-        
-        // If player is on the same tile and presses E, attempt pickup
-        if (isPlayerOnTile && Input.GetKeyDown(KeyCode.E))
-        {
-            AttemptPickup();
-        }
     }
     
     /// <summary>
