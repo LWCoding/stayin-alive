@@ -85,7 +85,10 @@ public abstract class Item : MonoBehaviour, IItem
     
     private void OnDisable()
     {
-        TimeManager.Instance.OnTurnAdvanced -= OnTurnAdvanced;
+        if (TimeManager.Instance != null)
+        {
+            TimeManager.Instance.OnTurnAdvanced -= OnTurnAdvanced;
+        }
     }
     
     /// <summary>
