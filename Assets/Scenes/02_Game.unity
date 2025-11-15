@@ -2269,7 +2269,13 @@ MonoBehaviour:
   - type: 6
     clip: {fileID: 8300000, guid: 1829db40df8fde1478918d723fab7253, type: 3}
     volume: 0.484
-  musicList: []
+  musicList:
+  - type: 2
+    clip: {fileID: 8300000, guid: ea9e4ff207a461f469d2a340c3d77c53, type: 3}
+    volume: 0.253
+  - type: 6
+    clip: {fileID: 8300000, guid: a7892fa6af848994698fde11d3653fff, type: 3}
+    volume: 0.289
 --- !u!1 &880794004
 GameObject:
   m_ObjectHideFlags: 0

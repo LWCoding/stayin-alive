@@ -17,6 +17,9 @@ public class AnimalManager : Singleton<AnimalManager>
     // Track animals visible in the camera viewport
     private List<Animal> _animalsInViewport = new List<Animal>();
     
+    // Track predators currently targeting the controllable player
+    private List<PredatorAnimal> _predatorsTargetingPlayer = new List<PredatorAnimal>();
+    
     // Cache the main camera to avoid repeated lookups
     private Camera _mainCamera;
 
@@ -376,6 +379,68 @@ public class AnimalManager : Singleton<AnimalManager>
         if (animal != null && _animalsInViewport != null)
         {
             _animalsInViewport.Remove(animal);
+        }
+        
+        // Also remove from predators targeting player list if it's a predator
+        if (animal is PredatorAnimal predator)
+        {
+            RegisterPredatorTargetingPlayer(predator, false);
+        }
+    }
+    
+    /// <summary>
+    /// Registers or unregisters a predator as targeting the controllable player.
+    /// Updates music based on whether any predators are targeting.
+    /// </summary>
+    /// <param name="predator">The predator to register/unregister</param>
+    /// <param name="isTargeting">True to add to list, false to remove</param>
+    public void RegisterPredatorTargetingPlayer(PredatorAnimal predator, bool isTargeting)
+    {
+        if (predator == null || _predatorsTargetingPlayer == null)
+        {
+            return;
+        }
+        
+        if (isTargeting)
+        {
+            // Add if not already present
+            if (!_predatorsTargetingPlayer.Contains(predator))
+            {
+                _predatorsTargetingPlayer.Add(predator);
+                UpdateMusicBasedOnTargetingList();
+            }
+        }
+        else
+        {
+            // Remove if present
+            if (_predatorsTargetingPlayer.Remove(predator))
+            {
+                UpdateMusicBasedOnTargetingList();
+            }
+        }
+    }
+    
+    /// <summary>
+    /// Updates the music based on whether any predators are targeting the controllable player.
+    /// Plays Spring music if no predators are targeting, Danger music otherwise.
+    /// </summary>
+    private void UpdateMusicBasedOnTargetingList()
+    {
+        if (AudioManager.Instance == null)
+        {
+            return;
+        }
+        
+        // Clean up any null references (destroyed predators)
+        _predatorsTargetingPlayer.RemoveAll(p => p == null);
+        
+        if (_predatorsTargetingPlayer.Count == 0)
+        {
+            AudioManager.Instance.PlayMusic(AudioManager.MusicType.Spring);
+        }
+        else
+        {
+            AudioManager.Instance.PlayMusic(AudioManager.MusicType.Danger);
         }
     }
 

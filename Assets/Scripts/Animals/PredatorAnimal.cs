@@ -29,6 +29,7 @@ public class PredatorAnimal : Animal
     protected PredatorDen _predatorDen = null;
     protected bool _isEatingStallActive = false;
     private ControllableAnimal _controllableTargetInSight = null;
+    private bool _isTargetingControllable = false;
 
     /// <summary>
     /// Gets the priority level of this predator.
@@ -47,6 +48,15 @@ public class PredatorAnimal : Animal
     {
         // Find the nearest predator den to this predator's spawn position
         FindNearestPredatorDen();
+    }
+    
+    private void OnDestroy()
+    {
+        // Remove from targeting list if we were targeting the player
+        if (_isTargetingControllable && AnimalManager.Instance != null)
+        {
+            AnimalManager.Instance.RegisterPredatorTargetingPlayer(this, false);
+        }
     }
     
     /// <summary>
@@ -496,6 +506,7 @@ public class PredatorAnimal : Animal
     private void UpdateChasingAudio(Animal detectedPrey)
     {
         ControllableAnimal controllable = detectedPrey as ControllableAnimal;
+        bool wasTargetingControllable = _isTargetingControllable;
 
         if (controllable != null)
         {
@@ -504,10 +515,38 @@ public class PredatorAnimal : Animal
                 _controllableTargetInSight = controllable;
                 PlayChasingAudio();
             }
+            
+            // Check if we're targeting a controllable animal (not in safe place)
+            bool isTargetingControllable = !Den.IsControllableAnimalInDen(controllable) && 
+                                          !Bush.IsControllableAnimalInBush(controllable);
+            
+            // Update registration if targeting state changed
+            if (isTargetingControllable != wasTargetingControllable)
+            {
+                _isTargetingControllable = isTargetingControllable;
+                if (AnimalManager.Instance != null)
+                {
+                    AnimalManager.Instance.RegisterPredatorTargetingPlayer(this, isTargetingControllable);
+                }
+            }
         }
-        else if (_controllableTargetInSight != null)
+        else
         {
-            _controllableTargetInSight = null;
+            // No controllable animal detected - remove from list if we were targeting one
+            if (_controllableTargetInSight != null)
+            {
+                _controllableTargetInSight = null;
+            }
+            
+            // Update registration if we were targeting a controllable animal
+            if (wasTargetingControllable)
+            {
+                _isTargetingControllable = false;
+                if (AnimalManager.Instance != null)
+                {
+                    AnimalManager.Instance.RegisterPredatorTargetingPlayer(this, false);
+                }
+            }
         }
     }
 

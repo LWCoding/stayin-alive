@@ -69,6 +69,7 @@ public class AudioManager : Singleton<AudioManager>
     private Dictionary<MusicType, AudioEntryMusic> musicDict = new();
 
     private Coroutine currentMusicFade;
+    private MusicType currentMusicType = MusicType.Menu;
 
     // ======================
     // 🔧 SETUP
@@ -112,6 +113,13 @@ public class AudioManager : Singleton<AudioManager>
             return;
         }
 
+        // Don't restart if the same music is already playing
+        if (musicSource.isPlaying && currentMusicType == type && musicSource.clip == entry.clip)
+        {
+            return;
+        }
+
+        currentMusicType = type;
         float targetVolume = (volume >= 0f) ? Mathf.Clamp01(volume) : entry.volume;
 
         if (currentMusicFade != null)
@@ -182,6 +190,7 @@ public class AudioManager : Singleton<AudioManager>
 
         musicSource.Stop();
         currentMusicFade = null;
+        currentMusicType = MusicType.Menu;
     }
 
     // ======================
