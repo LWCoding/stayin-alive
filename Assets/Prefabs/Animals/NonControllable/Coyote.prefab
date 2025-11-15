@@ -285,5 +285,5 @@ MonoBehaviour:
   _stallTurnsAfterHunt: 5
   _trackingIndicator: {fileID: 2619049416972628233}
   _denSprite: {fileID: 21300000, guid: 5bcf8a0f1bbf08d43b31a1a3f04204f1, type: 3}
-  _chaseTurnsBeforeBreak: 8
+  _chaseTurnsBeforeBreak: 7
   _breakDuration: 4
