@@ -325,19 +325,12 @@ public class InventoryManager : Singleton<InventoryManager>
         
         string itemName = slot.ItemName;
         
-        // Get the ControllableAnimal (player)
+        // Get the ControllableAnimal (player) using cached reference
         ControllableAnimal player = null;
         if (AnimalManager.Instance != null)
         {
-            List<Animal> animals = AnimalManager.Instance.GetAllAnimals();
-            foreach (Animal animal in animals)
-            {
-                if (animal != null && animal.IsControllable && animal is ControllableAnimal controllable)
-                {
-                    player = controllable;
-                    break;
-                }
-            }
+            // Use cached player reference instead of looping through all animals
+            player = AnimalManager.Instance.GetPlayer();
         }
         
         if (player == null)

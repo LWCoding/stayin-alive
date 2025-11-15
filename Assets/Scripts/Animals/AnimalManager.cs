@@ -22,8 +22,47 @@ public class AnimalManager : Singleton<AnimalManager>
     
     // Cache the main camera to avoid repeated lookups
     private Camera _mainCamera;
+    
+    // Cache the player (ControllableAnimal) to avoid repeated loops through all animals
+    private ControllableAnimal _cachedPlayer = null;
+    
+    // Track when viewport needs updating (throttle updates)
+    private int _viewportUpdateFrameCounter = 0;
+    private const int VIEWPORT_UPDATE_INTERVAL = 3; // Update every 3 frames instead of every frame
 
     public Animal CurrentlySelectedAnimal => _currentlySelectedAnimal;
+    
+    /// <summary>
+    /// Gets the cached player (ControllableAnimal) reference. Returns null if no player exists.
+    /// This avoids looping through all animals every time the player is needed.
+    /// </summary>
+    public ControllableAnimal GetPlayer()
+    {
+        // If cached player is null or destroyed, try to find it
+        if (_cachedPlayer == null)
+        {
+            RefreshPlayerCache();
+        }
+        return _cachedPlayer;
+    }
+    
+    /// <summary>
+    /// Refreshes the cached player reference by searching through animals.
+    /// Should be called when animals are added/removed or when player might have changed.
+    /// </summary>
+    private void RefreshPlayerCache()
+    {
+        _cachedPlayer = null;
+        for (int i = 0; i < _animals.Count; i++)
+        {
+            Animal animal = _animals[i];
+            if (animal != null && animal.IsControllable && animal is ControllableAnimal controllable)
+            {
+                _cachedPlayer = controllable;
+                break;
+            }
+        }
+    }
     
     /// <summary>
     /// Gets the list of animals currently visible in the camera viewport (not obscured by fog of war).
@@ -78,8 +117,13 @@ public class AnimalManager : Singleton<AnimalManager>
 
     private void Update()
     {
-        // Update the list of animals in viewport each frame
-        UpdateAnimalsInViewport();
+        // Throttle viewport updates - only update every N frames instead of every frame
+        _viewportUpdateFrameCounter++;
+        if (_viewportUpdateFrameCounter >= VIEWPORT_UPDATE_INTERVAL)
+        {
+            _viewportUpdateFrameCounter = 0;
+            UpdateAnimalsInViewport();
+        }
     }
 
     /// <summary>
@@ -142,6 +186,9 @@ public class AnimalManager : Singleton<AnimalManager>
     public void ClearAllAnimals()
     {
         ClearSelection();
+        
+        // Clear cached player reference
+        _cachedPlayer = null;
 
         foreach (Animal animal in _animals)
         {
@@ -272,6 +319,12 @@ public class AnimalManager : Singleton<AnimalManager>
         animal.SetAnimalCount(count);
         
         _animals.Add(animal);
+        
+        // If this is a controllable animal and we don't have a cached player, cache it
+        if (_cachedPlayer == null && animal is ControllableAnimal controllable)
+        {
+            _cachedPlayer = controllable;
+        }
 
         return animal;
     }
@@ -373,6 +426,14 @@ public class AnimalManager : Singleton<AnimalManager>
         if (animal != null && _animals != null)
         {
             _animals.Remove(animal);
+        }
+        
+        // If the removed animal was the cached player, clear the cache
+        if (animal == _cachedPlayer)
+        {
+            _cachedPlayer = null;
+            // Try to find a new player if one exists
+            RefreshPlayerCache();
         }
         
         // Also remove from viewport list if present

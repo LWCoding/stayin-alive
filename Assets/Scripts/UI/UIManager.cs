@@ -196,14 +196,5 @@ public class UIManager : Singleton<UIManager>
         _vignette.intensity.overrideState = true;
         _vignette.intensity.value = isCritical ? _criticalHungerVignetteIntensity : _defaultVignetteIntensity;
     }
-
-    private void Update()
-    {
-        // Update hunger bar every frame to reflect current hunger
-        if (_trackedAnimal != null)
-        {
-            UpdateHungerBar();
-        }
-    }
 }
 

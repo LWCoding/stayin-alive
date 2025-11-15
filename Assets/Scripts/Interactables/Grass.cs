@@ -425,6 +425,7 @@ public class Grass : MonoBehaviour
 
 	/// <summary>
 	/// Checks if the player (ControllableAnimal) is on the same tile as this grass.
+	/// Uses cached player reference to avoid looping through all animals.
 	/// </summary>
 	private bool IsPlayerOnSameTile()
 	{
@@ -433,18 +434,11 @@ public class Grass : MonoBehaviour
 			return false;
 		}
 		
-		// Get all animals and find the controllable one (player)
-		List<Animal> animals = AnimalManager.Instance.GetAllAnimals();
-		foreach (Animal animal in animals)
+		// Use cached player reference instead of looping through all animals
+		ControllableAnimal player = AnimalManager.Instance.GetPlayer();
+		if (player != null && player.GridPosition == _gridPosition)
 		{
-			if (animal != null && animal.IsControllable && animal is ControllableAnimal)
-			{
-				// Check if player is on the same tile
-				if (animal.GridPosition == _gridPosition)
-				{
-					return true;
-				}
-			}
+			return true;
 		}
 		
 		return false;
@@ -452,6 +446,7 @@ public class Grass : MonoBehaviour
 
 	/// <summary>
 	/// Gets the player (ControllableAnimal) if one exists.
+	/// Uses cached player reference to avoid looping through all animals.
 	/// </summary>
 	private ControllableAnimal GetPlayer()
 	{
@@ -460,16 +455,8 @@ public class Grass : MonoBehaviour
 			return null;
 		}
 		
-		List<Animal> animals = AnimalManager.Instance.GetAllAnimals();
-		foreach (Animal animal in animals)
-		{
-			if (animal != null && animal.IsControllable && animal is ControllableAnimal controllable)
-			{
-				return controllable;
-			}
-		}
-		
-		return null;
+		// Use cached player reference instead of looping through all animals
+		return AnimalManager.Instance.GetPlayer();
 	}
 
 	/// <summary>

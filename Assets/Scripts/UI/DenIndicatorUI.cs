@@ -114,7 +114,8 @@ public class DenIndicatorUI : MonoBehaviour
     }
     
     /// <summary>
-    /// Gets the player's world position from the first controllable animal.
+    /// Gets the player's world position from the cached controllable animal.
+    /// Uses cached player reference to avoid looping through all animals every frame.
     /// </summary>
     private Vector3 GetPlayerWorldPosition()
     {
@@ -123,13 +124,11 @@ public class DenIndicatorUI : MonoBehaviour
             return Vector3.zero;
         }
         
-        List<Animal> animals = AnimalManager.Instance.GetAllAnimals();
-        foreach (Animal animal in animals)
+        // Use cached player reference instead of looping through all animals
+        ControllableAnimal player = AnimalManager.Instance.GetPlayer();
+        if (player != null)
         {
-            if (animal != null && animal.IsControllable)
-            {
-                return animal.transform.position;
-            }
+            return player.transform.position;
         }
         
         return Vector3.zero;
