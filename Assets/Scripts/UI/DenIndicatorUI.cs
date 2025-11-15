@@ -3,7 +3,7 @@ using UnityEngine;
 using UnityEngine.UI;
 
 /// <summary>
-/// UI indicator that shows the direction of the nearest off-screen den.
+/// UI indicator that shows the direction of the nearest den when it's off-screen.
 /// Attach this script to the indicator GameObject (must have an Image component).
 /// The indicator will position itself on the screen edge and rotate to point toward the nearest den.
 /// </summary>
@@ -81,23 +81,36 @@ public class DenIndicatorUI : MonoBehaviour
         // Get player position (first controllable animal)
         Vector3 playerWorldPos = GetPlayerWorldPosition();
         
-        // Find the nearest off-screen den
-        Den nearestOffScreenDen = null;
+        // Find the nearest den
+        Den nearestDen = null;
         if (dens.Count > 0)
         {
-            nearestOffScreenDen = FindNearestOffScreenDen(dens, playerWorldPos);
+            nearestDen = FindNearestDen(dens, playerWorldPos);
         }
         
-        if (nearestOffScreenDen == null)
+        if (nearestDen == null)
         {
-            // All dens are on-screen or no dens exist, hide indicator
+            // No dens exist, hide indicator
+            _image.enabled = false;
+            return;
+        }
+        
+        // Check if the nearest den is off-screen
+        Vector3 viewportPos = _mainCamera.WorldToViewportPoint(nearestDen.transform.position);
+        bool isOnScreen = viewportPos.x >= 0f && viewportPos.x <= 1f && 
+                         viewportPos.y >= 0f && viewportPos.y <= 1f && 
+                         viewportPos.z > 0f;
+        
+        if (isOnScreen)
+        {
+            // Closest den is on-screen, hide indicator
             _image.enabled = false;
             return;
         }
         
         // Show indicator and update position
         _image.enabled = true;
-        UpdateIndicatorPosition(nearestOffScreenDen.transform.position, playerWorldPos);
+        UpdateIndicatorPosition(nearestDen.transform.position, playerWorldPos);
     }
     
     /// <summary>
@@ -123,9 +136,9 @@ public class DenIndicatorUI : MonoBehaviour
     }
     
     /// <summary>
-    /// Finds the nearest off-screen den to the player.
+    /// Finds the nearest den to the player.
     /// </summary>
-    private Den FindNearestOffScreenDen(List<Den> dens, Vector3 playerWorldPos)
+    private Den FindNearestDen(List<Den> dens, Vector3 playerWorldPos)
     {
         Den nearestDen = null;
         float nearestDistance = float.MaxValue;
@@ -135,17 +148,6 @@ public class DenIndicatorUI : MonoBehaviour
             if (den == null)
             {
                 continue;
-            }
-            
-            // Check if den is visible on screen
-            Vector3 viewportPos = _mainCamera.WorldToViewportPoint(den.transform.position);
-            bool isOnScreen = viewportPos.x >= 0f && viewportPos.x <= 1f && 
-                             viewportPos.y >= 0f && viewportPos.y <= 1f && 
-                             viewportPos.z > 0f;
-            
-            if (isOnScreen)
-            {
-                continue; // Skip on-screen dens
             }
             
             // Calculate distance from player
