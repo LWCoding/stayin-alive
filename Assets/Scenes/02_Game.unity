@@ -4079,6 +4079,11 @@ MonoBehaviour:
   - {fileID: 11400000, guid: 7153c7f2e31375c4fa75b016ed86162e, type: 2}
   - {fileID: 11400000, guid: 6bc6bdb161367b94a950abb7943d74c2, type: 2}
   - {fileID: 11400000, guid: a497f8ac1b4527c42962a3c57d9877b3, type: 2}
+  - {fileID: 11400000, guid: 3a988c50afccf274396ef23fe4bf4fe9, type: 2}
+  - {fileID: 11400000, guid: 883c0df0747eff349b0c7ddc882616de, type: 2}
+  - {fileID: 11400000, guid: 96cd578c58004e949a11fde88a4b04be, type: 2}
+  - {fileID: 11400000, guid: 62a4065356573c84ca0e695f1d975b17, type: 2}
+  - {fileID: 11400000, guid: 713932c9043eba64c83a223c4a2e0c00, type: 2}
   _obstacleTile: {fileID: 11400000, guid: 872b1e52ba833394fa53c37ab4d630e0, type: 2}
   _updateOnGridChange: 1
   _drawOnStart: 1
