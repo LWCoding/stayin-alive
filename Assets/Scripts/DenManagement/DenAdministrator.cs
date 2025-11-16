@@ -64,18 +64,24 @@ public class DenAdministrator : MonoBehaviour {
   //   }
   // }
 
+  
+  
   private void Awake() {
     if (isInstantiated) Component.Destroy(this);
     isInstantiated = true;
   }
 
+  private void Start() {
+    DenSystemManager.Instance.RegisterDenAdministrator(this);
+  }
+
   private void Update() {
     if (Input.GetKeyDown(KeyCode.O)) {
       if (!DenSystemManager.Instance.PanelOpen) {
-        DenSystemManager.Instance.OpenPanel(this);
+        DenSystemManager.Instance.OpenPanel();
       }
       else {
-        DenSystemManager.Instance.ClosePanel(this);
+        DenSystemManager.Instance.ClosePanel();
       }
     }
 
@@ -84,14 +90,12 @@ public class DenAdministrator : MonoBehaviour {
       Debug.LogError("T PRessed"+DenSystemManager.Instance.PanelOpen);
       
       if (DenSystemManager.Instance.PanelOpen) {
-        int id = 0;
         // Debug.LogError(id);
-        foreach (var den in DenSystemManager.Instance.GetValidTeleports.Keys) {
-          id = den;
-          Debug.LogError(id);
-          DenTeleport(id);
-          DenSystemManager.Instance.ConstructValidDenTeleportInfos(playerAnimal);
+        foreach (var denId in DenSystemManager.Instance.GetValidTeleports.Keys) {
+          Debug.LogError(denId);
+          DenTeleport(denId);
           break;
+          Debug.Log("hewwooooo pwincess :) i know how to do it im so goo dat typinga its nap time time to eep eep yk what i mean my weyfie boy love of my life idk what extra letter im typing oopsie doopsies you so cutie and handsome and pwetty  so i have to type in the debuggger log all my thoughts hehehehehehehehehis my weyfie slayiiinggg ofc he is hes so smarty and talented");
         }
       }
     }
@@ -119,13 +123,18 @@ public class DenAdministrator : MonoBehaviour {
     PointsManager.Instance.AddPoints(-1 * DenSystemManager.Instance.denPrice, true);
   }
 
-  private void DenTeleport(int DenId) {
+  public void DenTeleport(int DenId) {
     Debug.LogError(DenId);
     if (DenSystemManager.Instance.GetValidTeleports.ContainsKey(DenId)) {
       // playerAnimal.CurrentDen.OnAnimalLeave(playerAnimal);
       
       playerAnimal.SetGridPosition(DenSystemManager.Instance.GetValidTeleports[DenId].denObject.GridPosition);
       Debug.LogError("Teleported");
+
+      if (DenSystemManager.Instance.PanelOpen) {
+        DenSystemManager.Instance.ConstructValidDenTeleportInfos();
+        DenSystemManager.Instance.DenAdminMenu.CreateDenMapIcons(DenSystemManager.Instance.DenInfos.Values.ToList());
+      }
     }
 
     return;

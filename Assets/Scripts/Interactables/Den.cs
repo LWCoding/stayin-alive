@@ -24,6 +24,10 @@ public class Den : MonoBehaviour, IHideable
     private Coroutine _timeProgressionCoroutine;
     
     public Vector2Int GridPosition => _gridPosition;
+
+    public DenSystemManager.DenInformation GetDenInfo() {
+      return DenSystemManager.ConstructDenInformation(this);
+    }
     
     private void Awake()
     {

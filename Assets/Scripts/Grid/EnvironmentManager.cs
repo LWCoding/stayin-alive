@@ -15,6 +15,8 @@ public class EnvironmentManager : Singleton<EnvironmentManager>
     private GridCell[,] _grid;
     private int _gridWidth;
     private int _gridHeight;
+    
+    public Vector2 GridSize => new Vector2(_gridWidth, _gridHeight);
 
     // Events for when the grid changes (useful for updating visuals)
     public Action<Vector2Int, TileType> OnTileTypeChanged;
