@@ -90,6 +90,7 @@ public class DenAdministrator : MonoBehaviour {
           id = den;
           Debug.LogError(id);
           DenTeleport(id);
+          DenSystemManager.Instance.ConstructValidDenTeleportInfos(playerAnimal);
           break;
         }
       }

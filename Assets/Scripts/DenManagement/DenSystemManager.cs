@@ -35,12 +35,14 @@ public class DenSystemManager : Singleton<DenSystemManager> {
     Debug.LogError("Panel Opened");
     ConstructValidDenTeleportInfos(denAdmin.Animal);
     Debug.LogError(validTeleports);
+    TimeManager.Instance.Pause();
   }
 
   public void ClosePanel(DenAdministrator denAdmin) {
     panelOpen = false;
     Debug.LogError("Panel Closed");
     validTeleports.Clear();
+    TimeManager.Instance.Resume();
   }
 
 
@@ -69,7 +71,7 @@ public class DenSystemManager : Singleton<DenSystemManager> {
     }
   }
 
-  public List<DenInformation> GetValidDenTeleportDestinations(ControllableAnimal playerAnimal) {
+  private List<DenInformation> GetValidDenTeleportDestinations(ControllableAnimal playerAnimal) {
     List<DenInformation> validDestinations = new List<DenInformation>();
 
     // If player not in a den, return empty lists
