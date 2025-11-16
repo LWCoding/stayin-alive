@@ -279,11 +279,10 @@ MonoBehaviour:
   _spriteRenderer: {fileID: 0}
   _animalCount: 1
   _countText: {fileID: 7204142843195701256}
-  _currentHunger: 100
   _detectionRadius: 7
   _priority: 0
   _stallTurnsAfterHunt: 5
   _trackingIndicator: {fileID: 2619049416972628233}
-  _denSprite: {fileID: 21300000, guid: 5bcf8a0f1bbf08d43b31a1a3f04204f1, type: 3}
+  _denSprite: {fileID: 21300000, guid: 90870eba794346a4e91ec21293bb6178, type: 3}
   _chaseTurnsBeforeBreak: 7
   _breakDuration: 4
