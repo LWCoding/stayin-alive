@@ -210,8 +210,9 @@ public class UIManager : Singleton<UIManager>
     }
     
     /// <summary>
-    /// Updates the build indicator container visibility based on whether the player has enough food to build a den.
-    /// Shows the container only when the player has at least the required food amount.
+    /// Updates the build indicator container visibility based on whether the player has enough food to build a den
+    /// and whether the player is on a valid location for building.
+    /// Shows the container only when both conditions are met.
     /// </summary>
     private void UpdateBuildIndicator()
     {
@@ -220,19 +221,36 @@ public class UIManager : Singleton<UIManager>
             return;
         }
         
-        // Check if PointsManager and DenSystemManager are available
-        if (PointsManager.Instance == null || DenSystemManager.Instance == null)
+        // Check if required managers are available
+        if (PointsManager.Instance == null || DenSystemManager.Instance == null || 
+            InteractableManager.Instance == null || EnvironmentManager.Instance == null ||
+            ItemManager.Instance == null)
         {
+            Debug.Log("UIManager: I'm lacking the managers I need to update the build indicator :(");
             _buildIndicatorContainer.gameObject.SetActive(false);
             return;
         }
         
-        // Show the build indicator only if player has at least the required amount of food
+        // Check if player has enough food
         int currentFood = PointsManager.Instance.ReadinessPoints;
         int requiredFood = DenSystemManager.Instance.denPrice;
         bool canAffordDen = currentFood >= requiredFood;
         
-        _buildIndicatorContainer.gameObject.SetActive(canAffordDen);
+        // Check if player is on a valid location for building
+        bool isOnValidLocation = false;
+        if (_trackedAnimal != null)
+        {
+            Vector2Int playerPosition = _trackedAnimal.GridPosition;
+            
+            // Validate position using the same checks as SpawnDen in InteractableManager
+            // Also check that there's no item at the position
+            isOnValidLocation = EnvironmentManager.Instance.IsValidPosition(playerPosition) &&
+                               !InteractableManager.Instance.HasInteractableAtPosition(playerPosition) &&
+                               ItemManager.Instance.GetItemAtPosition(playerPosition) == null;
+        }
+        
+        // Show the build indicator only if player has enough food AND is on a valid location
+        _buildIndicatorContainer.gameObject.SetActive(canAffordDen && isOnValidLocation);
     }
 }
 
