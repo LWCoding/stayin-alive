@@ -43,6 +43,11 @@ public class DenAdminMenuGuiController : MonoBehaviour {
   [SerializeField]
   private GameObject workerIconPrefab;
 
+  [Header("Buttons")]
+  [SerializeField]
+  [Tooltip("Button that will purchase a worker when clicked")]
+  private Button purchaseWorkerButton;
+
   private List<DenSystemManager.DenInformation> mapDenInfo;
 
   private List<DenMapIconGuiController> mapDenMapIcons;
@@ -52,12 +57,18 @@ public class DenAdminMenuGuiController : MonoBehaviour {
   public void Start() {
     mapDenMapIcons = new List<DenMapIconGuiController>();
     workerIcons = new List<WorkerIconGuiController>();
+    
+    // Setup button listener
+    if (purchaseWorkerButton != null) {
+      purchaseWorkerButton.onClick.AddListener(OnPurchaseWorkerButtonClicked);
+    }
   }
 
   public void Show() {
     visibilityController.alpha = 1;
     visibilityController.interactable = true;
     SetupCurrentDenWorkers();
+    UpdatePurchaseWorkerButtonState();
   }
 
   public void Hide() {
@@ -105,5 +116,27 @@ public class DenAdminMenuGuiController : MonoBehaviour {
       workerIcon.InitializeWorkerIcon(worker);
       workerIcons.Add(workerIcon);
     }
+  }
+  
+  /// <summary>
+  /// Called when the purchase worker button is clicked
+  /// </summary>
+  private void OnPurchaseWorkerButtonClicked() {
+    DenSystemManager.Instance.CurrentDenAdministrator.PurchaseWorker();
+    SetupCurrentDenWorkers();
+    UpdatePurchaseWorkerButtonState();
+  }
+  
+  /// <summary>
+  /// Updates the purchase worker button's interactable state based on whether the player has enough points
+  /// </summary>
+  private void UpdatePurchaseWorkerButtonState() {
+    if (purchaseWorkerButton == null) {
+      return;
+    }
+    
+    // Button is only interactable if player has enough points
+    bool canAfford = PointsManager.Instance.ReadinessPoints >= DenSystemManager.Instance.workerPrice;
+    purchaseWorkerButton.interactable = canAfford;
   }
 }

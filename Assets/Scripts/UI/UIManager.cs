@@ -16,6 +16,10 @@ public class UIManager : Singleton<UIManager>
     [Range(0f, 1f)]
     [SerializeField] private float _lowHungerThreshold = 0.33f;
     
+    [Header("Build Indicator")]
+    [Tooltip("Container transform that holds the build indicator UI (e.g., text saying 'Press B to build den for 1 food'). Shows only when player has enough food.")]
+    [SerializeField] private Transform _buildIndicatorContainer;
+    
     [Header("Post-Processing")]
     [Tooltip("Global post-processing volume to modify vignette based on hunger. If not assigned, will attempt to find a global volume.")]
     [SerializeField] private Volume _postProcessingVolume;
@@ -48,6 +52,14 @@ public class UIManager : Singleton<UIManager>
         
         // Initialize post-processing
         InitializePostProcessing();
+        
+        // Initialize build indicator (hide by default)
+        UpdateBuildIndicator();
+    }
+    
+    private void Update()
+    {
+        UpdateBuildIndicator();
     }
     
     /// <summary>
@@ -195,6 +207,32 @@ public class UIManager : Singleton<UIManager>
         _isVignetteCritical = isCritical;
         _vignette.intensity.overrideState = true;
         _vignette.intensity.value = isCritical ? _criticalHungerVignetteIntensity : _defaultVignetteIntensity;
+    }
+    
+    /// <summary>
+    /// Updates the build indicator container visibility based on whether the player has enough food to build a den.
+    /// Shows the container only when the player has at least the required food amount.
+    /// </summary>
+    private void UpdateBuildIndicator()
+    {
+        if (_buildIndicatorContainer == null)
+        {
+            return;
+        }
+        
+        // Check if PointsManager and DenSystemManager are available
+        if (PointsManager.Instance == null || DenSystemManager.Instance == null)
+        {
+            _buildIndicatorContainer.gameObject.SetActive(false);
+            return;
+        }
+        
+        // Show the build indicator only if player has at least the required amount of food
+        int currentFood = PointsManager.Instance.ReadinessPoints;
+        int requiredFood = DenSystemManager.Instance.denPrice;
+        bool canAffordDen = currentFood >= requiredFood;
+        
+        _buildIndicatorContainer.gameObject.SetActive(canAffordDen);
     }
 }
 

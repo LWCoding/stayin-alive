@@ -7,7 +7,6 @@ using UnityEngine;
 /// <summary>
 /// Script which allows an animal to purchase dens using "Readiness Points"
 /// Deducts the amount set in the Den System Manager when successful
-/// Temporarily, purchaseDen is called on 'B' press
 /// </summary>
 public class DenAdministrator : MonoBehaviour {
   [SerializeField]
@@ -88,13 +87,6 @@ public class DenAdministrator : MonoBehaviour {
       }
     }
 
-
-    if (Input.GetKeyDown(KeyCode.Q)) {
-      PurchaseWorker();
-      DenSystemManager.Instance.DenAdminMenu.SetupCurrentDenWorkers();
-    }
-
-
     if (Input.GetKeyDown(KeyCode.B)) {
       PurchaseDen();
     }
@@ -117,7 +109,7 @@ public class DenAdministrator : MonoBehaviour {
     PointsManager.Instance.AddPoints(-1 * DenSystemManager.Instance.denPrice, true);
   }
   
-  private void PurchaseWorker() {
+  public void PurchaseWorker() {
     if (PointsManager.Instance.ReadinessPoints < DenSystemManager.Instance.workerPrice) {
       Debug.Log("Not Enough Food To Make Worker");
       return;
