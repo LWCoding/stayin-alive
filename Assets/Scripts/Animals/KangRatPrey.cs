@@ -17,12 +17,6 @@ public class KangRatPrey : PreyAnimal
 
 	private Vector2Int? _foodDestination = null;
 	private int _kangRatTurnCounter = 0;
-	private RabbitSpawner _spawner = null;
-
-	/// <summary>
-	/// Gets the spawner this kangaroo rat belongs to.
-	/// </summary>
-	public RabbitSpawner Spawner => _spawner;
 
 	/// <summary>
 	/// Gets whether this kangaroo rat is hungry (hunger below threshold).
@@ -49,16 +43,6 @@ public class KangRatPrey : PreyAnimal
 	/// </summary>
 	public int CriticalHungerThreshold => AnimalData != null ? AnimalData.criticalHungerThreshold : 20;
 
-	/// <summary>
-	/// Sets the spawner this kangaroo rat belongs to.
-	/// Used when spawning kangaroo rats near specific spawners.
-	/// </summary>
-	public void SetSpawner(RabbitSpawner spawner)
-	{
-		_spawner = spawner;
-		SetHomeHideable(_spawner);
-	}
-
 
 	/// <summary>
 	/// Override TakeTurn to add food-seeking behavior when hungry.
@@ -75,13 +59,14 @@ public class KangRatPrey : PreyAnimal
 		bool isCriticallyHungry = CurrentHunger < criticalHungerThreshold;
 		bool isHungry = CurrentHunger < hungerThreshold;
 		
-		// If we're hiding in our spawner and critically hungry, force exit immediately
+		// If we're hiding in our den and critically hungry, force exit immediately
 		if (IsHidingInHome)
 		{
 			if (isCriticallyHungry)
 			{
-				// Force exit from spawner - critical hunger takes priority over safety
-				ForceExitFromHome(true);
+				// Force exit from den - critical hunger takes priority over safety
+				ForceExitFromHome();
+				Debug.Log($"KangRatPrey '{name}' forced to exit den due to critical hunger (hunger: {CurrentHunger} < threshold: {criticalHungerThreshold})");
 			}
 			else if (!isHungry)
 			{
@@ -95,7 +80,8 @@ public class KangRatPrey : PreyAnimal
 				if (nearbyPredator == null)
 				{
 					// No predators nearby, safe to exit and look for food
-					ForceExitFromHome(false);
+					ForceExitFromHome();
+					Debug.Log($"KangRatPrey '{name}' exiting den to seek food (hunger: {CurrentHunger} < threshold: {hungerThreshold})");
 				}
 				else
 				{
@@ -107,28 +93,25 @@ public class KangRatPrey : PreyAnimal
 		
 		_kangRatTurnCounter++;
 		
-		// Only move every other turn (on even turns: 2, 4, 6, etc.) - same as base PreyAnimal
-		bool shouldMove = (_kangRatTurnCounter % 2 == 0);
-		
-		// If not hungry, always try to return to and stay in the spawner
+		// If not hungry, always try to return to and stay in the den
 		if (!isHungry)
 		{
 			if (HasHomeHideable)
 			{
-				// If we're at the spawner, hide in it
-				if (shouldMove && IsAtHomeHideable)
+				// If we're at the den, hide in it
+				if (IsAtHomeHideable)
 				{
 					TryHideInHome();
 					return;
 				}
-				// If we're not at the spawner, move towards it
-				else if (shouldMove)
-				{
-					// Move one step towards the spawner
+				// If we're not at the den, move towards it
+				else 
+                {
+					// Move one step towards the den
 					Vector2Int homePos = HomeHideable.GridPosition;
 					if (MoveOneStepTowards(homePos))
 					{
-						// Check if we reached the spawner
+						// Check if we reached the den
 						if (IsAtHomeHideable)
 						{
 							TryHideInHome();
@@ -137,7 +120,7 @@ public class KangRatPrey : PreyAnimal
 					return;
 				}
 			}
-			// If no spawner assigned, just stay put (shouldn't happen, but safety check)
+			// If no den assigned, just stay put (shouldn't happen, but safety check)
 			return;
 		}
 		
@@ -163,8 +146,8 @@ public class KangRatPrey : PreyAnimal
 						// We're on the grass, try to eat it
 						TryEatGrassAtCurrentPosition();
 					}
-					else if (shouldMove)
-					{
+					else 
+                    {
 						// Move towards the grass (even if predators are nearby when critically hungry)
 						if (!MoveOneStepTowards(nearestGrass.Value))
 						{
@@ -182,35 +165,27 @@ public class KangRatPrey : PreyAnimal
 						}
 					}
 				}
-				else
-				{
-					// No grass found, fall back to wandering (still prioritize food search)
-					_foodDestination = null;
-					WanderIfShouldMove(shouldMove);
-				}
-			}
 			else
 			{
-				// Standard hungry but predators nearby - prioritize fleeing over food
+				// No grass found, fall back to wandering (still prioritize food search)
 				_foodDestination = null;
-				if (shouldMove)
-				{
-					FleeFromPredator(nearbyPredator);
-				}
+				Wander();
 			}
+		}
+		else
+		{
+			// Standard hungry but predators nearby - prioritize fleeing to den over food
+			_foodDestination = null;
+			TryFleeToHome(nearbyPredator);
+		}
 		}
 	}
 	
 	/// <summary>
 	/// Handles wandering behavior when not seeking food or fleeing.
 	/// </summary>
-	private void WanderIfShouldMove(bool shouldMove)
+	private void Wander()
 	{
-		if (!shouldMove)
-		{
-			return;
-		}
-		
 		if (!_wanderingDestination.HasValue || GridPosition == _wanderingDestination.Value)
 		{
 			// Need a new wandering destination
@@ -219,12 +194,12 @@ public class KangRatPrey : PreyAnimal
 		
 		if (_wanderingDestination.HasValue)
 		{
-			// Check if we detect predators while wandering - if so, cancel wandering
+			// Check if we detect predators while wandering - if so, cancel wandering and flee to den
 			PredatorAnimal detectedPredator = FindNearestPredator();
 			if (detectedPredator != null)
 			{
 				_wanderingDestination = null;
-				FleeFromPredator(detectedPredator);
+				TryFleeToHome(detectedPredator);
 			}
 			else
 			{
@@ -243,7 +218,7 @@ public class KangRatPrey : PreyAnimal
 	}
 
 	/// <summary>
-	/// Override to choose wandering destinations within the spawner's territory or around the home den.
+	/// Override to choose wandering destinations around the home den.
 	/// Similar to how predators wander around their den.
 	/// </summary>
 	protected override Vector2Int? ChooseWanderingDestination()
@@ -253,7 +228,7 @@ public class KangRatPrey : PreyAnimal
 			return ChooseWanderingDestinationAroundHome();
 		}
 		
-		// Fallback: use base class wandering behavior if no spawner or home is assigned
+		// Fallback: use base class wandering behavior if no home is assigned
 		return base.ChooseWanderingDestination();
 	}
 
@@ -442,24 +417,6 @@ public class KangRatPrey : PreyAnimal
 		grass.HarvestForAnimal();
 	}
 
-	/// <summary>
-	/// Logs kangaroo rat-specific info when the base class forces us out of the home (spawner or den).
-	/// </summary>
-	private void ForceExitFromHome(bool isCriticallyHungryContext)
-	{
-		bool wasHidingInHome = IsHidingInHome;
-		ForceExitFromHome();
-
-		if (!wasHidingInHome || !HasHomeHideable)
-		{
-			return;
-		}
-
-		string homeType = _spawner != null ? "spawner" : "den";
-		string reason = isCriticallyHungryContext ? "critical hunger" : "hunger";
-		int threshold = isCriticallyHungryContext ? CriticalHungerThreshold : HungerThreshold;
-		Debug.Log($"KangRatPrey '{name}' forced to exit {homeType} due to {reason} (hunger: {CurrentHunger} < threshold: {threshold})");
-	}
 
 	/// <summary>
 	/// Gets the kangaroo rat's intended destination (food or wandering).
@@ -517,16 +474,8 @@ public class KangRatPrey : PreyAnimal
 			Gizmos.DrawWireSphere(foodWorldPos, 0.25f);
 		}
 
-		// Draw line to spawner if we have one
-		if (_spawner != null)
-		{
-			Vector3 spawnerWorldPos = EnvironmentManager.Instance.GridToWorldPosition(_spawner.GridPosition);
-			Gizmos.color = Color.yellow; // Yellow for spawner
-			Gizmos.DrawLine(currentWorldPos, spawnerWorldPos);
-			Gizmos.DrawWireSphere(spawnerWorldPos, 0.2f);
-		}
-		// Draw line to home den if we have one (but no spawner)
-		else if (HasHomeHideable)
+		// Draw line to home den if we have one
+		if (HasHomeHideable)
 		{
 			Vector3 homeWorldPos = EnvironmentManager.Instance.GridToWorldPosition(HomeHideable.GridPosition);
 			Gizmos.color = Color.magenta; // Magenta for den home

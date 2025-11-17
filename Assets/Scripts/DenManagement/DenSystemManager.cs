@@ -66,6 +66,11 @@ public class DenSystemManager : Singleton<DenSystemManager> {
       return false;
     }
     
+    // Set hunger to threshold minus one so the worker immediately seeks food
+    if (workerAnimalData.hungerThreshold > 0) {
+      newWorkerAnimal.SetHunger(workerAnimalData.hungerThreshold - 1);
+    }
+    
     // Hide the worker since they're unassigned
     // Workers will only show up at dens when explicitly assigned
     newWorkerAnimal.SetVisualVisibility(false);
