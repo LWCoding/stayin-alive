@@ -76,7 +76,7 @@ public class DenAdministrator : MonoBehaviour {
   }
 
   private void Update() {
-    if (Input.GetKeyDown(KeyCode.O)) {
+    if (Input.GetKeyDown(KeyCode.E)) {
       // Only allow opening panel if player is inside a den
       if (!DenSystemManager.Instance.PanelOpen) {
         if (playerAnimal.CurrentDen != null) {
@@ -89,18 +89,7 @@ public class DenAdministrator : MonoBehaviour {
     }
 
 
-    if (Input.GetKeyDown(KeyCode.T)) {
-      Debug.LogError("T PRessed"+DenSystemManager.Instance.PanelOpen);
-      
-      // if (DenSystemManager.Instance.PanelOpen) {
-      //   // Debug.LogError(id);
-      //   foreach (var denId in DenSystemManager.Instance.GetValidTeleports.Keys) {
-      //     Debug.LogError(denId);
-      //     DenTeleport(denId);
-      //     break;
-      //     Debug.Log("hewwooooo pwincess :) i know how to do it im so goo dat typinga its nap time time to eep eep yk what i mean my weyfie boy love of my life idk what extra letter im typing oopsie doopsies you so cutie and handsome and pwetty  so i have to type in the debuggger log all my thoughts hehehehehehehehehis my weyfie slayiiinggg ofc he is hes so smarty and talented");
-      //   }
-      // }
+    if (Input.GetKeyDown(KeyCode.Q)) {
       PurchaseWorker();
       DenSystemManager.Instance.DenAdminMenu.SetupCurrentDenWorkers();
     }
