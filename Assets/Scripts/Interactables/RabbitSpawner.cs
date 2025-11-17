@@ -15,11 +15,21 @@ public class RabbitSpawner : Interactable, IHideable
 	[Tooltip("Radius in grid cells that rabbits attached to this spawner will wander within")]
 	[SerializeField] private int _territoryRadius = 10;
 
+	// Constants for spawning behavior
+	private const int PERIODIC_SPAWN_INTERVAL = 10; // Turns between periodic spawns when rabbits are hiding
+	private const int MIN_GROUP_SIZE = 1; // Minimum rabbits per group
+	private const int MAX_GROUP_SIZE = 4; // Maximum rabbits per group (exclusive in Random.Range)
+	private const int HUNGER_RANDOM_MIN = -5; // Minimum hunger offset from threshold
+	private const int HUNGER_RANDOM_MAX = 15; // Maximum hunger offset from threshold
+
 	private bool _initialized;
 	private bool _hasSpawnedInitialRabbits = false;
 
 	// Track rabbits currently hiding in this spawner
 	private List<Animal> _hidingRabbits = new List<Animal>();
+	
+	// Track turns since last periodic spawn (only increments when rabbits are hiding)
+	private int _turnsSinceLastSpawn = 0;
 	
 	public int TerritoryRadius => _territoryRadius;
 
@@ -129,7 +139,7 @@ public class RabbitSpawner : Interactable, IHideable
 			while (rabbitsSpawned < totalRabbits)
 			{
 				int remainingRabbits = totalRabbits - rabbitsSpawned;
-				int groupSize = Mathf.Min(Random.Range(1, 4), remainingRabbits); // 1-3 rabbits, but not more than remaining
+				int groupSize = Mathf.Min(Random.Range(MIN_GROUP_SIZE, MAX_GROUP_SIZE + 1), remainingRabbits); // 1-3 rabbits, but not more than remaining
 				
 				// Spawn the group
 				Animal spawnedAnimal = TrySpawnRabbitGroup(groupSize);
@@ -154,6 +164,37 @@ public class RabbitSpawner : Interactable, IHideable
 
 		// Update hiding rabbits - decrement turns and bring them back after 3 turns
 		UpdateHidingRabbits();
+		
+		// Clean up null rabbits from hiding list
+		_hidingRabbits.RemoveAll(rabbit => rabbit == null);
+		
+		// Periodic spawning: spawn new groups every PERIODIC_SPAWN_INTERVAL turns if there are rabbits hiding
+		if (_hidingRabbits.Count > 0)
+		{
+			_turnsSinceLastSpawn++;
+			
+			// Spawn a new group every PERIODIC_SPAWN_INTERVAL turns
+			if (_turnsSinceLastSpawn >= PERIODIC_SPAWN_INTERVAL)
+			{
+				int groupSize = Random.Range(MIN_GROUP_SIZE, MAX_GROUP_SIZE + 1); // 1-3 rabbits
+				Animal spawnedAnimal = TrySpawnRabbitGroup(groupSize);
+				if (spawnedAnimal != null)
+				{
+					// Add the spawned animal to hiding list
+					if (!_hidingRabbits.Contains(spawnedAnimal))
+					{
+						OnAnimalEnter(spawnedAnimal);
+					}
+				}
+				
+				_turnsSinceLastSpawn = 0; // Reset counter
+			}
+		}
+		else
+		{
+			// No rabbits hiding, reset counter (don't tick)
+			_turnsSinceLastSpawn = 0;
+		}
 	}
 
 	private void UpdateHidingRabbits()
@@ -280,7 +321,7 @@ public class RabbitSpawner : Interactable, IHideable
 				rabbitAnimal.SetRabbitSpawner(this);
 				
 				// Set hunger to just below threshold so rabbit will want to hunt for food
-				spawned.SetHunger(rabbitAnimal.HungerThreshold + Random.Range(-5, 15));
+				spawned.SetHunger(rabbitAnimal.HungerThreshold + Random.Range(HUNGER_RANDOM_MIN, HUNGER_RANDOM_MAX + 1));
 			}
 
 			return spawned;

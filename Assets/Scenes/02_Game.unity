@@ -1237,12 +1237,12 @@ MonoBehaviour:
   _predatorNames:
   - Coyote
   - Hawk
-  _rabbitSpawnerCount: 2
+  _rabbitSpawnerCount: 4
   _wormSpawnerCount: 2
   _foodItemName: Worm
-  _foodItemCount: 5
+  _foodItemCount: 3
   _bushCount: 8
-  _grassCount: 15
+  _grassCount: 25
 --- !u!1 &476097330
 GameObject:
   m_ObjectHideFlags: 0
