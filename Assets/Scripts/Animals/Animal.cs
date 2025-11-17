@@ -490,6 +490,41 @@ public class Animal : MonoBehaviour
     }
 
     /// <summary>
+    /// Teleports the animal to a grid position instantly without animation.
+    /// Sets both grid position and previous grid position to the target, and immediately updates transform position.
+    /// Use this for teleporting workers to dens or other instant position changes.
+    /// </summary>
+    public virtual void TeleportToGridPosition(Vector2Int gridPosition)
+    {
+        // Stop any ongoing position lerp
+        if (_positionLerpCoroutine != null)
+        {
+            StopCoroutine(_positionLerpCoroutine);
+            _positionLerpCoroutine = null;
+        }
+
+        // Set both current and previous grid positions to avoid any "return to previous" issues
+        _gridPosition = gridPosition;
+        _previousGridPosition = gridPosition;
+        _encounteredAnimalDuringMove = false;
+
+        // Immediately update transform position without animation
+        Vector3 targetWorld;
+        if (EnvironmentManager.Instance != null)
+        {
+            targetWorld = EnvironmentManager.Instance.GridToWorldPosition(_gridPosition);
+        }
+        else
+        {
+            targetWorld = new Vector3(_gridPosition.x, _gridPosition.y, transform.position.z);
+        }
+        
+        // Preserve z coordinate
+        targetWorld.z = transform.position.z;
+        transform.position = targetWorld;
+    }
+
+    /// <summary>
     /// Updates the sprite facing direction based on horizontal movement.
     /// Flips the sprite to face left when moving left, right when moving right.
     /// Only flips the sprite, not the entire GameObject (preserves counter text orientation).

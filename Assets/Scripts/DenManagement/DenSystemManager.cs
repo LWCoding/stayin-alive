@@ -107,7 +107,11 @@ public class DenSystemManager : Singleton<DenSystemManager> {
     unassignedWorkers.Remove(animal);
     
     animal.SetHome(targetDen);
-    animal.SetGridPosition(targetDen.GridPosition);
+    
+    // Use TeleportToGridPosition instead of SetGridPosition to immediately snap the worker
+    // to the den location without animation. This prevents position sync issues when
+    // reassigning workers that may have stale position data from before being unassigned.
+    animal.TeleportToGridPosition(targetDen.GridPosition);
   
     // Make the worker visible
     animal.SetVisualVisibility(true);
