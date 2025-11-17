@@ -331,21 +331,6 @@ public class ProceduralLevelLoader : MonoBehaviour
         // Use preferred positions if available, otherwise fall back to all walkable positions
         List<Vector2Int> spawnPositions = preferredPositions.Count > 0 ? preferredPositions : walkablePositions;
         
-        // 1. Spawn controllable animal at a random walkable position
-        if (!string.IsNullOrEmpty(_controllableAnimalName) && spawnPositions.Count > 0)
-        {
-            Vector2Int controllablePos = spawnPositions[Random.Range(0, spawnPositions.Count)];
-            levelData.Animals.Add((_controllableAnimalName, controllablePos.x, controllablePos.y, _controllableAnimalCount));
-            
-            // Place den at the same position as the controllable animal
-            levelData.Dens.Add((controllablePos.x, controllablePos.y));
-            levelData.Interactables.Add(new InteractableData(InteractableType.Den, controllablePos.x, controllablePos.y));
-            
-            // Remove this position from available spawn positions to avoid overlap
-            spawnPositions.Remove(controllablePos);
-            walkablePositions.Remove(controllablePos);
-        }
-        
 		// Spawn rabbit spawners at random positions
 		if (_rabbitSpawnerCount > 0 && spawnPositions.Count > 0)
 		{
@@ -628,7 +613,83 @@ public class ProceduralLevelLoader : MonoBehaviour
             }
         }
         
-        // 3. Spawn food items randomly
+        // 3. Spawn controllable animal at a safe distance from spawners
+        if (!string.IsNullOrEmpty(_controllableAnimalName) && spawnPositions.Count > 0)
+        {
+            const int MIN_DISTANCE_FROM_SPAWNERS = 10;
+            Vector2Int controllablePos = Vector2Int.zero;
+            bool foundValidPosition = false;
+            int playerAttempts = 0;
+            int maxPlayerAttempts = spawnPositions.Count * 3;
+            
+            // Try to find a position at least 10 tiles away from all rabbit spawners and predator dens
+            while (playerAttempts < maxPlayerAttempts && spawnPositions.Count > 0)
+            {
+                int index = Random.Range(0, spawnPositions.Count);
+                Vector2Int candidatePos = spawnPositions[index];
+                playerAttempts++;
+                
+                bool tooCloseToSpawner = false;
+                
+                // Check distance to all rabbit spawners
+                foreach (var (rx, ry) in levelData.RabbitSpawners)
+                {
+                    int distance = Mathf.Abs(candidatePos.x - rx) + Mathf.Abs(candidatePos.y - ry);
+                    if (distance < MIN_DISTANCE_FROM_SPAWNERS)
+                    {
+                        tooCloseToSpawner = true;
+                        break;
+                    }
+                }
+                
+                // Check distance to all predator dens
+                if (!tooCloseToSpawner)
+                {
+                    foreach (var (px, py, _) in levelData.PredatorDens)
+                    {
+                        int distance = Mathf.Abs(candidatePos.x - px) + Mathf.Abs(candidatePos.y - py);
+                        if (distance < MIN_DISTANCE_FROM_SPAWNERS)
+                        {
+                            tooCloseToSpawner = true;
+                            break;
+                        }
+                    }
+                }
+                
+                // If position is valid (far enough from spawners), use it
+                if (!tooCloseToSpawner)
+                {
+                    controllablePos = candidatePos;
+                    foundValidPosition = true;
+                    break;
+                }
+            }
+            
+            // If we couldn't find a position with the distance requirement, just use any available position
+            if (!foundValidPosition && spawnPositions.Count > 0)
+            {
+                controllablePos = spawnPositions[Random.Range(0, spawnPositions.Count)];
+                foundValidPosition = true;
+                Debug.LogWarning($"ProceduralLevelLoader: Could not find player spawn position {MIN_DISTANCE_FROM_SPAWNERS} tiles away from spawners. Using closest available position.");
+            }
+            
+            if (foundValidPosition)
+            {
+                levelData.Animals.Add((_controllableAnimalName, controllablePos.x, controllablePos.y, _controllableAnimalCount));
+                
+                // Place den at the same position as the controllable animal
+                levelData.Dens.Add((controllablePos.x, controllablePos.y));
+                levelData.Interactables.Add(new InteractableData(InteractableType.Den, controllablePos.x, controllablePos.y));
+                
+                // Remove this position from available spawn positions to avoid overlap
+                spawnPositions.Remove(controllablePos);
+                walkablePositions.Remove(controllablePos);
+                
+                Debug.Log($"ProceduralLevelLoader: Spawned player at ({controllablePos.x}, {controllablePos.y})");
+            }
+        }
+        
+        // 4. Spawn food items randomly
         if (_foodItemCount > 0 && spawnPositions.Count > 0)
         {
             int foodSpawned = 0;
