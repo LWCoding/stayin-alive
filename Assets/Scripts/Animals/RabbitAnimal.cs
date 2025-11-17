@@ -56,6 +56,7 @@ public class RabbitAnimal : PreyAnimal
 	public void SetRabbitSpawner(RabbitSpawner spawner)
 	{
 		_rabbitSpawner = spawner;
+		SetHomeHideable(_rabbitSpawner);
 	}
 
 	private void Start()
@@ -110,6 +111,7 @@ public class RabbitAnimal : PreyAnimal
 		if (nearest != null)
 		{
 			_rabbitSpawner = nearest;
+			SetHomeHideable(_rabbitSpawner);
 			Debug.Log($"RabbitAnimal '{name}' associated with rabbit spawner at ({nearest.GridPosition.x}, {nearest.GridPosition.y})");
 		}
 	}
@@ -128,12 +130,12 @@ public class RabbitAnimal : PreyAnimal
 		bool isHungry = CurrentHunger < _hungerThreshold;
 		
 		// If we're hiding in our spawner and critically hungry, force exit immediately
-		if (CurrentHideable is RabbitSpawner)
+		if (IsHidingInHome)
 		{
 			if (isCriticallyHungry)
 			{
 				// Force exit from spawner - critical hunger takes priority over safety
-				ForceExitFromSpawner();
+				ForceRabbitExitFromHome(true);
 			}
 			else if (!isHungry)
 			{
@@ -147,7 +149,7 @@ public class RabbitAnimal : PreyAnimal
 				if (nearbyPredator == null)
 				{
 					// No predators nearby, safe to exit and look for food
-					ForceExitFromSpawner();
+					ForceRabbitExitFromHome(false);
 				}
 				else
 				{
@@ -165,24 +167,25 @@ public class RabbitAnimal : PreyAnimal
 		// If not hungry, always try to return to and stay in the spawner
 		if (!isHungry)
 		{
-			if (_rabbitSpawner != null)
+			if (HasHomeHideable)
 			{
 				// If we're at the spawner, hide in it
-				if (shouldMove && GridPosition == _rabbitSpawner.GridPosition)
+				if (shouldMove && IsAtHomeHideable)
 				{
-					TryHideInSpawner();
+					TryHideInHome();
 					return;
 				}
 				// If we're not at the spawner, move towards it
 				else if (shouldMove)
 				{
 					// Move one step towards the spawner
-					if (MoveOneStepTowards(_rabbitSpawner.GridPosition))
+					Vector2Int homePos = HomeHideable.GridPosition;
+					if (MoveOneStepTowards(homePos))
 					{
 						// Check if we reached the spawner
-						if (GridPosition == _rabbitSpawner.GridPosition)
+						if (IsAtHomeHideable)
 						{
-							TryHideInSpawner();
+							TryHideInHome();
 						}
 					}
 					return;
@@ -460,79 +463,21 @@ public class RabbitAnimal : PreyAnimal
 	}
 
 	/// <summary>
-	/// Attempts to hide in the rabbit spawner when at its position.
+	/// Logs rabbit-specific info when the base class forces us out of the spawner.
 	/// </summary>
-	private void TryHideInSpawner()
+	private void ForceRabbitExitFromHome(bool isCriticallyHungryContext)
 	{
-		if (_rabbitSpawner == null)
+		bool wasHidingInHome = IsHidingInHome;
+		ForceExitFromHome();
+
+		if (!wasHidingInHome || _rabbitSpawner == null)
 		{
 			return;
 		}
 
-		if (GridPosition == _rabbitSpawner.GridPosition)
-		{
-			_rabbitSpawner.OnAnimalEnter(this);
-		}
-	}
-
-	/// <summary>
-	/// Forces the rabbit to exit from the spawner immediately.
-	/// Used when the rabbit is hungry and needs to leave the den to find food.
-	/// </summary>
-	private void ForceExitFromSpawner()
-	{
-		if (_rabbitSpawner == null || !ReferenceEquals(CurrentHideable, _rabbitSpawner))
-		{
-			return;
-		}
-
-		// Call OnAnimalLeave to properly remove from hiding list and make visible
-		_rabbitSpawner.OnAnimalLeave(this);
-		
-		// Ensure we're visible and no longer hiding
-		SetVisualVisibility(true);
-		SetCurrentHideable(null);
-		
-		bool isCriticallyHungry = CurrentHunger < _criticalHungerThreshold;
-		string reason = isCriticallyHungry ? "critical hunger" : "hunger";
-		Debug.Log($"Rabbit '{name}' forced to exit spawner due to {reason} (hunger: {CurrentHunger} < threshold: {(isCriticallyHungry ? _criticalHungerThreshold : _hungerThreshold)})");
-	}
-
-	/// <summary>
-	/// Tries to flee to the rabbit spawner when being chased by a predator.
-	/// If we can't reach the spawner, falls back to normal fleeing behavior.
-	/// </summary>
-	private void TryFleeToSpawner(PredatorAnimal predator)
-	{
-		if (_rabbitSpawner == null)
-		{
-			FleeFromPredator(predator);
-			return;
-		}
-
-		Vector2Int spawnerPos = _rabbitSpawner.GridPosition;
-		Vector2Int myPos = GridPosition;
-
-		// If we're already at the spawner, hide in it
-		if (myPos == spawnerPos)
-		{
-			TryHideInSpawner();
-			return;
-		}
-
-		// Try to move one step towards the spawner
-		if (MoveOneStepTowards(spawnerPos))
-		{
-			// Check if we reached the spawner
-			if (GridPosition == spawnerPos)
-			{
-				TryHideInSpawner();
-			}
-			return;
-		}
-
-		// If we can't move towards the spawner, fall back to normal fleeing
-		FleeFromPredator(predator);
+		string reason = isCriticallyHungryContext ? "critical hunger" : "hunger";
+		int threshold = isCriticallyHungryContext ? _criticalHungerThreshold : _hungerThreshold;
+		Debug.Log($"Rabbit '{name}' forced to exit spawner due to {reason} (hunger: {CurrentHunger} < threshold: {threshold})");
 	}
 
 	/// <summary>

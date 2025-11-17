@@ -16,6 +16,12 @@ public class PreyAnimal : Animal
     protected Vector2Int? _wanderingDestination = null;
     private Vector2Int? _fleeDestination = null;
     private int _turnCounter = 0;
+    private IHideable _homeHideable = null;
+
+    protected bool HasHomeHideable => _homeHideable != null;
+    protected bool IsAtHomeHideable => HasHomeHideable && GridPosition == _homeHideable.GridPosition;
+    protected bool IsHidingInHome => HasHomeHideable && ReferenceEquals(CurrentHideable, _homeHideable);
+    protected IHideable HomeHideable => _homeHideable;
 
     public override void TakeTurn()
     {
@@ -495,6 +501,99 @@ public class PreyAnimal : Animal
         }
 
         return true;
+    }
+
+    /// <summary>
+    /// Assigns the hideable home this prey can use when hiding.
+    /// </summary>
+    protected void SetHomeHideable(IHideable hideable)
+    {
+        if (ReferenceEquals(_homeHideable, hideable))
+        {
+            return;
+        }
+
+        if (!ReferenceEquals(hideable, _homeHideable) && IsHidingInHome)
+        {
+            ForceExitFromHome();
+        }
+
+        _homeHideable = hideable;
+    }
+
+    /// <summary>
+    /// Attempts to hide in the assigned hideable home when on its grid position.
+    /// </summary>
+    protected bool TryHideInHome()
+    {
+        if (!HasHomeHideable)
+        {
+            return false;
+        }
+
+        if (IsHidingInHome)
+        {
+            return true;
+        }
+
+        if (!IsAtHomeHideable)
+        {
+            return false;
+        }
+
+        _homeHideable.OnAnimalEnter(this);
+        return true;
+    }
+
+    /// <summary>
+    /// Forces the prey to exit its hideable home immediately.
+    /// </summary>
+    protected void ForceExitFromHome()
+    {
+        if (!IsHidingInHome)
+        {
+            return;
+        }
+
+        _homeHideable.OnAnimalLeave(this);
+        SetVisualVisibility(true);
+        SetCurrentHideable(null);
+    }
+
+    /// <summary>
+    /// Tries to flee toward the hideable home. Falls back to normal fleeing if unreachable.
+    /// </summary>
+    protected void TryFleeToHome(PredatorAnimal predator)
+    {
+        if (predator == null)
+        {
+            return;
+        }
+
+        if (!HasHomeHideable)
+        {
+            FleeFromPredator(predator);
+            return;
+        }
+
+        Vector2Int homePos = _homeHideable.GridPosition;
+
+        if (IsAtHomeHideable)
+        {
+            TryHideInHome();
+            return;
+        }
+
+        if (MoveOneStepTowards(homePos))
+        {
+            if (IsAtHomeHideable)
+            {
+                TryHideInHome();
+            }
+            return;
+        }
+
+        FleeFromPredator(predator);
     }
 }
 
