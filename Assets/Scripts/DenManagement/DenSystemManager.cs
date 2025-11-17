@@ -141,6 +141,35 @@ public class DenSystemManager : Singleton<DenSystemManager> {
     return true;
   }
   
+  /// <summary>
+  /// Handles cleanup when a worker dies. Removes the worker from their assigned den (if any)
+  /// and from the worker tracking system.
+  /// </summary>
+  public void OnWorkerDeath(Animal animal) {
+    // Check if this animal is a tracked worker
+    if (!workersToDens.ContainsKey(animal)) {
+      return;
+    }
+    
+    int assignedDenId = workersToDens[animal];
+    
+    // If the worker was assigned to a den, remove them from that den's worker list
+    if (assignedDenId != UNASSIGNED_DEN_ID) {
+      ConstructDenInfos();
+      if (denInformations.ContainsKey(assignedDenId)) {
+        denInformations[assignedDenId].denObject.RemoveWorker(animal);
+        Debug.Log($"Worker '{animal.name}' died and was removed from den at ID {assignedDenId}.");
+      }
+    } else {
+      // Worker was unassigned, remove from unassigned list
+      unassignedWorkers.Remove(animal);
+      Debug.Log($"Unassigned worker '{animal.name}' died and was removed from unassigned list.");
+    }
+    
+    // Remove from the worker tracking dictionary
+    workersToDens.Remove(animal);
+  }
+  
   public Dictionary<int, DenInformation> GetValidTeleports => validTeleports;
   public Dictionary<int, DenInformation> DenInfos => denInformations;
   private bool panelOpen;

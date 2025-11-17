@@ -2,6 +2,7 @@ using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.Rendering;
 using UnityEngine.Rendering.Universal;
+using TMPro;
 
 /// <summary>
 /// Manages UI elements for the game, including the hunger bar for controllable animals.
@@ -19,6 +20,10 @@ public class UIManager : Singleton<UIManager>
     [Header("Build Indicator")]
     [Tooltip("Container transform that holds the build indicator UI (e.g., text saying 'Press B to build den for 1 food'). Shows only when player has enough food.")]
     [SerializeField] private Transform _buildIndicatorContainer;
+    
+    [Header("MVP Progress")]
+    [Tooltip("TextMeshProUGUI component that displays the MVP progress (assigned workers / goal).")]
+    [SerializeField] private TextMeshProUGUI _mvpProgressText;
     
     [Header("Post-Processing")]
     [Tooltip("Global post-processing volume to modify vignette based on hunger. If not assigned, will attempt to find a global volume.")]
@@ -60,6 +65,7 @@ public class UIManager : Singleton<UIManager>
     private void Update()
     {
         UpdateBuildIndicator();
+        UpdateMvpProgress();
     }
     
     /// <summary>
@@ -251,6 +257,38 @@ public class UIManager : Singleton<UIManager>
         
         // Show the build indicator only if player has enough food AND is on a valid location
         _buildIndicatorContainer.gameObject.SetActive(canAffordDen && isOnValidLocation);
+    }
+    
+    /// <summary>
+    /// Updates the MVP progress text to show the number of assigned workers vs the goal.
+    /// Format: "MVP:\n\nY/X" where Y is current assigned workers and X is the goal.
+    /// </summary>
+    private void UpdateMvpProgress()
+    {
+        if (_mvpProgressText == null)
+        {
+            return;
+        }
+        
+        // Check if DenSystemManager is available
+        if (DenSystemManager.Instance == null)
+        {
+            _mvpProgressText.text = "<size=36>MVP:</size>\n0/" + Globals.MvpWorkerGoal;
+            return;
+        }
+        
+        // Count assigned workers (workers with denId != UNASSIGNED_DEN_ID)
+        int assignedWorkerCount = 0;
+        foreach (var workerDenPair in DenSystemManager.Instance.WorkersToDens)
+        {
+            if (workerDenPair.Value != DenSystemManager.Instance.UNASSIGNED_DEN_ID)
+            {
+                assignedWorkerCount++;
+            }
+        }
+        
+        // Update the text with the formatted string
+        _mvpProgressText.text = $"<size=36>MVP:</size>\n{assignedWorkerCount}/{Globals.MvpWorkerGoal}";
     }
 }
 

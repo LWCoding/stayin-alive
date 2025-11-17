@@ -48,5 +48,10 @@ public static class Globals
     /// Used for both fleeing behavior and determining when to hide/emerge from spawners.
     /// </summary>
     public static int RabbitPredatorDetectionRadius = 7;
+
+    /// <summary>
+    /// Goal number of assigned workers required to achieve the MVP milestone.
+    /// </summary>
+    public static int MvpWorkerGoal = 20;
 }
 

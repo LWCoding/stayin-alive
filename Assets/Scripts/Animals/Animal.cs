@@ -651,6 +651,12 @@ public class Animal : MonoBehaviour
     /// </summary>
     public virtual void Die()
     {
+        // If this animal is a worker, notify the DenSystemManager to clean up
+        if (DenSystemManager.Instance != null)
+        {
+            DenSystemManager.Instance.OnWorkerDeath(this);
+        }
+        
         Destroy(gameObject);
     }
 
