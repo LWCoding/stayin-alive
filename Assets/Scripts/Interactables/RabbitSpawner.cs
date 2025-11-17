@@ -1,48 +1,39 @@
+using System.Collections.Generic;
 using UnityEngine;
 
 /// <summary>
-/// Interactable that periodically spawns rabbits on its tile.
-/// Spawn cadence is turn-based and the amount spawned varies by season.
+/// Interactable that spawns a set amount of rabbits initially and acts as a hideable den for them.
+/// Rabbits can hide in this spawner when touched or when fleeing from predators.
 /// </summary>
-public class RabbitSpawner : Interactable
+public class RabbitSpawner : Interactable, IHideable
 {
 	[Header("Spawner Settings")]
 	[Tooltip("Name of the animal to spawn. Must match an AnimalData asset.")]
 	[SerializeField] private string _rabbitAnimalName = "Rabbit";
-	[Tooltip("Number of turns between spawn attempts.")]
-	[SerializeField] private int _baseTurnsBetweenSpawns = 10;
-	[Tooltip("Baseline number of rabbits spawned each time before seasonal adjustments.")]
-	[SerializeField] private int _baseSpawnAmount = 2;
-	[Tooltip("Random variance applied to the spawn amount (0 = none, 0.25 = ±25%).")]
-	[SerializeField, Range(0f, 1f)] private float _spawnAmountVariance = 0.25f;
+	
+	[Header("Territory Settings")]
+	[Tooltip("Radius in grid cells that rabbits attached to this spawner will wander within")]
+	[SerializeField] private int _territoryRadius = 10;
 
-	[Header("Season Spawn Multipliers")]
-	[SerializeField, Tooltip("Multiplier applied to spawn count during Spring.")]
-	private float _springSpawnMultiplier = 1.5f;
-	[SerializeField, Tooltip("Multiplier applied to spawn count during Summer.")]
-	private float _summerSpawnMultiplier = 1.2f;
-	[SerializeField, Tooltip("Multiplier applied to spawn count during Fall.")]
-	private float _fallSpawnMultiplier = 0.8f;
-	[SerializeField, Tooltip("Multiplier applied to spawn count during Winter.")]
-	private float _winterSpawnMultiplier = 0.5f;
-
-	private int _turnsSinceLastSpawn;
 	private bool _initialized;
+	private bool _hasSpawnedInitialRabbits = false;
 
-	private void OnEnable()
-	{
-		SubscribeToTurnEvents();
-	}
+	// Track rabbits currently hiding in this spawner
+	private List<Animal> _hidingRabbits = new List<Animal>();
+	
+	public int TerritoryRadius => _territoryRadius;
 
 	private void Start()
 	{
 		EnsureInitializationFromWorld();
 		UpdateWorldPosition();
-	}
-
-	private void OnDisable()
-	{
-		UnsubscribeFromTurnEvents();
+		SubscribeToTurnEvents();
+		
+		// If TimeManager already fired turn 0 event before we subscribed, handle it now
+		if (TimeManager.Instance != null && TimeManager.Instance.PlayerTurnCount == 0 && !_hasSpawnedInitialRabbits)
+		{
+			HandleTurnAdvanced(0);
+		}
 	}
 
 	private void OnDestroy()
@@ -61,7 +52,6 @@ public class RabbitSpawner : Interactable
 	public override void Initialize(Vector2Int gridPosition)
 	{
 		_gridPosition = gridPosition;
-		_turnsSinceLastSpawn = 0;
 		_initialized = true;
 
 		UpdateWorldPosition();
@@ -101,7 +91,6 @@ public class RabbitSpawner : Interactable
 			_gridPosition = new Vector2Int(Mathf.RoundToInt(pos.x), Mathf.RoundToInt(pos.y));
 		}
 
-		_turnsSinceLastSpawn = 0;
 		_initialized = true;
 	}
 
@@ -125,68 +114,179 @@ public class RabbitSpawner : Interactable
 
 	private void HandleTurnAdvanced(int currentTurn)
 	{
-		if (!_initialized || _baseTurnsBetweenSpawns <= 0)
+		if (!_initialized)
 		{
 			return;
 		}
 
-		// Reset on fresh level start
-		if (currentTurn == 0)
+		// Spawn all rabbits at once on turn 0 in groups of 1-3 and add them to hiding list
+		if (currentTurn == 0 && !_hasSpawnedInitialRabbits)
 		{
-			_turnsSinceLastSpawn = 0;
+			int totalRabbits = Random.Range(Globals.RabbitSpawnMinCount, Globals.RabbitSpawnMaxCount + 1);
+			int rabbitsSpawned = 0;
+			
+			// Spawn rabbits in groups of 1-3 until all are spawned
+			while (rabbitsSpawned < totalRabbits)
+			{
+				int remainingRabbits = totalRabbits - rabbitsSpawned;
+				int groupSize = Mathf.Min(Random.Range(1, 4), remainingRabbits); // 1-3 rabbits, but not more than remaining
+				
+				// Spawn the group
+				Animal spawnedAnimal = TrySpawnRabbitGroup(groupSize);
+				if (spawnedAnimal != null)
+				{
+					rabbitsSpawned += groupSize;
+					// Add the spawned animal to hiding list (only once per group, even if count > 1)
+					if (!_hidingRabbits.Contains(spawnedAnimal))
+					{
+						OnAnimalEnter(spawnedAnimal);
+					}
+				}
+				else
+				{
+					// If spawning failed, break to avoid infinite loop
+					break;
+				}
+			}
+			
+			_hasSpawnedInitialRabbits = true;
+		}
+
+		// Update hiding rabbits - decrement turns and bring them back after 3 turns
+		UpdateHidingRabbits();
+	}
+
+	private void UpdateHidingRabbits()
+	{
+		// Check if there are any nearby predators (within safe distance)
+		bool hasNearbyPredators = HasNearbyPredators();
+
+		// If there are nearby predators, keep all rabbits hiding
+		if (hasNearbyPredators)
+		{
 			return;
 		}
 
-		_turnsSinceLastSpawn++;
+		// Only let hungry rabbits leave the den - fed rabbits should stay
+		// Create a list to avoid modifying during enumeration
+		List<Animal> rabbitsToRemove = new List<Animal>();
 
-		if (_turnsSinceLastSpawn < _baseTurnsBetweenSpawns)
+		foreach (Animal rabbit in _hidingRabbits)
 		{
-			return;
+			if (rabbit == null)
+			{
+				// Rabbit was destroyed, remove it
+				rabbitsToRemove.Add(rabbit);
+				continue;
+			}
+
+			// Only let hungry rabbits leave - fed rabbits stay in the den
+			RabbitAnimal rabbitAnimal = rabbit as RabbitAnimal;
+			if (rabbitAnimal != null && !rabbitAnimal.IsHungry)
+			{
+				// Fed rabbit - keep it in the den
+				continue;
+			}
+
+			// Try to move the hungry rabbit towards its intended destination
+			// If successful, remove from hiding list
+			if (TryMoveRabbitTowardsDestination(rabbit))
+			{
+				rabbitsToRemove.Add(rabbit);
+			}
+			// If move failed, keep rabbit in den (will try again next turn)
 		}
 
-		int spawnAmount = CalculateSpawnAmount();
-		if (spawnAmount <= 0)
+		// Remove rabbits that successfully left
+		foreach (Animal rabbit in rabbitsToRemove)
 		{
-			_turnsSinceLastSpawn = 0;
-			return;
-		}
-
-		if (TrySpawnRabbits(spawnAmount))
-		{
-			_turnsSinceLastSpawn = 0;
+			OnAnimalLeave(rabbit);
 		}
 	}
 
-	private int CalculateSpawnAmount()
+	/// <summary>
+	/// Checks if there are any predators within RabbitPredatorDetectionRadius of this spawner.
+	/// </summary>
+	private bool HasNearbyPredators()
 	{
-		float multiplier = GetSeasonMultiplier();
-		float variance = Mathf.Clamp01(_spawnAmountVariance);
-		float randomFactor = variance > 0f ? Random.Range(1f - variance, 1f + variance) : 1f;
+		if (AnimalManager.Instance == null)
+		{
+			return false;
+		}
 
-		int amount = Mathf.RoundToInt(_baseSpawnAmount * multiplier * randomFactor);
-		return Mathf.Max(1, amount);
+		List<Animal> animals = AnimalManager.Instance.GetAllAnimals();
+		Vector2Int spawnerPos = _gridPosition;
+		int detectionRadius = Globals.RabbitPredatorDetectionRadius;
+
+		for (int i = 0; i < animals.Count; i++)
+		{
+			Animal animal = animals[i];
+			if (animal == null)
+			{
+				continue;
+			}
+
+			// Only consider predators
+			if (!(animal is PredatorAnimal))
+			{
+				continue;
+			}
+
+			Vector2Int predatorPos = animal.GridPosition;
+			int distance = Mathf.Abs(predatorPos.x - spawnerPos.x) + Mathf.Abs(predatorPos.y - spawnerPos.y); // Manhattan distance
+
+			// If any predator is within detection radius, return true
+			if (distance <= detectionRadius)
+			{
+				return true;
+			}
+		}
+
+		return false;
 	}
 
-	private float GetSeasonMultiplier()
+	/// <summary>
+	/// Spawns a group of rabbits (1-3) at the spawner position and returns the spawned Animal, or null if spawning failed.
+	/// Creates a separate Animal instance for each group, allowing multiple Animal instances at the same position.
+	/// </summary>
+	private Animal TrySpawnRabbitGroup(int groupSize)
 	{
-		if (TimeManager.Instance == null)
+		if (AnimalManager.Instance == null)
 		{
-			return 1f;
+			Debug.LogWarning("RabbitSpawner: AnimalManager instance not found. Cannot spawn rabbits.");
+			return null;
 		}
 
-		switch (TimeManager.Instance.CurrentSeason)
+		if (EnvironmentManager.Instance == null)
 		{
-			case TimeManager.Season.Spring:
-				return _springSpawnMultiplier;
-			case TimeManager.Season.Summer:
-				return _summerSpawnMultiplier;
-			case TimeManager.Season.Fall:
-				return _fallSpawnMultiplier;
-			case TimeManager.Season.Winter:
-				return _winterSpawnMultiplier;
-			default:
-				return 1f;
+			Debug.LogWarning("RabbitSpawner: EnvironmentManager instance not found. Cannot spawn rabbits.");
+			return null;
 		}
+
+		if (!EnvironmentManager.Instance.IsValidPosition(_gridPosition) || !EnvironmentManager.Instance.IsWalkable(_gridPosition))
+		{
+			Debug.LogWarning($"RabbitSpawner: Grid position {_gridPosition} is not valid or walkable for spawning.");
+			return null;
+		}
+
+		// Spawn a new Animal instance at the spawner position (allows multiple instances at same position)
+		Animal spawned = AnimalManager.Instance.SpawnAnimal(_rabbitAnimalName, _gridPosition, groupSize);
+		if (spawned != null)
+		{
+			// Assign this spawner to the rabbit
+			RabbitAnimal rabbitAnimal = spawned as RabbitAnimal;
+			if (rabbitAnimal != null)
+			{
+				rabbitAnimal.SetRabbitSpawner(this);
+				
+				// Set hunger to just below threshold so rabbit will want to hunt for food
+				spawned.SetHunger(rabbitAnimal.HungerThreshold + Random.Range(-5, 15));
+			}
+
+			return spawned;
+		}
+
+		return null;
 	}
 
 	private bool TrySpawnRabbits(int amount)
@@ -227,6 +327,13 @@ public class RabbitSpawner : Interactable
 		Animal spawned = AnimalManager.Instance.SpawnAnimal(_rabbitAnimalName, _gridPosition, amount);
 		if (spawned != null)
 		{
+			// Assign this spawner to the rabbit
+			RabbitAnimal rabbitAnimal = spawned as RabbitAnimal;
+			if (rabbitAnimal != null)
+			{
+				rabbitAnimal.SetRabbitSpawner(this);
+			}
+
 			Debug.Log($"RabbitSpawner: Spawned {amount} rabbits at ({_gridPosition.x}, {_gridPosition.y}).");
 			return true;
 		}
@@ -240,13 +347,327 @@ public class RabbitSpawner : Interactable
 		for (int i = 0; i < rabbits.Count; i++)
 		{
 			Animal rabbit = rabbits[i];
-			if (rabbit != null && rabbit.GridPosition == _gridPosition)
+			if (rabbit != null && rabbit.GridPosition == _gridPosition && !_hidingRabbits.Contains(rabbit))
 			{
 				return rabbit;
 			}
 		}
 
 		return null;
+	}
+
+	#region IHideable Implementation
+
+	/// <summary>
+	/// IHideable implementation: Called when a rabbit enters this spawner to hide.
+	/// </summary>
+	public void OnAnimalEnter(Animal animal)
+	{
+		if (animal == null)
+		{
+			return;
+		}
+
+		// Only allow rabbits to hide here
+		if (!(animal is RabbitAnimal))
+		{
+			return;
+		}
+
+		// Check if this rabbit belongs to this spawner
+		RabbitAnimal rabbit = animal as RabbitAnimal;
+		if (rabbit != null && rabbit.RabbitSpawner != this)
+		{
+			return;
+		}
+
+		// Add rabbit to hiding list (only if not already in it)
+		if (!_hidingRabbits.Contains(animal))
+		{
+			_hidingRabbits.Add(animal);
+		}
+		animal.SetCurrentHideable(this);
+		animal.SetVisualVisibility(false);
+
+		Debug.Log($"Rabbit '{animal.name}' entered rabbit spawner at ({_gridPosition.x}, {_gridPosition.y}).");
+	}
+
+	/// <summary>
+	/// IHideable implementation: Called when a rabbit leaves this spawner.
+	/// </summary>
+	public void OnAnimalLeave(Animal animal)
+	{
+		if (animal == null)
+		{
+			return;
+		}
+
+		if (_hidingRabbits.Remove(animal))
+		{
+			Debug.Log($"Rabbit '{animal.name}' left rabbit spawner at ({_gridPosition.x}, {_gridPosition.y}).");
+
+			// Clear the hideable reference if this animal is leaving this spawner
+			if (animal != null && ReferenceEquals(animal.CurrentHideable, this))
+			{
+				animal.SetCurrentHideable(null);
+			}
+
+			// Make animal visible again if they're not entering another hideable location
+			if (animal != null && animal.CurrentHideable == null)
+			{
+				animal.SetVisualVisibility(true);
+			}
+		}
+	}
+
+	/// <summary>
+	/// Tries to move the rabbit towards its intended destination (food or wandering).
+	/// Returns true if the rabbit successfully moved, false otherwise.
+	/// </summary>
+	private bool TryMoveRabbitTowardsDestination(Animal rabbit)
+	{
+		if (rabbit == null || EnvironmentManager.Instance == null)
+		{
+			return false;
+		}
+
+		// Get the rabbit's intended destination
+		RabbitAnimal rabbitAnimal = rabbit as RabbitAnimal;
+		if (rabbitAnimal == null)
+		{
+			return false;
+		}
+
+		Vector2Int? destination = rabbitAnimal.GetIntendedDestination();
+		if (!destination.HasValue)
+		{
+			// No destination set, can't move
+			return false;
+		}
+
+		Vector2Int currentPos = rabbit.GridPosition;
+		Vector2Int targetPos = destination.Value;
+
+		// Calculate direction towards destination
+		Vector2Int direction = targetPos - currentPos;
+
+		// Normalize to get one step towards destination
+		Vector2Int oneStepDirection = Vector2Int.zero;
+		if (direction.x != 0 || direction.y != 0)
+		{
+			// Move one step in the direction of the destination
+			if (Mathf.Abs(direction.x) > Mathf.Abs(direction.y))
+			{
+				// Move horizontally first
+				oneStepDirection = new Vector2Int(direction.x > 0 ? 1 : -1, 0);
+			}
+			else if (direction.y != 0)
+			{
+				// Move vertically
+				oneStepDirection = new Vector2Int(0, direction.y > 0 ? 1 : -1);
+			}
+		}
+
+		// If already at spawner position, we need to move away from it
+		if (currentPos == _gridPosition && oneStepDirection == Vector2Int.zero)
+		{
+			// Try to move in the direction of the destination anyway
+			if (direction.x != 0 || direction.y != 0)
+			{
+				if (Mathf.Abs(direction.x) >= Mathf.Abs(direction.y))
+				{
+					oneStepDirection = new Vector2Int(direction.x > 0 ? 1 : -1, 0);
+				}
+				else
+				{
+					oneStepDirection = new Vector2Int(0, direction.y > 0 ? 1 : -1);
+				}
+			}
+		}
+
+		// If still no direction, try any adjacent position
+		if (oneStepDirection == Vector2Int.zero)
+		{
+			Vector2Int[] directions = { Vector2Int.up, Vector2Int.down, Vector2Int.left, Vector2Int.right };
+			foreach (Vector2Int dir in directions)
+			{
+				Vector2Int testPos = currentPos + dir;
+				if (IsValidMovePosition(rabbit, testPos))
+				{
+					rabbit.SetGridPosition(testPos);
+					return true;
+				}
+			}
+			return false;
+		}
+
+		Vector2Int nextPos = currentPos + oneStepDirection;
+
+		// Check if this position is valid for moving
+		if (IsValidMovePosition(rabbit, nextPos))
+		{
+			rabbit.SetGridPosition(nextPos);
+			return true;
+		}
+
+		// If primary direction failed, try perpendicular directions
+		if (oneStepDirection.x != 0)
+		{
+			// Try up and down
+			if (IsValidMovePosition(rabbit, currentPos + Vector2Int.up))
+			{
+				rabbit.SetGridPosition(currentPos + Vector2Int.up);
+				return true;
+			}
+			if (IsValidMovePosition(rabbit, currentPos + Vector2Int.down))
+			{
+				rabbit.SetGridPosition(currentPos + Vector2Int.down);
+				return true;
+			}
+		}
+		else if (oneStepDirection.y != 0)
+		{
+			// Try left and right
+			if (IsValidMovePosition(rabbit, currentPos + Vector2Int.left))
+			{
+				rabbit.SetGridPosition(currentPos + Vector2Int.left);
+				return true;
+			}
+			if (IsValidMovePosition(rabbit, currentPos + Vector2Int.right))
+			{
+				rabbit.SetGridPosition(currentPos + Vector2Int.right);
+				return true;
+			}
+		}
+
+		// Could not move in any direction
+		return false;
+	}
+
+	/// <summary>
+	/// Checks if a position is valid for the rabbit to move to.
+	/// </summary>
+	private bool IsValidMovePosition(Animal rabbit, Vector2Int targetPos)
+	{
+		if (rabbit == null || EnvironmentManager.Instance == null)
+		{
+			return false;
+		}
+
+		// Check if the target position is valid and walkable
+		if (!EnvironmentManager.Instance.IsValidPosition(targetPos))
+		{
+			return false;
+		}
+
+		if (!EnvironmentManager.Instance.IsWalkable(targetPos))
+		{
+			return false;
+		}
+
+		// Check if the target position is water and if this rabbit can go on water
+		TileType tileType = EnvironmentManager.Instance.GetTileType(targetPos);
+		if (tileType == TileType.Water && !rabbit.CanGoOnWater)
+		{
+			return false;
+		}
+
+		// Check if there's another animal at this position
+		if (AnimalManager.Instance != null && AnimalManager.Instance.HasOtherAnimalAtPosition(rabbit, targetPos))
+		{
+			return false;
+		}
+
+		return true;
+	}
+
+	/// <summary>
+	/// IHideable implementation: Checks if a rabbit is currently hiding in this spawner.
+	/// </summary>
+	public bool IsAnimalInHideable(Animal animal)
+	{
+		return animal != null && _hidingRabbits.Contains(animal);
+	}
+
+	#endregion
+
+	/// <summary>
+	/// Gets a random position within the territory radius of this spawner.
+	/// </summary>
+	/// <returns>A random walkable position within territory, or null if none found</returns>
+	public Vector2Int? GetRandomPositionInTerritory()
+	{
+		if (EnvironmentManager.Instance == null)
+		{
+			return null;
+		}
+		
+		Vector2Int gridSize = EnvironmentManager.Instance.GetGridSize();
+		
+		// Try to find a random position within territory
+		int maxAttempts = 50;
+		for (int attempts = 0; attempts < maxAttempts; attempts++)
+		{
+			// Pick a random direction and distance within radius
+			int distance = Random.Range(0, _territoryRadius + 1);
+			int angle = Random.Range(0, 360);
+			
+			// Convert angle to direction
+			float radians = angle * Mathf.Deg2Rad;
+			int dx = Mathf.RoundToInt(Mathf.Cos(radians) * distance);
+			int dy = Mathf.RoundToInt(Mathf.Sin(radians) * distance);
+			
+			Vector2Int targetPos = _gridPosition + new Vector2Int(dx, dy);
+			
+			// Clamp to grid bounds
+			targetPos.x = Mathf.Clamp(targetPos.x, 0, gridSize.x - 1);
+			targetPos.y = Mathf.Clamp(targetPos.y, 0, gridSize.y - 1);
+			
+			// Check if this position is valid and walkable
+			if (EnvironmentManager.Instance.IsValidPosition(targetPos) && 
+				EnvironmentManager.Instance.IsWalkable(targetPos))
+			{
+				return targetPos;
+			}
+		}
+		
+		// If we couldn't find a good position, try completely random positions within radius
+		for (int attempts = 0; attempts < 30; attempts++)
+		{
+			int dx = Random.Range(-_territoryRadius, _territoryRadius + 1);
+			int dy = Random.Range(-_territoryRadius, _territoryRadius + 1);
+			
+			Vector2Int targetPos = _gridPosition + new Vector2Int(dx, dy);
+			
+			// Clamp to grid bounds
+			targetPos.x = Mathf.Clamp(targetPos.x, 0, gridSize.x - 1);
+			targetPos.y = Mathf.Clamp(targetPos.y, 0, gridSize.y - 1);
+			
+			// Check distance is within radius (Manhattan distance)
+			int manhattanDistance = Mathf.Abs(targetPos.x - _gridPosition.x) + Mathf.Abs(targetPos.y - _gridPosition.y);
+			if (manhattanDistance > _territoryRadius)
+			{
+				continue;
+			}
+			
+			if (EnvironmentManager.Instance.IsValidPosition(targetPos) && 
+				EnvironmentManager.Instance.IsWalkable(targetPos))
+			{
+				return targetPos;
+			}
+		}
+		
+		// If all attempts failed, return null (will try again next turn)
+		return null;
+	}
+	
+	/// <summary>
+	/// Checks if a position is within the territory radius of this spawner.
+	/// </summary>
+	public bool IsPositionInTerritory(Vector2Int position)
+	{
+		int manhattanDistance = Mathf.Abs(position.x - _gridPosition.x) + Mathf.Abs(position.y - _gridPosition.y);
+		return manhattanDistance <= _territoryRadius;
 	}
 }
 

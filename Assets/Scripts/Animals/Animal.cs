@@ -346,6 +346,14 @@ public class Animal : MonoBehaviour
         _currentHunger = Mathf.Min(_currentHunger + amount, _maxHunger);
     }
 
+    /// <summary>
+    /// Sets the current hunger to the specified value, clamped between 0 and max hunger.
+    /// </summary>
+    public virtual void SetHunger(int hunger)
+    {
+        _currentHunger = Mathf.Clamp(hunger, 0, _maxHunger);
+    }
+
     private void Awake()
     {
         _spriteRenderer = GetComponent<SpriteRenderer>();

@@ -17,6 +17,87 @@ public class RabbitAnimal : PreyAnimal
 
 	private Vector2Int? _foodDestination = null;
 	private int _rabbitTurnCounter = 0;
+	private RabbitSpawner _rabbitSpawner = null;
+
+	/// <summary>
+	/// Gets the rabbit spawner this rabbit belongs to.
+	/// </summary>
+	public RabbitSpawner RabbitSpawner => _rabbitSpawner;
+
+	/// <summary>
+	/// Gets whether this rabbit is hungry (hunger below threshold).
+	/// </summary>
+	public bool IsHungry => CurrentHunger < _hungerThreshold;
+
+	/// <summary>
+	/// Gets the hunger threshold below which the rabbit will seek food.
+	/// </summary>
+	public int HungerThreshold => _hungerThreshold;
+
+	/// <summary>
+	/// Sets the rabbit spawner this rabbit belongs to.
+	/// Used when spawning rabbits near specific spawners.
+	/// </summary>
+	public void SetRabbitSpawner(RabbitSpawner spawner)
+	{
+		_rabbitSpawner = spawner;
+	}
+
+	private void Start()
+	{
+		// Find the nearest rabbit spawner to this rabbit's spawn position
+		FindNearestRabbitSpawner();
+	}
+
+	/// <summary>
+	/// Finds the nearest rabbit spawner to this rabbit and associates with it.
+	/// </summary>
+	private void FindNearestRabbitSpawner()
+	{
+		if (InteractableManager.Instance == null)
+		{
+			return;
+		}
+
+		// Skip if already linked to a spawner
+		if (_rabbitSpawner != null)
+		{
+			return;
+		}
+
+		List<RabbitSpawner> allSpawners = InteractableManager.Instance.RabbitSpawners;
+		if (allSpawners == null || allSpawners.Count == 0)
+		{
+			return;
+		}
+
+		Vector2Int myPos = GridPosition;
+		RabbitSpawner nearest = null;
+		int bestDistance = int.MaxValue;
+
+		foreach (RabbitSpawner spawner in allSpawners)
+		{
+			if (spawner == null)
+			{
+				continue;
+			}
+
+			Vector2Int spawnerPos = spawner.GridPosition;
+			int distance = Mathf.Abs(spawnerPos.x - myPos.x) + Mathf.Abs(spawnerPos.y - myPos.y);
+
+			if (distance < bestDistance)
+			{
+				bestDistance = distance;
+				nearest = spawner;
+			}
+		}
+
+		if (nearest != null)
+		{
+			_rabbitSpawner = nearest;
+			Debug.Log($"RabbitAnimal '{name}' associated with rabbit spawner at ({nearest.GridPosition.x}, {nearest.GridPosition.y})");
+		}
+	}
 
 	/// <summary>
 	/// Override TakeTurn to add food-seeking behavior when hungry.
@@ -27,27 +108,61 @@ public class RabbitAnimal : PreyAnimal
 		// Decrease hunger each turn (same as base Animal.TakeTurn)
 		DecreaseHunger(1);
 		
+		// Check hunger BEFORE checking if hiding - if hungry, force exit from den
+		bool isHungry = CurrentHunger < _hungerThreshold;
+		
+		// If we're hiding in our spawner and hungry, force exit immediately
+		if (CurrentHideable is RabbitSpawner)
+		{
+			if (isHungry)
+			{
+				// Force exit from spawner - hunger takes priority over safety
+				ForceExitFromSpawner();
+			}
+			else
+			{
+				// Not hungry, stay hidden in den
+				return;
+			}
+		}
+		
 		_rabbitTurnCounter++;
 		
 		// Only move every other turn (on even turns: 2, 4, 6, etc.) - same as base PreyAnimal
 		bool shouldMove = (_rabbitTurnCounter % 2 == 0);
 		
-		// First priority: Check for predators (fleeing takes precedence over food)
-		PredatorAnimal nearestPredator = FindNearestPredator();
-		
-		if (nearestPredator != null)
+		// If not hungry, always try to return to and stay in the spawner
+		if (!isHungry)
 		{
-			// If we detect a predator, cancel food seeking and flee (only if it's a move turn)
-			if (shouldMove)
+			if (_rabbitSpawner != null)
 			{
-				_foodDestination = null;
-				FleeFromPredator(nearestPredator);
+				// If we're at the spawner, hide in it
+				if (shouldMove && GridPosition == _rabbitSpawner.GridPosition)
+				{
+					TryHideInSpawner();
+					return;
+				}
+				// If we're not at the spawner, move towards it
+				else if (shouldMove)
+				{
+					// Move one step towards the spawner
+					if (MoveOneStepTowards(_rabbitSpawner.GridPosition))
+					{
+						// Check if we reached the spawner
+						if (GridPosition == _rabbitSpawner.GridPosition)
+						{
+							TryHideInSpawner();
+						}
+					}
+					return;
+				}
 			}
+			// If no spawner assigned, just stay put (shouldn't happen, but safety check)
 			return;
 		}
 		
-		// Second priority: If hungry, seek food
-		if (CurrentHunger < _hungerThreshold)
+		// If hungry, prioritize food over predator avoidance
+		if (isHungry)
 		{
 			// Try to find and move towards fully grown grass
 			Vector2Int? nearestGrass = FindNearestFullyGrownGrass();
@@ -64,7 +179,7 @@ public class RabbitAnimal : PreyAnimal
 				}
 				else if (shouldMove)
 				{
-					// Move towards the grass
+					// Move towards the grass (even if predators are nearby)
 					if (!MoveOneStepTowards(nearestGrass.Value))
 					{
 						// If move failed, try to find a new grass destination
@@ -83,16 +198,10 @@ public class RabbitAnimal : PreyAnimal
 			}
 			else
 			{
-				// No grass found, fall back to wandering
+				// No grass found, fall back to wandering (still prioritize food search)
 				_foodDestination = null;
 				WanderIfShouldMove(shouldMove);
 			}
-		}
-		else
-		{
-			// Not hungry, wander normally
-			_foodDestination = null;
-			WanderIfShouldMove(shouldMove);
 		}
 	}
 	
@@ -135,6 +244,30 @@ public class RabbitAnimal : PreyAnimal
 				}
 			}
 		}
+	}
+
+	/// <summary>
+	/// Override to choose wandering destinations within the spawner's territory.
+	/// Similar to how predators wander around their den.
+	/// </summary>
+	protected override Vector2Int? ChooseWanderingDestination()
+	{
+		// If we have a spawner, wander within its territory
+		if (_rabbitSpawner != null && EnvironmentManager.Instance != null)
+		{
+			// Try multiple times to get a valid territory position that accounts for water walkability
+			for (int attempts = 0; attempts < 10; attempts++)
+			{
+				Vector2Int? territoryPos = _rabbitSpawner.GetRandomPositionInTerritory();
+				if (territoryPos.HasValue && IsTileTraversable(territoryPos.Value))
+				{
+					return territoryPos.Value;
+				}
+			}
+		}
+		
+		// Fallback: use base class wandering behavior if no spawner is assigned or no valid territory position found
+		return base.ChooseWanderingDestination();
 	}
 	
 	/// <summary>
@@ -280,6 +413,100 @@ public class RabbitAnimal : PreyAnimal
 	}
 
 	/// <summary>
+	/// Attempts to hide in the rabbit spawner when at its position.
+	/// </summary>
+	private void TryHideInSpawner()
+	{
+		if (_rabbitSpawner == null)
+		{
+			return;
+		}
+
+		if (GridPosition == _rabbitSpawner.GridPosition)
+		{
+			_rabbitSpawner.OnAnimalEnter(this);
+		}
+	}
+
+	/// <summary>
+	/// Forces the rabbit to exit from the spawner immediately.
+	/// Used when the rabbit is hungry and needs to leave the den to find food.
+	/// </summary>
+	private void ForceExitFromSpawner()
+	{
+		if (_rabbitSpawner == null || CurrentHideable != _rabbitSpawner)
+		{
+			return;
+		}
+
+		// Call OnAnimalLeave to properly remove from hiding list and make visible
+		_rabbitSpawner.OnAnimalLeave(this);
+		
+		// Ensure we're visible and no longer hiding
+		SetVisualVisibility(true);
+		SetCurrentHideable(null);
+		
+		Debug.Log($"Rabbit '{name}' forced to exit spawner due to hunger (hunger: {CurrentHunger} < threshold: {_hungerThreshold})");
+	}
+
+	/// <summary>
+	/// Tries to flee to the rabbit spawner when being chased by a predator.
+	/// If we can't reach the spawner, falls back to normal fleeing behavior.
+	/// </summary>
+	private void TryFleeToSpawner(PredatorAnimal predator)
+	{
+		if (_rabbitSpawner == null)
+		{
+			FleeFromPredator(predator);
+			return;
+		}
+
+		Vector2Int spawnerPos = _rabbitSpawner.GridPosition;
+		Vector2Int myPos = GridPosition;
+
+		// If we're already at the spawner, hide in it
+		if (myPos == spawnerPos)
+		{
+			TryHideInSpawner();
+			return;
+		}
+
+		// Try to move one step towards the spawner
+		if (MoveOneStepTowards(spawnerPos))
+		{
+			// Check if we reached the spawner
+			if (GridPosition == spawnerPos)
+			{
+				TryHideInSpawner();
+			}
+			return;
+		}
+
+		// If we can't move towards the spawner, fall back to normal fleeing
+		FleeFromPredator(predator);
+	}
+
+	/// <summary>
+	/// Gets the rabbit's intended destination (food or wandering).
+	/// Returns null if no destination is set.
+	/// </summary>
+	public Vector2Int? GetIntendedDestination()
+	{
+		// Prioritize food destination over wandering destination
+		if (_foodDestination.HasValue)
+		{
+			return _foodDestination.Value;
+		}
+		
+		if (_wanderingDestination.HasValue)
+		{
+			return _wanderingDestination.Value;
+		}
+		
+		return null;
+	}
+
+	/// <summary>
 	/// Draws gizmos when the object is selected in the editor.
 	/// Shows food destination and wandering destination.
 	/// </summary>
@@ -313,6 +540,15 @@ public class RabbitAnimal : PreyAnimal
 			// Draw food destination point
 			Gizmos.color = Color.green;
 			Gizmos.DrawWireSphere(foodWorldPos, 0.25f);
+		}
+
+		// Draw line to rabbit spawner if we have one
+		if (_rabbitSpawner != null)
+		{
+			Vector3 spawnerWorldPos = EnvironmentManager.Instance.GridToWorldPosition(_rabbitSpawner.GridPosition);
+			Gizmos.color = Color.yellow; // Yellow for spawner
+			Gizmos.DrawLine(currentWorldPos, spawnerWorldPos);
+			Gizmos.DrawWireSphere(spawnerWorldPos, 0.2f);
 		}
 	}
 }

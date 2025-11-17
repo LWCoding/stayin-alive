@@ -59,12 +59,6 @@ public class ProceduralLevelLoader : MonoBehaviour
     
     [Tooltip("Names of predator animals (e.g., 'Wolf', 'Hawk')")]
     [SerializeField] private string[] _predatorNames = new string[] { "Wolf", "Hawk" };
-    
-    [Tooltip("Number of rabbits to spawn")]
-    [SerializeField] private int _rabbitCount = 8;
-    
-    [Tooltip("Number of rabbits per group")]
-    [SerializeField] private int _rabbitsPerGroup = 2;
 
 	[Tooltip("Number of rabbit spawner interactables to spawn")]
 	[SerializeField] private int _rabbitSpawnerCount = 2;
@@ -634,28 +628,7 @@ public class ProceduralLevelLoader : MonoBehaviour
             }
         }
         
-        // 3. Spawn rabbits randomly throughout the world
-        if (_rabbitCount > 0 && spawnPositions.Count > 0)
-        {
-            int rabbitsSpawned = 0;
-            int attempts = 0;
-            int maxAttempts = spawnPositions.Count * 2;
-            
-            while (rabbitsSpawned < _rabbitCount && spawnPositions.Count > 0 && attempts < maxAttempts)
-            {
-                attempts++;
-                Vector2Int rabbitPos = spawnPositions[Random.Range(0, spawnPositions.Count)];
-                
-                // Spawn a group of rabbits at this position
-                levelData.Animals.Add(("Rabbit", rabbitPos.x, rabbitPos.y, _rabbitsPerGroup));
-                rabbitsSpawned += _rabbitsPerGroup;
-                
-                // Remove from available positions
-                spawnPositions.Remove(rabbitPos);
-            }
-        }
-        
-        // 4. Spawn food items randomly
+        // 3. Spawn food items randomly
         if (_foodItemCount > 0 && spawnPositions.Count > 0)
         {
             int foodSpawned = 0;

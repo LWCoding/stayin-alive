@@ -74,7 +74,7 @@ public class PreyAnimal : Animal
     /// <summary>
     /// Finds the nearest predator within detection radius.
     /// </summary>
-    protected PredatorAnimal FindNearestPredator()
+    protected virtual PredatorAnimal FindNearestPredator()
     {
         if (AnimalManager.Instance == null)
         {
@@ -368,7 +368,7 @@ public class PreyAnimal : Animal
     /// <summary>
     /// Chooses a random wandering destination.
     /// </summary>
-    protected Vector2Int? ChooseWanderingDestination()
+    protected virtual Vector2Int? ChooseWanderingDestination()
     {
         if (EnvironmentManager.Instance == null)
         {
@@ -468,7 +468,7 @@ public class PreyAnimal : Animal
     /// <summary>
     /// Determines if a tile can be traversed by this prey, factoring in water walkability.
     /// </summary>
-    private bool IsTileTraversable(Vector2Int position)
+    protected bool IsTileTraversable(Vector2Int position)
     {
         if (EnvironmentManager.Instance == null)
         {

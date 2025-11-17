@@ -32,5 +32,21 @@ public static class Globals
     /// Radius in grid cells for fog of war visibility around controllable animals.
     /// </summary>
     public static int FogOfWarRadius = 5;
+
+    /// <summary>
+    /// Minimum number of rabbits to spawn initially at a rabbit spawner.
+    /// </summary>
+    public static int RabbitSpawnMinCount = 3;
+
+    /// <summary>
+    /// Maximum number of rabbits to spawn initially at a rabbit spawner.
+    /// </summary>
+    public static int RabbitSpawnMaxCount = 6;
+
+    /// <summary>
+    /// Radius in grid cells for rabbits to detect predators.
+    /// Used for both fleeing behavior and determining when to hide/emerge from spawners.
+    /// </summary>
+    public static int RabbitPredatorDetectionRadius = 7;
 }
 

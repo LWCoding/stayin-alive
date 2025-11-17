@@ -456,6 +456,12 @@ public class PredatorAnimal : Animal
                 continue;
             }
 
+            // Skip animals that are currently hiding (e.g., rabbits in their spawner)
+            if (other.CurrentHideable != null)
+            {
+                continue;
+            }
+
             // Check if this animal is a valid target based on priority
             if (!IsValidTarget(other))
             {
@@ -662,6 +668,12 @@ public class PredatorAnimal : Animal
             {
                 // Skip controllable animals that are in a den or bush (they are safe)
                 if (other.IsControllable && (Den.IsControllableAnimalInDen(other) || Bush.IsControllableAnimalInBush(other)))
+                {
+                    continue;
+                }
+
+                // Skip animals that are currently hiding (e.g., rabbits in their spawner)
+                if (other.CurrentHideable != null)
                 {
                     continue;
                 }
