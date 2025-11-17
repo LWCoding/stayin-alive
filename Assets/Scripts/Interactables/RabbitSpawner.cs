@@ -15,6 +15,13 @@ public class RabbitSpawner : Interactable, IHideable
 	[Tooltip("Radius in grid cells that rabbits attached to this spawner will wander within")]
 	[SerializeField] private int _territoryRadius = 10;
 
+	[Header("Visual Settings")]
+	[Tooltip("Sprite to display when rabbits are hiding in the den")]
+	[SerializeField] private Sprite _occupiedSprite;
+	
+	[Tooltip("Sprite to display when no rabbits are hiding in the den")]
+	[SerializeField] private Sprite _unoccupiedSprite;
+
 	// Constants for spawning behavior
 	private const int PERIODIC_SPAWN_INTERVAL = 10; // Turns between periodic spawns when rabbits are hiding
 	private const int MIN_GROUP_SIZE = 1; // Minimum rabbits per group
@@ -31,10 +38,16 @@ public class RabbitSpawner : Interactable, IHideable
 	// Track turns since last periodic spawn (only increments when rabbits are hiding)
 	private int _turnsSinceLastSpawn = 0;
 	
+	// Reference to the SpriteRenderer component
+	private SpriteRenderer _spriteRenderer;
+	
 	public int TerritoryRadius => _territoryRadius;
 
 	private void Start()
 	{
+		// Get the SpriteRenderer component
+		_spriteRenderer = GetComponent<SpriteRenderer>();
+		
 		EnsureInitializationFromWorld();
 		UpdateWorldPosition();
 		SubscribeToTurnEvents();
@@ -44,6 +57,9 @@ public class RabbitSpawner : Interactable, IHideable
 		{
 			HandleTurnAdvanced(0);
 		}
+		
+		// Initialize sprite state
+		UpdateSprite();
 	}
 
 	private void OnDestroy()
@@ -427,6 +443,9 @@ public class RabbitSpawner : Interactable, IHideable
 		animal.SetVisualVisibility(false);
 
 		Debug.Log($"Rabbit '{animal.name}' entered rabbit spawner at ({_gridPosition.x}, {_gridPosition.y}).");
+		
+		// Update sprite to show occupied state
+		UpdateSprite();
 	}
 
 	/// <summary>
@@ -454,6 +473,9 @@ public class RabbitSpawner : Interactable, IHideable
 			{
 				animal.SetVisualVisibility(true);
 			}
+			
+			// Update sprite to potentially show unoccupied state
+			UpdateSprite();
 		}
 	}
 
@@ -705,6 +727,35 @@ public class RabbitSpawner : Interactable, IHideable
 	{
 		int manhattanDistance = Mathf.Abs(position.x - _gridPosition.x) + Mathf.Abs(position.y - _gridPosition.y);
 		return manhattanDistance <= _territoryRadius;
+	}
+
+	/// <summary>
+	/// Updates the sprite based on whether there are rabbits hiding in the den.
+	/// </summary>
+	private void UpdateSprite()
+	{
+		if (_spriteRenderer == null)
+		{
+			return;
+		}
+
+		// Switch sprite based on whether there are rabbits hiding
+		if (_hidingRabbits.Count > 0)
+		{
+			// Occupied - there are rabbits hiding
+			if (_occupiedSprite != null)
+			{
+				_spriteRenderer.sprite = _occupiedSprite;
+			}
+		}
+		else
+		{
+			// Unoccupied - no rabbits hiding
+			if (_unoccupiedSprite != null)
+			{
+				_spriteRenderer.sprite = _unoccupiedSprite;
+			}
+		}
 	}
 }
 

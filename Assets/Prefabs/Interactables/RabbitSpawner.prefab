@@ -99,3 +99,5 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   _rabbitAnimalName: Rabbit
   _territoryRadius: 4
+  _occupiedSprite: {fileID: 21300000, guid: e64aebaa138b59e4185fec6920ce2fcc, type: 3}
+  _unoccupiedSprite: {fileID: 21300000, guid: 77d7444ef3c2384438ca38052e3df0fd, type: 3}
