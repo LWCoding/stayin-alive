@@ -481,7 +481,7 @@ public class RabbitAnimal : PreyAnimal
 	/// </summary>
 	private void ForceExitFromSpawner()
 	{
-		if (_rabbitSpawner == null || CurrentHideable != _rabbitSpawner)
+		if (_rabbitSpawner == null || !ReferenceEquals(CurrentHideable, _rabbitSpawner))
 		{
 			return;
 		}

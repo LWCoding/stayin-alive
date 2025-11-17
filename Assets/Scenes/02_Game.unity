@@ -798,9 +798,10 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   _emptyTile: {fileID: 11400000, guid: 3d88d5ab1e68a2f4c8cca3487cb5a30c, type: 2}
   _waterTiles:
-  - {fileID: 11400000, guid: d16b64193f8441342a2c1a526110bc14, type: 2}
+  - Tile: {fileID: 0}
+    Weight: 0
   _grassTiles: []
-  _obstacleTile: {fileID: 11400000, guid: 872b1e52ba833394fa53c37ab4d630e0, type: 2}
+  _obstacleTiles: []
   _updateOnGridChange: 1
   _drawOnStart: 1
 --- !u!483693784 &191479703
@@ -4760,18 +4761,44 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   _emptyTile: {fileID: 11400000, guid: 3d88d5ab1e68a2f4c8cca3487cb5a30c, type: 2}
   _waterTiles:
-  - {fileID: 11400000, guid: d16b64193f8441342a2c1a526110bc14, type: 2}
+  - Tile: {fileID: 11400000, guid: d16b64193f8441342a2c1a526110bc14, type: 2}
+    Weight: 1
   _grassTiles:
-  - {fileID: 11400000, guid: 2128fd3ef7d3a6e41a1f746a12d244cd, type: 2}
-  - {fileID: 11400000, guid: 7153c7f2e31375c4fa75b016ed86162e, type: 2}
-  - {fileID: 11400000, guid: 6bc6bdb161367b94a950abb7943d74c2, type: 2}
-  - {fileID: 11400000, guid: a497f8ac1b4527c42962a3c57d9877b3, type: 2}
-  - {fileID: 11400000, guid: 3a988c50afccf274396ef23fe4bf4fe9, type: 2}
-  - {fileID: 11400000, guid: 883c0df0747eff349b0c7ddc882616de, type: 2}
-  - {fileID: 11400000, guid: 96cd578c58004e949a11fde88a4b04be, type: 2}
-  - {fileID: 11400000, guid: 62a4065356573c84ca0e695f1d975b17, type: 2}
-  - {fileID: 11400000, guid: 713932c9043eba64c83a223c4a2e0c00, type: 2}
-  _obstacleTile: {fileID: 11400000, guid: 872b1e52ba833394fa53c37ab4d630e0, type: 2}
+  - Tile: {fileID: 11400000, guid: 2128fd3ef7d3a6e41a1f746a12d244cd, type: 2}
+    Weight: 1
+  - Tile: {fileID: 11400000, guid: 7153c7f2e31375c4fa75b016ed86162e, type: 2}
+    Weight: 1
+  - Tile: {fileID: 11400000, guid: 6bc6bdb161367b94a950abb7943d74c2, type: 2}
+    Weight: 1
+  - Tile: {fileID: 11400000, guid: a497f8ac1b4527c42962a3c57d9877b3, type: 2}
+    Weight: 1
+  - Tile: {fileID: 11400000, guid: 3a988c50afccf274396ef23fe4bf4fe9, type: 2}
+    Weight: 1
+  - Tile: {fileID: 11400000, guid: 883c0df0747eff349b0c7ddc882616de, type: 2}
+    Weight: 1
+  - Tile: {fileID: 11400000, guid: 96cd578c58004e949a11fde88a4b04be, type: 2}
+    Weight: 1
+  - Tile: {fileID: 11400000, guid: 62a4065356573c84ca0e695f1d975b17, type: 2}
+    Weight: 3
+  - Tile: {fileID: 11400000, guid: 713932c9043eba64c83a223c4a2e0c00, type: 2}
+    Weight: 4
+  _obstacleTiles:
+  - Tile: {fileID: 11400000, guid: 7e67bbf2f89b1c74597e71f5c6f27987, type: 2}
+    Weight: 1
+  - Tile: {fileID: 11400000, guid: bf2558ed09fcff6469fd9bc71af02c67, type: 2}
+    Weight: 1
+  - Tile: {fileID: 11400000, guid: d12d40e02f1af364d902f29afbfa6d11, type: 2}
+    Weight: 1
+  - Tile: {fileID: 11400000, guid: 33b4d564d71b71c478ea323df9f78cf5, type: 2}
+    Weight: 1
+  - Tile: {fileID: 11400000, guid: efd7ab51723b33a489116a7a63b18327, type: 2}
+    Weight: 1
+  - Tile: {fileID: 11400000, guid: 4d789e799d0af474eb7115ba144b2809, type: 2}
+    Weight: 1
+  - Tile: {fileID: 11400000, guid: bd3ebb02f7e5d9e4c803fb4d2f4cc83d, type: 2}
+    Weight: 1
+  - Tile: {fileID: 11400000, guid: 217fec56501cd4e46959f460a7287551, type: 2}
+    Weight: 1
   _updateOnGridChange: 1
   _drawOnStart: 1
 --- !u!19719996 &1748890611

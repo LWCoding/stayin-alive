@@ -8,11 +8,19 @@ using UnityEngine.Tilemaps;
 [RequireComponent(typeof(Tilemap))]
 public class GridDrawer : MonoBehaviour
 {
+    [System.Serializable]
+    private class WeightedTile
+    {
+        public TileBase Tile;
+        [Min(0f)]
+        public float Weight = 1f;
+    }
+
     [Header("Tile References")]
     [SerializeField] private TileBase _emptyTile;
-    [SerializeField] private TileBase[] _waterTiles;
-    [SerializeField] private TileBase[] _grassTiles;
-    [SerializeField] private TileBase _obstacleTile;
+    [SerializeField] private WeightedTile[] _waterTiles;
+    [SerializeField] private WeightedTile[] _grassTiles;
+    [SerializeField] private WeightedTile[] _obstacleTiles;
 
     [Header("Settings")]
     [SerializeField] private bool _updateOnGridChange = true;
@@ -119,19 +127,11 @@ public class GridDrawer : MonoBehaviour
         switch (type)
         {
             case TileType.Water:
-                if (_waterTiles != null && _waterTiles.Length > 0)
-                {
-                    return _waterTiles[Random.Range(0, _waterTiles.Length)];
-                }
-                return null;
+                return GetWeightedTile(_waterTiles);
             case TileType.Grass:
-                if (_grassTiles != null && _grassTiles.Length > 0)
-                {
-                    return _grassTiles[Random.Range(0, _grassTiles.Length)];
-                }
-                return null;
+                return GetWeightedTile(_grassTiles);
             case TileType.Obstacle:
-                return _obstacleTile;
+                return GetWeightedTile(_obstacleTiles);
             case TileType.Empty:
             default:
                 return _emptyTile;
@@ -166,6 +166,65 @@ public class GridDrawer : MonoBehaviour
                 DrawCell(x, y);
             }
         }
+    }
+
+    private TileBase GetWeightedTile(WeightedTile[] tiles)
+    {
+        if (tiles == null || tiles.Length == 0)
+        {
+            return null;
+        }
+
+        float totalWeight = 0f;
+        foreach (var tile in tiles)
+        {
+            if (tile.Tile != null && tile.Weight > 0f)
+            {
+                float weight = tile.Weight <= 0f ? 1f : tile.Weight;
+                totalWeight += weight;
+            }
+        }
+
+        if (totalWeight <= 0f)
+        {
+            // fallback to uniform random among non-null entries
+            var validTiles = System.Array.FindAll(tiles, t => t.Tile != null);
+            if (validTiles.Length == 0)
+            {
+                return null;
+            }
+
+            return validTiles[Random.Range(0, validTiles.Length)].Tile;
+        }
+
+        float pick = Random.Range(0f, totalWeight);
+        float cumulative = 0f;
+
+        foreach (var tile in tiles)
+        {
+            if (tile.Tile == null || tile.Weight <= 0f)
+            {
+                continue;
+            }
+
+            float weight = tile.Weight <= 0f ? 1f : tile.Weight;
+            cumulative += weight;
+            if (pick <= cumulative)
+            {
+                return tile.Tile;
+            }
+        }
+
+        // should not reach here, but return last valid tile as a safeguard
+        for (int i = tiles.Length - 1; i >= 0; i--)
+        {
+            if (tiles[i].Tile != null)
+            {
+                return tiles[i].Tile;
+            }
+        }
+
+        return null;
     }
 }
 
