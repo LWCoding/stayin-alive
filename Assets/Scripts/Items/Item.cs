@@ -188,6 +188,12 @@ public abstract class Item : MonoBehaviour, IItem
                 // Call OnPickup on the item
                 OnPickup(player);
                 
+                // Picking up an item costs one turn
+                if (TimeManager.Instance != null)
+                {
+                    TimeManager.Instance.NextTurn();
+                }
+                
                 // Remove item from world (destroy the GameObject)
                 DestroyItem();
             }

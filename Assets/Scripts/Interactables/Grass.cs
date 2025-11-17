@@ -410,6 +410,12 @@ public class Grass : Interactable
 				{
 					Destroy(gameObject);
 				}
+
+				// Harvesting costs one turn
+				if (TimeManager.Instance != null)
+				{
+					TimeManager.Instance.NextTurn();
+				}
 			}
 			else
 			{
