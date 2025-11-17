@@ -190,11 +190,7 @@ public class RabbitSpawner : Interactable, IHideable
 				_turnsSinceLastSpawn = 0; // Reset counter
 			}
 		}
-		else
-		{
-			// No rabbits hiding, reset counter (don't tick)
-			_turnsSinceLastSpawn = 0;
-		}
+		// If no rabbits hiding, counter doesn't tick (preserves value for when rabbits return)
 	}
 
 	private void UpdateHidingRabbits()

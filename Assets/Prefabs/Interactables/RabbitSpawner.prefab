@@ -98,10 +98,4 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _rabbitAnimalName: Rabbit
-  _baseTurnsBetweenSpawns: 30
-  _baseSpawnAmount: 2
-  _spawnAmountVariance: 0.25
-  _springSpawnMultiplier: 1.5
-  _summerSpawnMultiplier: 1
-  _fallSpawnMultiplier: 0.5
-  _winterSpawnMultiplier: 0
+  _territoryRadius: 4

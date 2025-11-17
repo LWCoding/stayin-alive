@@ -97,5 +97,5 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 5d70a03e43c677c40b0424f46d0c1477, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _territoryRadius: 6
+  _territoryRadius: 4
   _spriteRenderer: {fileID: 3774530258286580536}
