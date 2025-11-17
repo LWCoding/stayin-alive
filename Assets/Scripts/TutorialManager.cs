@@ -8,17 +8,8 @@ using UnityEngine.SceneManagement;
 /// </summary>
 public class TutorialManager : Singleton<TutorialManager>
 {
-    [Header("Game End UI")]
-    [Tooltip("UI GameObject that displays the win screen. Should be inactive by default.")]
-    [SerializeField] private GameObject _winScreen;
-    
-    [Tooltip("UI GameObject that displays the lose screen. Should be inactive by default.")]
-    [SerializeField] private GameObject _loseScreen;
-    
-    private TutorialLevelLoader _tutorialLevelLoader;
 
-    private bool _hasWon = false;
-    private bool _hasLost = false;
+    private TutorialLevelLoader _tutorialLevelLoader;
     
     protected override void Awake()
     {
@@ -41,60 +32,10 @@ public class TutorialManager : Singleton<TutorialManager>
     }
     
     /// <summary>
-    /// Triggers the lose condition when a controllable animal dies.
-    /// Shows lose screen and pauses time.
-    /// </summary>
-    public void TriggerLose()
-    {
-        if (_hasWon || _hasLost)
-        {
-            return;
-        }
-        
-        _hasLost = true;
-        
-        // Show lose screen
-        if (_loseScreen != null)
-        {
-            _loseScreen.SetActive(true);
-            Debug.Log("TutorialManager: Lose condition triggered! Showing lose screen.");
-        }
-        else
-        {
-            Debug.LogWarning("TutorialManager: Lose condition triggered, but lose screen UI element is not assigned!");
-        }
-        
-        // Pause time
-        if (TimeManager.Instance != null)
-        {
-            TimeManager.Instance.Pause();
-        }
-        else
-        {
-            Debug.LogWarning("TutorialManager: Lose condition triggered, but TimeManager instance not found!");
-        }
-    }
-    
-    /// <summary>
     /// Resets the tutorial state. Hides win/lose screens and resumes time.
     /// </summary>
     public void ResetTutorialState()
     {
-        _hasWon = false;
-        _hasLost = false;
-        
-        // Hide win screen if it was shown
-        if (_winScreen != null)
-        {
-            _winScreen.SetActive(false);
-        }
-        
-        // Hide lose screen if it was shown
-        if (_loseScreen != null)
-        {
-            _loseScreen.SetActive(false);
-        }
-        
         // Resume time if it was paused
         if (TimeManager.Instance != null)
         {

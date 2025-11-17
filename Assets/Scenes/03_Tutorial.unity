@@ -598,6 +598,7 @@ GameObject:
   m_Component:
   - component: {fileID: 290309603}
   - component: {fileID: 290309604}
+  - component: {fileID: 290309605}
   m_Layer: 0
   m_Name: TutorialManager
   m_TagString: Untagged
@@ -630,6 +631,18 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 20d0eaddebb63144fad00bb401ccff30, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+--- !u!114 &290309605
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 290309602}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 071fe5ed8619b9449b0f715d35c9da1a, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
   _winScreen: {fileID: 2113031082}
@@ -2242,13 +2255,18 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   _emptyTile: {fileID: 11400000, guid: 3d88d5ab1e68a2f4c8cca3487cb5a30c, type: 2}
   _waterTiles:
-  - {fileID: 11400000, guid: d16b64193f8441342a2c1a526110bc14, type: 2}
+  - Tile: {fileID: 0}
+    Weight: 1
   _grassTiles:
-  - {fileID: 11400000, guid: 2128fd3ef7d3a6e41a1f746a12d244cd, type: 2}
-  - {fileID: 11400000, guid: 7153c7f2e31375c4fa75b016ed86162e, type: 2}
-  - {fileID: 11400000, guid: 6bc6bdb161367b94a950abb7943d74c2, type: 2}
-  - {fileID: 11400000, guid: a497f8ac1b4527c42962a3c57d9877b3, type: 2}
-  _obstacleTile: {fileID: 11400000, guid: 872b1e52ba833394fa53c37ab4d630e0, type: 2}
+  - Tile: {fileID: 0}
+    Weight: 1
+  - Tile: {fileID: 0}
+    Weight: 1
+  - Tile: {fileID: 0}
+    Weight: 1
+  - Tile: {fileID: 0}
+    Weight: 1
+  _obstacleTiles: []
   _updateOnGridChange: 1
   _drawOnStart: 1
 --- !u!483693784 &990975250
@@ -3161,9 +3179,10 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   _emptyTile: {fileID: 11400000, guid: 3d88d5ab1e68a2f4c8cca3487cb5a30c, type: 2}
   _waterTiles:
-  - {fileID: 11400000, guid: d16b64193f8441342a2c1a526110bc14, type: 2}
+  - Tile: {fileID: 0}
+    Weight: 1
   _grassTiles: []
-  _obstacleTile: {fileID: 11400000, guid: 872b1e52ba833394fa53c37ab4d630e0, type: 2}
+  _obstacleTiles: []
   _updateOnGridChange: 1
   _drawOnStart: 1
 --- !u!483693784 &1428056711
@@ -3483,6 +3502,10 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   denPrice: 1
+  workerPrice: 0
+  FollowerAnimalPrefab: {fileID: 0}
+  UNASSIGNED_DEN_ID: -1
+  denAdminMenu: {fileID: 0}
 --- !u!1 &1537197560
 GameObject:
   m_ObjectHideFlags: 0
@@ -3528,6 +3551,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _pointsText: {fileID: 2114507784}
+  _pointsTextMenu: {fileID: 0}
   _pointsFormat: 'Food Stored In Den: {0}'
 --- !u!1 &1578378495
 GameObject:
