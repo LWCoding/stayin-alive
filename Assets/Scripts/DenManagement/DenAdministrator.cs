@@ -77,8 +77,11 @@ public class DenAdministrator : MonoBehaviour {
 
   private void Update() {
     if (Input.GetKeyDown(KeyCode.O)) {
+      // Only allow opening panel if player is inside a den
       if (!DenSystemManager.Instance.PanelOpen) {
-        DenSystemManager.Instance.OpenPanel();
+        if (playerAnimal.CurrentDen != null) {
+          DenSystemManager.Instance.OpenPanel();
+        }
       }
       else {
         DenSystemManager.Instance.ClosePanel();

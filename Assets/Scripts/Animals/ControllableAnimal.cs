@@ -225,6 +225,12 @@ public class ControllableAnimal : Animal
             return;
         }
 
+        // Block movement if the den admin panel is open
+        if (DenSystemManager.Instance != null && DenSystemManager.Instance.PanelOpen)
+        {
+            return;
+        }
+
         // Allow input if paused only if we're waiting for the first move
         // Otherwise, block input when paused
         if (TimeManager.Instance.IsPaused && !TimeManager.Instance.IsWaitingForFirstMove)
