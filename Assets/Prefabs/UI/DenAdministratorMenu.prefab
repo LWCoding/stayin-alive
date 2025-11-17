@@ -1408,6 +1408,7 @@ MonoBehaviour:
   purchaseWorkerButton: {fileID: 8436048771557516975}
   purchaseWorkerButtonText: 'Click to Breed\n<size=20>(Cost: 1 Food)</size>'
   denFullButtonText: Den Full\n<size=20>(Build More Dens!)</size>
+  tooManyUnassignedButtonText: No Space\n<size=20>(Assign Occupants!)</size>
 --- !u!225 &367407907774321981
 CanvasGroup:
   m_ObjectHideFlags: 0

@@ -58,5 +58,10 @@ public static class Globals
     /// Maximum number of workers that can be assigned to a single den.
     /// </summary>
     public static int MaxWorkersPerDen = 5;
+
+    /// <summary>
+    /// Maximum number of unassigned workers allowed before preventing new worker breeding.
+    /// </summary>
+    public static int MaxUnassignedWorkers = 5;
 }
 
