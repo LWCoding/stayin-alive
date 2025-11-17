@@ -4,12 +4,16 @@ using UnityEngine;
 /// <summary>
 /// Specialized prey animal that seeks out and eats grass when hungry.
 /// Wanders randomly when not hungry, but will prioritize finding fully grown grass when hunger is below threshold.
+/// Below the standard hunger threshold, rabbits will only seek food if no predators are nearby.
+/// Below the critical hunger threshold, rabbits will seek food regardless of predators to avoid starvation.
 /// </summary>
 public class RabbitAnimal : PreyAnimal
 {
 	[Header("Rabbit Settings")]
-	[Tooltip("Hunger threshold below which the rabbit will seek food. When hunger is below this value, the rabbit will look for grass.")]
-	[SerializeField] private int _hungerThreshold = 50;
+	[Tooltip("Hunger threshold below which the rabbit will seek food. When hunger is below this value, the rabbit will look for grass (only if no predators are nearby).")]
+	[SerializeField] private int _hungerThreshold = 70;
+	[Tooltip("Critical hunger threshold below which the rabbit will seek food regardless of predators. Below this value, survival takes priority over safety.")]
+	[SerializeField] private int _criticalHungerThreshold = 20;
 	[Tooltip("Detection radius for finding grass. Only grass within this distance will be considered.")]
 	[SerializeField] private int _grassDetectionRadius = 10;
 	[Tooltip("Target food type name. This is used for identification purposes.")]
@@ -30,9 +34,20 @@ public class RabbitAnimal : PreyAnimal
 	public bool IsHungry => CurrentHunger < _hungerThreshold;
 
 	/// <summary>
+	/// Gets whether this rabbit is at critical hunger (hunger below critical threshold).
+	/// At critical hunger, the rabbit will seek food regardless of predators.
+	/// </summary>
+	public bool IsCriticallyHungry => CurrentHunger < _criticalHungerThreshold;
+
+	/// <summary>
 	/// Gets the hunger threshold below which the rabbit will seek food.
 	/// </summary>
 	public int HungerThreshold => _hungerThreshold;
+
+	/// <summary>
+	/// Gets the critical hunger threshold below which the rabbit will seek food regardless of predators.
+	/// </summary>
+	public int CriticalHungerThreshold => _criticalHungerThreshold;
 
 	/// <summary>
 	/// Sets the rabbit spawner this rabbit belongs to.
@@ -108,21 +123,37 @@ public class RabbitAnimal : PreyAnimal
 		// Decrease hunger each turn (same as base Animal.TakeTurn)
 		DecreaseHunger(1);
 		
-		// Check hunger BEFORE checking if hiding - if hungry, force exit from den
+		// Check hunger levels
+		bool isCriticallyHungry = CurrentHunger < _criticalHungerThreshold;
 		bool isHungry = CurrentHunger < _hungerThreshold;
 		
-		// If we're hiding in our spawner and hungry, force exit immediately
+		// If we're hiding in our spawner and critically hungry, force exit immediately
 		if (CurrentHideable is RabbitSpawner)
 		{
-			if (isHungry)
+			if (isCriticallyHungry)
 			{
-				// Force exit from spawner - hunger takes priority over safety
+				// Force exit from spawner - critical hunger takes priority over safety
 				ForceExitFromSpawner();
 			}
-			else
+			else if (!isHungry)
 			{
 				// Not hungry, stay hidden in den
 				return;
+			}
+			// If standard hungry (but not critical), check for predators before exiting
+			else
+			{
+				PredatorAnimal nearbyPredator = FindNearestPredator();
+				if (nearbyPredator == null)
+				{
+					// No predators nearby, safe to exit and look for food
+					ForceExitFromSpawner();
+				}
+				else
+				{
+					// Predators nearby, stay hidden even if hungry (but not critical)
+					return;
+				}
 			}
 		}
 		
@@ -161,46 +192,62 @@ public class RabbitAnimal : PreyAnimal
 			return;
 		}
 		
-		// If hungry, prioritize food over predator avoidance
+		// If hungry, check if we should seek food
 		if (isHungry)
 		{
-			// Try to find and move towards fully grown grass
-			Vector2Int? nearestGrass = FindNearestFullyGrownGrass();
+			// Check for nearby predators
+			PredatorAnimal nearbyPredator = FindNearestPredator();
 			
-			if (nearestGrass.HasValue)
+			// Only seek food if critically hungry OR if no predators are nearby
+			if (isCriticallyHungry || nearbyPredator == null)
 			{
-				_foodDestination = nearestGrass.Value;
+				// Try to find and move towards fully grown grass
+				Vector2Int? nearestGrass = FindNearestFullyGrownGrass();
 				
-				// Check if we're already at the grass position
-				if (GridPosition == nearestGrass.Value)
+				if (nearestGrass.HasValue)
 				{
-					// We're on the grass, try to eat it
-					TryEatGrassAtCurrentPosition();
-				}
-				else if (shouldMove)
-				{
-					// Move towards the grass (even if predators are nearby)
-					if (!MoveOneStepTowards(nearestGrass.Value))
+					_foodDestination = nearestGrass.Value;
+					
+					// Check if we're already at the grass position
+					if (GridPosition == nearestGrass.Value)
 					{
-						// If move failed, try to find a new grass destination
-						Vector2Int? newGrass = FindNearestFullyGrownGrass();
-						if (newGrass.HasValue)
+						// We're on the grass, try to eat it
+						TryEatGrassAtCurrentPosition();
+					}
+					else if (shouldMove)
+					{
+						// Move towards the grass (even if predators are nearby when critically hungry)
+						if (!MoveOneStepTowards(nearestGrass.Value))
 						{
-							_foodDestination = newGrass.Value;
-							MoveOneStepTowards(newGrass.Value);
-						}
-						else
-						{
-							_foodDestination = null;
+							// If move failed, try to find a new grass destination
+							Vector2Int? newGrass = FindNearestFullyGrownGrass();
+							if (newGrass.HasValue)
+							{
+								_foodDestination = newGrass.Value;
+								MoveOneStepTowards(newGrass.Value);
+							}
+							else
+							{
+								_foodDestination = null;
+							}
 						}
 					}
+				}
+				else
+				{
+					// No grass found, fall back to wandering (still prioritize food search)
+					_foodDestination = null;
+					WanderIfShouldMove(shouldMove);
 				}
 			}
 			else
 			{
-				// No grass found, fall back to wandering (still prioritize food search)
+				// Standard hungry but predators nearby - prioritize fleeing over food
 				_foodDestination = null;
-				WanderIfShouldMove(shouldMove);
+				if (shouldMove)
+				{
+					FleeFromPredator(nearbyPredator);
+				}
 			}
 		}
 	}
@@ -446,7 +493,9 @@ public class RabbitAnimal : PreyAnimal
 		SetVisualVisibility(true);
 		SetCurrentHideable(null);
 		
-		Debug.Log($"Rabbit '{name}' forced to exit spawner due to hunger (hunger: {CurrentHunger} < threshold: {_hungerThreshold})");
+		bool isCriticallyHungry = CurrentHunger < _criticalHungerThreshold;
+		string reason = isCriticallyHungry ? "critical hunger" : "hunger";
+		Debug.Log($"Rabbit '{name}' forced to exit spawner due to {reason} (hunger: {CurrentHunger} < threshold: {(isCriticallyHungry ? _criticalHungerThreshold : _hungerThreshold)})");
 	}
 
 	/// <summary>
