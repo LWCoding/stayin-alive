@@ -7,19 +7,73 @@ using UnityEngine;
 public class DenSystemManager : Singleton<DenSystemManager> {
   public struct DenInformation {
     public int denId;
-    public int denPopulation;
+    public int denWorkerPop;
     public Den denObject;
   }
 
   public static DenInformation ConstructDenInformation(Den den) {
     int denId = den.GridPosition.x * 10000 + den.GridPosition.y;
-    int denPopulation = den.NumberAnimalsInDen();
-    return new DenInformation { denId = denId, denPopulation = denPopulation, denObject = den };
+    int denPopulation = den.WorkerCount();
+    return new DenInformation { denId = denId, denWorkerPop = denPopulation, denObject = den };
   }
   
-  private Dictionary<int, DenInformation> validTeleports;
-  private Dictionary<int, DenInformation> denInformations;
+  public GameObject FollowerAnimalPrefab;
   
+  private Dictionary<int, DenInformation> validTeleports;
+  
+  private Dictionary<int, DenInformation> denInformations;
+
+  private Dictionary<Animal, int> workersToDens;
+  
+  private List<Animal> unassignedWorkers;
+
+  private int UNASSIGNED_DEN_ID = -1;
+
+  private bool AssignUnassignedWorker(Animal animal, int denId) {
+    ConstructDenInfos();
+    // Make sure animal and den properly exist
+    if (!workersToDens.ContainsKey(animal) || !denInformations.ContainsKey(denId)) {
+      return false;
+    }
+
+    // If animal is currently assigned, fail
+    if (workersToDens[animal] != UNASSIGNED_DEN_ID) {
+      return false;
+    }
+    
+    // First, remove from the unassigned worker list
+    unassignedWorkers.Remove(animal);
+    
+    // Then, add it to the list for the other den
+    denInformations[denId].denObject.AddWorker(animal);
+    
+    // Only then, update the map
+    workersToDens[animal] = denId;
+
+    return true;
+  }
+
+  private bool UnassignAssignedWorker(Animal animal) {
+    ConstructDenInfos();
+    if (!workersToDens.ContainsKey(animal) || !workersToDens.ContainsKey(animal)) {
+      return false;
+    }
+
+    if (workersToDens[animal] == UNASSIGNED_DEN_ID) {
+      return false;
+    }
+    
+    // Then, remove it from list for the other den
+    denInformations[workersToDens[animal]].denObject.RemoveWorker(animal);
+    
+    // Add it to the unassigned list
+    unassignedWorkers.Add(animal);
+    
+    // Only then, unassign it in the map
+    workersToDens[animal] = UNASSIGNED_DEN_ID;
+    
+    return true;
+  }
   
   public Dictionary<int, DenInformation> GetValidTeleports => validTeleports;
   public Dictionary<int, DenInformation> DenInfos => denInformations;
@@ -52,6 +106,7 @@ public class DenSystemManager : Singleton<DenSystemManager> {
     Debug.LogError("Panel Opened");
     ConstructValidDenTeleportInfos();
     DenAdminMenu.CreateDenMapIcons(ConstructDenInfos().Values.ToList());
+    DenAdminMenu.SetupCurrentDenRenderTexture();
     Debug.LogError(validTeleports);
     TimeManager.Instance.Pause();
   }

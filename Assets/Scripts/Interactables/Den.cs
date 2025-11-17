@@ -15,11 +15,32 @@ public class Den : Interactable, IHideable
     [SerializeField] private Sprite _occupiedSprite;
     [SerializeField] private GameObject _playerInDenObject;
     
+    [SerializeField]
+    private Camera denCamera;
+    
+    private RenderTexture renderTexture;
+    
+    public RenderTexture DenRenderTexture => renderTexture;
+    
     // Track which animals are currently in this den (can contain duplicates)
     private List<Animal> _animalsInDen = new List<Animal>();
     
     // Coroutine for passive time progression
     private Coroutine _timeProgressionCoroutine;
+
+    private List<Animal> denWorkers = new List<Animal>();
+
+    public void AddWorker(Animal animal) {
+      denWorkers.Add(animal);
+    }
+
+    public void RemoveWorker(Animal animal) {
+      denWorkers.Remove(animal);
+    }
+
+    public int WorkerCount() {
+      return denWorkers.Count;
+    }
     
     public DenSystemManager.DenInformation GetDenInfo() {
       return DenSystemManager.ConstructDenInformation(this);
@@ -37,6 +58,10 @@ public class Den : Interactable, IHideable
         {
             _playerInDenObject.SetActive(false);
         }
+        
+        renderTexture = new RenderTexture(720, 720, 16, RenderTextureFormat.ARGB32);
+        renderTexture.Create();
+        denCamera.targetTexture = renderTexture;
     }
     
     /// <summary>

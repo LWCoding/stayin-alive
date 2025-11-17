@@ -25,6 +25,9 @@ public class DenAdminMenuGuiController : MonoBehaviour {
   [SerializeField]
   private CanvasGroup visibilityController;
 
+  [SerializeField]
+  private RawImage currentDenRender;
+
 
   [Header("Prefabs")]
   [SerializeField]
@@ -59,6 +62,10 @@ public class DenAdminMenuGuiController : MonoBehaviour {
       denMapIconController.InitializeDenMapIcon(denInfo);
       mapDenMapIcons.Add(denMapIconController);
     }
+  }
+
+  public void SetupCurrentDenRenderTexture() {
+    currentDenRender.texture = DenSystemManager.Instance.CurrentAdminDen.DenRenderTexture;
   }
   
 }

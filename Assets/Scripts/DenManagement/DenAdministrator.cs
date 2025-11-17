@@ -134,6 +134,7 @@ public class DenAdministrator : MonoBehaviour {
       if (DenSystemManager.Instance.PanelOpen) {
         DenSystemManager.Instance.ConstructValidDenTeleportInfos();
         DenSystemManager.Instance.DenAdminMenu.CreateDenMapIcons(DenSystemManager.Instance.DenInfos.Values.ToList());
+        DenSystemManager.Instance.DenAdminMenu.SetupCurrentDenRenderTexture();
       }
     }
 
