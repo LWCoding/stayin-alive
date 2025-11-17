@@ -74,6 +74,10 @@ public class DenAdministrator : MonoBehaviour {
     DenSystemManager.Instance.RegisterDenAdministrator(this);
   }
 
+  private void OnDestroy() {
+    isInstantiated = false;
+  }
+
   private void Update() {
     if (Input.GetKeyDown(KeyCode.E)) {
       // Only allow opening panel if player is inside a den
