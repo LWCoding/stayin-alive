@@ -123,7 +123,7 @@ public class DenSystemManager : Singleton<DenSystemManager> {
   public int denPrice;
 
   public List<Den> GetDenList() {
-    return InteractableManager.Instance.GetAllDens();
+    return InteractableManager.Instance.Dens;
   }
 
   public List<DenInformation> GetDens() {

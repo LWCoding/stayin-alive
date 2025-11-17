@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 
 /// <summary>
@@ -34,12 +35,43 @@ public class InteractableManager : Singleton<InteractableManager>
 	[Tooltip("Prefab to use when spawning grass interactables. Must have a Grass component.")]
 	[SerializeField] private GameObject _grassPrefab;
 	
+    private List<Interactable> _allInteractables = new List<Interactable>();
     private List<Den> _dens = new List<Den>();
 	private List<RabbitSpawner> _rabbitSpawners = new List<RabbitSpawner>();
 	private List<PredatorDen> _predatorDens = new List<PredatorDen>();
 	private List<WormSpawner> _wormSpawners = new List<WormSpawner>();
 	private List<Bush> _bushes = new List<Bush>();
 	private List<Grass> _grasses = new List<Grass>();
+
+	/// <summary>
+	/// Gets all dens in the scene.
+	/// </summary>
+	public List<Den> Dens => _dens.Where(d => d != null).ToList();
+
+	/// <summary>
+	/// Gets all rabbit spawners in the scene.
+	/// </summary>
+	public List<RabbitSpawner> RabbitSpawners => _rabbitSpawners.Where(s => s != null).ToList();
+
+	/// <summary>
+	/// Gets all predator dens in the scene.
+	/// </summary>
+	public List<PredatorDen> PredatorDens => _predatorDens.Where(d => d != null).ToList();
+
+	/// <summary>
+	/// Gets all worm spawners in the scene.
+	/// </summary>
+	public List<WormSpawner> WormSpawners => _wormSpawners.Where(s => s != null).ToList();
+
+	/// <summary>
+	/// Gets all bushes in the scene.
+	/// </summary>
+	public List<Bush> Bushes => _bushes.Where(b => b != null).ToList();
+
+	/// <summary>
+	/// Gets all grass interactables in the scene.
+	/// </summary>
+	public List<Grass> Grasses => _grasses.Where(g => g != null).ToList();
     
     protected override void Awake()
     {
@@ -53,12 +85,22 @@ public class InteractableManager : Singleton<InteractableManager>
 	/// <returns>True if any interactable exists at the position, false otherwise</returns>
 	public bool HasInteractableAtPosition(Vector2Int gridPosition)
 	{
-		return GetDenAtPosition(gridPosition) != null ||
-			GetBushAtPosition(gridPosition) != null ||
-			GetGrassAtPosition(gridPosition) != null ||
-			GetRabbitSpawnerAtPosition(gridPosition) != null ||
-			GetPredatorDenAtPosition(gridPosition) != null ||
-			GetWormSpawnerAtPosition(gridPosition) != null;
+		// Filter out null references
+		for (int i = _allInteractables.Count - 1; i >= 0; i--)
+		{
+			if (_allInteractables[i] == null)
+			{
+				_allInteractables.RemoveAt(i);
+				continue;
+			}
+
+			if (_allInteractables[i].GridPosition == gridPosition)
+			{
+				return true;
+			}
+		}
+
+		return false;
 	}
     
     /// <summary>
@@ -66,58 +108,19 @@ public class InteractableManager : Singleton<InteractableManager>
     /// </summary>
     public void ClearAllInteractables()
     {
-        foreach (Den den in _dens)
+        foreach (Interactable interactable in _allInteractables)
         {
-            if (den != null)
+            if (interactable != null)
             {
-                Destroy(den.gameObject);
+                Destroy(interactable.gameObject);
             }
         }
+        _allInteractables.Clear();
         _dens.Clear();
-
-		foreach (RabbitSpawner spawner in _rabbitSpawners)
-		{
-			if (spawner != null)
-			{
-				Destroy(spawner.gameObject);
-			}
-		}
 		_rabbitSpawners.Clear();
-
-		foreach (PredatorDen predatorDen in _predatorDens)
-		{
-			if (predatorDen != null)
-			{
-				Destroy(predatorDen.gameObject);
-			}
-		}
 		_predatorDens.Clear();
-
-		foreach (WormSpawner spawner in _wormSpawners)
-		{
-			if (spawner != null)
-			{
-				Destroy(spawner.gameObject);
-			}
-		}
 		_wormSpawners.Clear();
-
-		foreach (Bush bush in _bushes)
-		{
-			if (bush != null)
-			{
-				Destroy(bush.gameObject);
-			}
-		}
 		_bushes.Clear();
-
-		foreach (Grass grass in _grasses)
-		{
-			if (grass != null)
-			{
-				Destroy(grass.gameObject);
-			}
-		}
 		_grasses.Clear();
     }
     
@@ -161,6 +164,7 @@ public class InteractableManager : Singleton<InteractableManager>
         den.Initialize(gridPosition);
         
         _dens.Add(den);
+        _allInteractables.Add(den);
         
         Debug.Log($"InteractableManager: Spawned den at ({gridPosition.x}, {gridPosition.y})");
         
@@ -228,6 +232,7 @@ public class InteractableManager : Singleton<InteractableManager>
 
 		spawner.Initialize(gridPosition);
 		_rabbitSpawners.Add(spawner);
+		_allInteractables.Add(spawner);
 
 		Debug.Log($"InteractableManager: Spawned rabbit spawner at ({gridPosition.x}, {gridPosition.y})");
 
@@ -279,27 +284,6 @@ public class InteractableManager : Singleton<InteractableManager>
 
 		return null;
 	}
-
-	/// <summary>
-	/// Gets all rabbit spawners in the scene.
-	/// </summary>
-	public List<RabbitSpawner> GetAllRabbitSpawners()
-	{
-		List<RabbitSpawner> validSpawners = new List<RabbitSpawner>();
-		for (int i = _rabbitSpawners.Count - 1; i >= 0; i--)
-		{
-			if (_rabbitSpawners[i] == null)
-			{
-				_rabbitSpawners.RemoveAt(i);
-			}
-			else
-			{
-				validSpawners.Add(_rabbitSpawners[i]);
-			}
-		}
-
-		return validSpawners;
-	}
     
     /// <summary>
     /// Gets the den at the specified grid position, if any.
@@ -329,27 +313,6 @@ public class InteractableManager : Singleton<InteractableManager>
     }
     
     /// <summary>
-    /// Gets all dens in the scene.
-    /// </summary>
-    public List<Den> GetAllDens()
-    {
-        // Filter out null references
-        List<Den> validDens = new List<Den>();
-        for (int i = _dens.Count - 1; i >= 0; i--)
-        {
-            if (_dens[i] == null)
-            {
-                _dens.RemoveAt(i);
-            }
-            else
-            {
-                validDens.Add(_dens[i]);
-            }
-        }
-        return validDens;
-    }
-    
-    /// <summary>
     /// Removes a den from the dens list. Called when a den is destroyed.
     /// </summary>
     public void RemoveDen(Den den)
@@ -357,6 +320,7 @@ public class InteractableManager : Singleton<InteractableManager>
         if (den != null && _dens != null)
         {
             _dens.Remove(den);
+            _allInteractables.Remove(den);
         }
     }
 
@@ -368,6 +332,7 @@ public class InteractableManager : Singleton<InteractableManager>
 		if (spawner != null && _rabbitSpawners != null)
 		{
 			_rabbitSpawners.Remove(spawner);
+			_allInteractables.Remove(spawner);
 		}
 	}
 
@@ -409,6 +374,7 @@ public class InteractableManager : Singleton<InteractableManager>
 
 		predatorDen.Initialize(gridPosition, predatorType);
 		_predatorDens.Add(predatorDen);
+		_allInteractables.Add(predatorDen);
 
 		Debug.Log($"InteractableManager: Spawned predator den for '{predatorType}' at ({gridPosition.x}, {gridPosition.y})");
 
@@ -462,27 +428,6 @@ public class InteractableManager : Singleton<InteractableManager>
 	}
 
 	/// <summary>
-	/// Gets all predator dens in the scene.
-	/// </summary>
-	public List<PredatorDen> GetAllPredatorDens()
-	{
-		List<PredatorDen> validDens = new List<PredatorDen>();
-		for (int i = _predatorDens.Count - 1; i >= 0; i--)
-		{
-			if (_predatorDens[i] == null)
-			{
-				_predatorDens.RemoveAt(i);
-			}
-			else
-			{
-				validDens.Add(_predatorDens[i]);
-			}
-		}
-
-		return validDens;
-	}
-
-	/// <summary>
 	/// Removes a predator den from the dens list. Called when a den is destroyed.
 	/// </summary>
 	public void RemovePredatorDen(PredatorDen predatorDen)
@@ -490,6 +435,7 @@ public class InteractableManager : Singleton<InteractableManager>
 		if (predatorDen != null && _predatorDens != null)
 		{
 			_predatorDens.Remove(predatorDen);
+			_allInteractables.Remove(predatorDen);
 		}
 	}
 
@@ -530,6 +476,7 @@ public class InteractableManager : Singleton<InteractableManager>
 
 		spawner.Initialize(gridPosition);
 		_wormSpawners.Add(spawner);
+		_allInteractables.Add(spawner);
 
 		Debug.Log($"InteractableManager: Spawned worm spawner at ({gridPosition.x}, {gridPosition.y})");
 
@@ -583,27 +530,6 @@ public class InteractableManager : Singleton<InteractableManager>
 	}
 
 	/// <summary>
-	/// Gets all worm spawners in the scene.
-	/// </summary>
-	public List<WormSpawner> GetAllWormSpawners()
-	{
-		List<WormSpawner> validSpawners = new List<WormSpawner>();
-		for (int i = _wormSpawners.Count - 1; i >= 0; i--)
-		{
-			if (_wormSpawners[i] == null)
-			{
-				_wormSpawners.RemoveAt(i);
-			}
-			else
-			{
-				validSpawners.Add(_wormSpawners[i]);
-			}
-		}
-
-		return validSpawners;
-	}
-
-	/// <summary>
 	/// Removes a worm spawner from the spawner list. Called when a spawner is destroyed.
 	/// </summary>
 	public void RemoveWormSpawner(WormSpawner spawner)
@@ -611,6 +537,7 @@ public class InteractableManager : Singleton<InteractableManager>
 		if (spawner != null && _wormSpawners != null)
 		{
 			_wormSpawners.Remove(spawner);
+			_allInteractables.Remove(spawner);
 		}
 	}
 
@@ -651,6 +578,7 @@ public class InteractableManager : Singleton<InteractableManager>
 
 		bush.Initialize(gridPosition);
 		_bushes.Add(bush);
+		_allInteractables.Add(bush);
 
 		Debug.Log($"InteractableManager: Spawned bush at ({gridPosition.x}, {gridPosition.y})");
 
@@ -704,27 +632,6 @@ public class InteractableManager : Singleton<InteractableManager>
 	}
 
 	/// <summary>
-	/// Gets all bushes in the scene.
-	/// </summary>
-	public List<Bush> GetAllBushes()
-	{
-		List<Bush> validBushes = new List<Bush>();
-		for (int i = _bushes.Count - 1; i >= 0; i--)
-		{
-			if (_bushes[i] == null)
-			{
-				_bushes.RemoveAt(i);
-			}
-			else
-			{
-				validBushes.Add(_bushes[i]);
-			}
-		}
-
-		return validBushes;
-	}
-
-	/// <summary>
 	/// Removes a bush from the bushes list. Called when a bush is destroyed.
 	/// </summary>
 	public void RemoveBush(Bush bush)
@@ -732,6 +639,7 @@ public class InteractableManager : Singleton<InteractableManager>
 		if (bush != null && _bushes != null)
 		{
 			_bushes.Remove(bush);
+			_allInteractables.Remove(bush);
 		}
 	}
 
@@ -772,6 +680,7 @@ public class InteractableManager : Singleton<InteractableManager>
 
 		grass.Initialize(gridPosition);
 		_grasses.Add(grass);
+		_allInteractables.Add(grass);
 
 		Debug.Log($"InteractableManager: Spawned grass at ({gridPosition.x}, {gridPosition.y})");
 
@@ -825,27 +734,6 @@ public class InteractableManager : Singleton<InteractableManager>
 	}
 
 	/// <summary>
-	/// Gets all grass interactables in the scene.
-	/// </summary>
-	public List<Grass> GetAllGrasses()
-	{
-		List<Grass> validGrasses = new List<Grass>();
-		for (int i = _grasses.Count - 1; i >= 0; i--)
-		{
-			if (_grasses[i] == null)
-			{
-				_grasses.RemoveAt(i);
-			}
-			else
-			{
-				validGrasses.Add(_grasses[i]);
-			}
-		}
-
-		return validGrasses;
-	}
-
-	/// <summary>
 	/// Removes a grass interactable from the grasses list. Called when a grass is destroyed.
 	/// </summary>
 	public void RemoveGrass(Grass grass)
@@ -853,6 +741,7 @@ public class InteractableManager : Singleton<InteractableManager>
 		if (grass != null && _grasses != null)
 		{
 			_grasses.Remove(grass);
+			_allInteractables.Remove(grass);
 		}
 	}
     

@@ -82,7 +82,7 @@ public class PredatorAnimal : Animal
             return;
         }
         
-        List<PredatorDen> allDens = InteractableManager.Instance.GetAllPredatorDens();
+        List<PredatorDen> allDens = InteractableManager.Instance.PredatorDens;
         if (allDens == null || allDens.Count == 0)
         {
             return;

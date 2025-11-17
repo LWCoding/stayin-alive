@@ -76,7 +76,7 @@ public class DenIndicatorUI : MonoBehaviour
         }
         
         // Get all dens in the scene
-        List<Den> dens = InteractableManager.Instance != null ? InteractableManager.Instance.GetAllDens() : new List<Den>();
+        List<Den> dens = InteractableManager.Instance != null ? InteractableManager.Instance.Dens : new List<Den>();
         
         // Get player position (first controllable animal)
         Vector3 playerWorldPos = GetPlayerWorldPosition();

@@ -147,7 +147,7 @@ public class RabbitAnimal : PreyAnimal
 			return null;
 		}
 
-		List<Grass> allGrasses = InteractableManager.Instance.GetAllGrasses();
+		List<Grass> allGrasses = InteractableManager.Instance.Grasses;
 		if (allGrasses == null || allGrasses.Count == 0)
 		{
 			return null;
