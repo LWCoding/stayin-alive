@@ -175,6 +175,9 @@ public class PredatorAnimal : Animal
 
     public override void TakeTurn()
     {
+        // Decrease hunger each turn (calls base Animal.TakeTurn)
+        base.TakeTurn();
+        
         // If stalled, skip this turn and decrement stall counter
         if (_stallTurnsRemaining > 0)
         {
@@ -194,8 +197,18 @@ public class PredatorAnimal : Animal
             return;
         }
 
-        // Check if we detect any prey within radius
-        Vector2Int? preyGrid = FindNearestPreyGrid();
+        // Check if we should hunt based on hunger level
+        bool shouldHunt = ShouldHuntBasedOnHunger();
+        
+        // If not hunting due to hunger, clear hunting destination and cancel any chasing audio
+        if (!shouldHunt)
+        {
+            _huntingDestination = null;
+            UpdateChasingAudio(null); // Clear any active chasing state
+        }
+        
+        // Check if we detect any prey within radius (only if we should hunt)
+        Vector2Int? preyGrid = shouldHunt ? FindNearestPreyGrid() : null;
         
         if (preyGrid.HasValue)
         {
@@ -205,7 +218,7 @@ public class PredatorAnimal : Animal
             if (!MoveOneStepTowards(preyGrid.Value))
             {
                 // If move failed, try to find a new prey or recalculate path
-                Vector2Int? newPreyGrid = FindNearestPreyGrid();
+                Vector2Int? newPreyGrid = shouldHunt ? FindNearestPreyGrid() : null;
                 if (newPreyGrid.HasValue)
                 {
                     _huntingDestination = newPreyGrid.Value;
@@ -234,8 +247,8 @@ public class PredatorAnimal : Animal
             
             if (_wanderingDestination.HasValue)
             {
-                // Check if we detect prey while wandering - if so, cancel wandering
-                Vector2Int? detectedPrey = FindNearestPreyGrid();
+                // Check if we detect prey while wandering - if so, cancel wandering (only if we should hunt)
+                Vector2Int? detectedPrey = shouldHunt ? FindNearestPreyGrid() : null;
                 if (detectedPrey.HasValue)
                 {
                     _wanderingDestination = null;
@@ -243,7 +256,7 @@ public class PredatorAnimal : Animal
                     if (!MoveOneStepTowards(detectedPrey.Value))
                     {
                         // If move failed, try to find a new prey
-                        Vector2Int? newPreyGrid = FindNearestPreyGrid();
+                        Vector2Int? newPreyGrid = shouldHunt ? FindNearestPreyGrid() : null;
                         if (newPreyGrid.HasValue)
                         {
                             _huntingDestination = newPreyGrid.Value;
@@ -311,6 +324,16 @@ public class PredatorAnimal : Animal
     /// </summary>
     protected virtual void OnStandardTurnComplete()
     {
+    }
+
+    /// <summary>
+    /// Determines whether this predator should hunt based on its current hunger level.
+    /// Override in subclasses to implement hunger-based hunting behavior.
+    /// </summary>
+    protected virtual bool ShouldHuntBasedOnHunger()
+    {
+        // Default behavior: always hunt (for backwards compatibility with existing predators)
+        return true;
     }
 
     /// <summary>
@@ -687,6 +710,9 @@ public class PredatorAnimal : Animal
                 // Reduce the prey's animal count by one
                 other.ReduceAnimalCount();
                 
+                // Restore hunger to max after eating
+                IncreaseHunger(MaxHunger);
+                
                 // Stall this predator for the configured number of turns
                 _stallTurnsRemaining = Mathf.Max(0, _stallTurnsAfterHunt);
                 _isEatingStallActive = _stallTurnsRemaining > 0;
@@ -783,7 +809,8 @@ public class PredatorAnimal : Animal
 
     protected virtual bool ShouldShowTrackingIndicator()
     {
-        return _huntingDestination.HasValue && _stallTurnsRemaining == 0;
+        // Only show indicator when actively hunting (hungry enough), has a target, and not stalled
+        return ShouldHuntBasedOnHunger() && _huntingDestination.HasValue && _stallTurnsRemaining == 0;
     }
 }
 

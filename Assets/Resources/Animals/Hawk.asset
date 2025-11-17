@@ -18,5 +18,7 @@ MonoBehaviour:
   animationInterval: 0.5
   prefab: {fileID: 5132175799388392085, guid: f03e23e1433890a43ac8735b0379c037, type: 3}
   maxHunger: 100
+  hungerThreshold: 70
+  criticalHungerThreshold: 0
   dyingSFX: 0
   chasingSFX: 1

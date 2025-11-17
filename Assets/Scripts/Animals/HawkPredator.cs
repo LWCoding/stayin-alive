@@ -13,12 +13,33 @@ public class HawkPredator : PredatorAnimal
     private Vector2Int _lastFacingDirection = Vector2Int.up;
 
     /// <summary>
+    /// Determines whether this predator should hunt based on its current hunger level.
+    /// Reads the hunger threshold from AnimalData.
+    /// </summary>
+    protected override bool ShouldHuntBasedOnHunger()
+    {
+        if (AnimalData == null)
+        {
+            return true; // Default to always hunt if no data
+        }
+        return CurrentHunger < AnimalData.hungerThreshold;
+    }
+
+    /// <summary>
     /// Executes the hawk's dash if one is queued up from a previous turn.
+    /// Only dashes if actively hunting (hungry enough).
     /// </summary>
     protected override bool TryPerformSpecialTurnAction()
     {
         if (!_pendingDashDirection.HasValue)
         {
+            return false;
+        }
+
+        // If not hunting due to hunger, cancel the pending dash and return false
+        if (!ShouldHuntBasedOnHunger())
+        {
+            _pendingDashDirection = null;
             return false;
         }
 
@@ -31,6 +52,7 @@ public class HawkPredator : PredatorAnimal
 
     /// <summary>
     /// After the standard predator logic runs, check if we can queue up a dash for next turn.
+    /// Only prepares dash if actively hunting (hungry enough).
     /// </summary>
     protected override void OnStandardTurnComplete()
     {
@@ -43,7 +65,11 @@ public class HawkPredator : PredatorAnimal
             return;
         }
 
-        TryPrepareDash();
+        // Only prepare dash if actively hunting
+        if (ShouldHuntBasedOnHunger())
+        {
+            TryPrepareDash();
+        }
     }
 
     private void ExecuteDash(Vector2Int direction)
@@ -183,6 +209,12 @@ public class HawkPredator : PredatorAnimal
     protected override bool ShouldShowTrackingIndicator()
     {
         if (IsEatingStallActive)
+        {
+            return false;
+        }
+
+        // Only show indicator when actively hunting (hungry enough)
+        if (!ShouldHuntBasedOnHunger())
         {
             return false;
         }

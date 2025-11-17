@@ -31,6 +31,14 @@ public class AnimalData : ScriptableObject
     [Min(1)]
     public int maxHunger = 100;
     
+    [Tooltip("Hunger threshold below which the animal will seek food or hunt. When hunger is below this value, the animal will actively look for food.")]
+    [Range(0, 100)]
+    public int hungerThreshold = 70;
+    
+    [Tooltip("Critical hunger threshold (for prey animals). Below this value, the animal will seek food even when it's dangerous. Set to 0 if not applicable.")]
+    [Range(0, 100)]
+    public int criticalHungerThreshold = 20;
+    
     [Header("Audio")]
     [Tooltip("Sound to play when this animal dies (AudioManager SFX type).")]
     public AudioManager.SFXType dyingSFX = AudioManager.SFXType.None;

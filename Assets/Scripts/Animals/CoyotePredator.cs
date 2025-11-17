@@ -15,6 +15,19 @@ public class CoyotePredator : PredatorAnimal
     private bool _justAteThisTurn = false;
 
     /// <summary>
+    /// Determines whether this predator should hunt based on its current hunger level.
+    /// Reads the hunger threshold from AnimalData.
+    /// </summary>
+    protected override bool ShouldHuntBasedOnHunger()
+    {
+        if (AnimalData == null)
+        {
+            return true; // Default to always hunt if no data
+        }
+        return CurrentHunger < AnimalData.hungerThreshold;
+    }
+
+    /// <summary>
     /// Override to track successful hunts and reset chase counter.
     /// </summary>
     protected override void TryHuntAtCurrentPosition()

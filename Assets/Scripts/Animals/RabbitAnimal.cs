@@ -10,10 +10,6 @@ using UnityEngine;
 public class RabbitAnimal : PreyAnimal
 {
 	[Header("Rabbit Settings")]
-	[Tooltip("Hunger threshold below which the rabbit will seek food. When hunger is below this value, the rabbit will look for grass (only if no predators are nearby).")]
-	[SerializeField] private int _hungerThreshold = 70;
-	[Tooltip("Critical hunger threshold below which the rabbit will seek food regardless of predators. Below this value, survival takes priority over safety.")]
-	[SerializeField] private int _criticalHungerThreshold = 20;
 	[Tooltip("Detection radius for finding grass. Only grass within this distance will be considered.")]
 	[SerializeField] private int _grassDetectionRadius = 10;
 	[Tooltip("Target food type name. This is used for identification purposes.")]
@@ -30,24 +26,28 @@ public class RabbitAnimal : PreyAnimal
 
 	/// <summary>
 	/// Gets whether this rabbit is hungry (hunger below threshold).
+	/// Reads the hunger threshold from AnimalData.
 	/// </summary>
-	public bool IsHungry => CurrentHunger < _hungerThreshold;
+	public bool IsHungry => AnimalData != null && CurrentHunger < AnimalData.hungerThreshold;
 
 	/// <summary>
 	/// Gets whether this rabbit is at critical hunger (hunger below critical threshold).
 	/// At critical hunger, the rabbit will seek food regardless of predators.
+	/// Reads the critical hunger threshold from AnimalData.
 	/// </summary>
-	public bool IsCriticallyHungry => CurrentHunger < _criticalHungerThreshold;
+	public bool IsCriticallyHungry => AnimalData != null && CurrentHunger < AnimalData.criticalHungerThreshold;
 
 	/// <summary>
 	/// Gets the hunger threshold below which the rabbit will seek food.
+	/// Reads from AnimalData.
 	/// </summary>
-	public int HungerThreshold => _hungerThreshold;
+	public int HungerThreshold => AnimalData != null ? AnimalData.hungerThreshold : 70;
 
 	/// <summary>
 	/// Gets the critical hunger threshold below which the rabbit will seek food regardless of predators.
+	/// Reads from AnimalData.
 	/// </summary>
-	public int CriticalHungerThreshold => _criticalHungerThreshold;
+	public int CriticalHungerThreshold => AnimalData != null ? AnimalData.criticalHungerThreshold : 20;
 
 	/// <summary>
 	/// Sets the rabbit spawner this rabbit belongs to.
@@ -125,9 +125,11 @@ public class RabbitAnimal : PreyAnimal
 		// Decrease hunger each turn (same as base Animal.TakeTurn)
 		DecreaseHunger(1);
 		
-		// Check hunger levels
-		bool isCriticallyHungry = CurrentHunger < _criticalHungerThreshold;
-		bool isHungry = CurrentHunger < _hungerThreshold;
+		// Check hunger levels (read from AnimalData)
+		int hungerThreshold = AnimalData != null ? AnimalData.hungerThreshold : 70;
+		int criticalHungerThreshold = AnimalData != null ? AnimalData.criticalHungerThreshold : 20;
+		bool isCriticallyHungry = CurrentHunger < criticalHungerThreshold;
+		bool isHungry = CurrentHunger < hungerThreshold;
 		
 		// If we're hiding in our spawner and critically hungry, force exit immediately
 		if (IsHidingInHome)
@@ -476,7 +478,7 @@ public class RabbitAnimal : PreyAnimal
 		}
 
 		string reason = isCriticallyHungryContext ? "critical hunger" : "hunger";
-		int threshold = isCriticallyHungryContext ? _criticalHungerThreshold : _hungerThreshold;
+		int threshold = isCriticallyHungryContext ? CriticalHungerThreshold : HungerThreshold;
 		Debug.Log($"Rabbit '{name}' forced to exit spawner due to {reason} (hunger: {CurrentHunger} < threshold: {threshold})");
 	}
 
