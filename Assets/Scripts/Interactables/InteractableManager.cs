@@ -149,6 +149,13 @@ public class InteractableManager : Singleton<InteractableManager>
             return null;
         }
         
+        // Check if there's already an interactable at this position
+        if (HasInteractableAtPosition(gridPosition))
+        {
+            Debug.LogWarning($"InteractableManager: Cannot spawn den at ({gridPosition.x}, {gridPosition.y}) - an interactable already exists there.");
+            return null;
+        }
+        
         // Instantiate the den prefab
         GameObject denObj = Instantiate(_denPrefab, _interactableParent);
         Den den = denObj.GetComponent<Den>();
