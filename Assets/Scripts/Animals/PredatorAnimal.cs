@@ -337,6 +337,19 @@ public class PredatorAnimal : Animal
     }
 
     /// <summary>
+    /// Checks if this predator is at critical hunger level.
+    /// At critical hunger, the predator will hunt with infinite range.
+    /// </summary>
+    protected virtual bool IsCriticallyHungry()
+    {
+        if (AnimalData == null)
+        {
+            return false; // No critical hunger if no data
+        }
+        return CurrentHunger < AnimalData.criticalHungerThreshold;
+    }
+
+    /// <summary>
     /// Override to allow predators to move onto dens.
     /// </summary>
     protected bool MoveOneStepTowards(Vector2Int destinationGrid)
@@ -464,6 +477,9 @@ public class PredatorAnimal : Animal
         Animal nearest = null;
         int bestDistance = int.MaxValue;
         Vector2Int myPos = GridPosition;
+        
+        // Check if at critical hunger - if so, ignore detection radius (infinite range)
+        bool isCriticallyHungry = IsCriticallyHungry();
 
         for (int i = 0; i < animals.Count; i++)
         {
@@ -494,11 +510,24 @@ public class PredatorAnimal : Animal
             Vector2Int otherPos = other.GridPosition;
             int distance = Mathf.Abs(otherPos.x - myPos.x) + Mathf.Abs(otherPos.y - myPos.y); // Manhattan distance
             
-            // Only consider animals within detection radius
-            if (distance <= _detectionRadius && distance < bestDistance)
+            // If critically hungry, ignore detection radius. Otherwise, only consider animals within detection radius
+            if (isCriticallyHungry)
             {
-                bestDistance = distance;
-                nearest = other;
+                // Infinite range when critically hungry - just find the nearest
+                if (distance < bestDistance)
+                {
+                    bestDistance = distance;
+                    nearest = other;
+                }
+            }
+            else
+            {
+                // Normal behavior - only consider animals within detection radius
+                if (distance <= _detectionRadius && distance < bestDistance)
+                {
+                    bestDistance = distance;
+                    nearest = other;
+                }
             }
         }
 

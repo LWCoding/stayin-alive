@@ -17,6 +17,7 @@ public class CoyotePredator : PredatorAnimal
     /// <summary>
     /// Determines whether this predator should hunt based on its current hunger level.
     /// Reads the hunger threshold from AnimalData.
+    /// At critical hunger, always hunts. Below normal hunger threshold, hunts normally.
     /// </summary>
     protected override bool ShouldHuntBasedOnHunger()
     {
@@ -24,7 +25,8 @@ public class CoyotePredator : PredatorAnimal
         {
             return true; // Default to always hunt if no data
         }
-        return CurrentHunger < AnimalData.hungerThreshold;
+        // Hunt if critically hungry OR below normal hunger threshold
+        return CurrentHunger < AnimalData.hungerThreshold || IsCriticallyHungry();
     }
 
     /// <summary>
