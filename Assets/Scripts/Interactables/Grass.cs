@@ -5,7 +5,7 @@ using UnityEngine;
 /// Interactable that periodically grows grass on its tile.
 /// Can be harvested twice: first harvest changes to growing sprite, second harvest deletes it.
 /// </summary>
-public class Grass : MonoBehaviour
+public class Grass : Interactable
 {
 	[Header("Grass Settings")]
 	[Tooltip("Average number of turns between growth attempts.")]
@@ -47,7 +47,6 @@ public class Grass : MonoBehaviour
 		Full      // Fully grown state
 	}
 
-	private Vector2Int _gridPosition;
 	private int _turnsSinceLastSpawn;
 	private int _turnsUntilNextSpawn;
 	private int _turnsSinceLastSpread;
@@ -55,11 +54,6 @@ public class Grass : MonoBehaviour
 	private bool _initialized;
 	private GrassState _currentState;
 	private bool _isPlayerOnTile;
-
-	/// <summary>
-	/// Grid position used for spawning and tile placement.
-	/// </summary>
-	public Vector2Int GridPosition => _gridPosition;
 
 	/// <summary>
 	/// Amount of hunger restored when an animal eats this grass.
@@ -165,7 +159,7 @@ public class Grass : MonoBehaviour
 	/// <summary>
 	/// Initializes the grass at the specified grid position.
 	/// </summary>
-	public void Initialize(Vector2Int gridPosition)
+	public override void Initialize(Vector2Int gridPosition)
 	{
 		_gridPosition = gridPosition;
 		_turnsSinceLastSpawn = 0;

@@ -5,7 +5,7 @@ using UnityEngine;
 /// Interactable that periodically spawns worms in an area around it.
 /// Spawn cadence is turn-based and worms only spawn on grass tiles.
 /// </summary>
-public class WormSpawner : MonoBehaviour
+public class WormSpawner : Interactable
 {
 	[Header("Spawner Settings")]
 	[Tooltip("Name of the worm item to spawn.")]
@@ -25,14 +25,8 @@ public class WormSpawner : MonoBehaviour
 	[Tooltip("Multiplier applied to spawn rate during Winter. Higher values = faster spawning (fewer turns).")]
 	[SerializeField] private float _winterSpawnMultiplier = 0.6f;
 
-	private Vector2Int _gridPosition;
 	private int _turnsSinceLastSpawn;
 	private bool _initialized;
-
-	/// <summary>
-	/// Grid position used for spawning and tile placement.
-	/// </summary>
-	public Vector2Int GridPosition => _gridPosition;
 
 	private void OnEnable()
 	{
@@ -63,7 +57,7 @@ public class WormSpawner : MonoBehaviour
 	/// <summary>
 	/// Initializes the spawner at the specified grid position.
 	/// </summary>
-	public void Initialize(Vector2Int gridPosition)
+	public override void Initialize(Vector2Int gridPosition)
 	{
 		_gridPosition = gridPosition;
 		_turnsSinceLastSpawn = 0;

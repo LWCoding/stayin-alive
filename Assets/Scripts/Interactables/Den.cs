@@ -6,10 +6,8 @@ using UnityEngine;
 /// A den interactable that provides safety for controllable animals.
 /// When a controllable animal is on the same tile as a den, predators cannot target them.
 /// </summary>
-public class Den : MonoBehaviour, IHideable
+public class Den : Interactable, IHideable
 {
-    [Header("Den Settings")]
-    private Vector2Int _gridPosition;
     
     [Header("Visuals")]
     [SerializeField] private SpriteRenderer _spriteRenderer;
@@ -23,8 +21,6 @@ public class Den : MonoBehaviour, IHideable
     // Coroutine for passive time progression
     private Coroutine _timeProgressionCoroutine;
     
-    public Vector2Int GridPosition => _gridPosition;
-
     public DenSystemManager.DenInformation GetDenInfo() {
       return DenSystemManager.ConstructDenInformation(this);
     }
@@ -46,7 +42,7 @@ public class Den : MonoBehaviour, IHideable
     /// <summary>
     /// Initializes the den at the specified grid position.
     /// </summary>
-    public void Initialize(Vector2Int gridPosition)
+    public override void Initialize(Vector2Int gridPosition)
     {
         _gridPosition = gridPosition;
         

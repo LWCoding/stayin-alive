@@ -258,19 +258,35 @@ public class ProceduralLevelLoader : MonoBehaviour
         // Initialize lists
 		levelData.Animals = new List<(string animalName, int x, int y, int count)>();
 		levelData.Items = new List<(string itemName, int x, int y)>();
+		levelData.Interactables = new List<InteractableData>();
+        levelData.FoodCount = 0;
+		
+		// Initialize legacy lists for backward compatibility
 		levelData.Dens = new List<(int x, int y)>();
 		levelData.RabbitSpawners = new List<(int x, int y)>();
 		levelData.PredatorDens = new List<(int x, int y, string predatorType)>();
 		levelData.WormSpawners = new List<(int x, int y)>();
 		levelData.Bushes = new List<(int x, int y)>();
 		levelData.Grasses = new List<(int x, int y)>();
-        levelData.FoodCount = 0;
 
         // Generate spawn positions for animals, dens, and items
         GenerateSpawnPositions(levelData);
 
         Debug.Log($"ProceduralLevelLoader: Generated level with {levelData.Tiles.Count} tiles, size: {levelData.Width}x{levelData.Height}");
         return levelData;
+    }
+
+    /// <summary>
+    /// Checks if a position is already occupied by any interactable.
+    /// </summary>
+    private bool IsPositionOccupiedByInteractable(Vector2Int pos, LevelData levelData)
+    {
+        foreach (var interactable in levelData.Interactables)
+        {
+            if (interactable.X == pos.x && interactable.Y == pos.y)
+                return true;
+        }
+        return false;
     }
 
     /// <summary>
@@ -329,6 +345,7 @@ public class ProceduralLevelLoader : MonoBehaviour
             
             // Place den at the same position as the controllable animal
             levelData.Dens.Add((controllablePos.x, controllablePos.y));
+            levelData.Interactables.Add(new InteractableData(InteractableType.Den, controllablePos.x, controllablePos.y));
             
             // Remove this position from available spawn positions to avoid overlap
             spawnPositions.Remove(controllablePos);
@@ -349,6 +366,7 @@ public class ProceduralLevelLoader : MonoBehaviour
 				Vector2Int spawnerPos = spawnPositions[index];
 
 				levelData.RabbitSpawners.Add((spawnerPos.x, spawnerPos.y));
+				levelData.Interactables.Add(new InteractableData(InteractableType.RabbitSpawner, spawnerPos.x, spawnerPos.y));
 				spawnersSpawned++;
 
 				// Remove so animals/items don't overlap
@@ -395,6 +413,7 @@ public class ProceduralLevelLoader : MonoBehaviour
 				Vector2Int spawnerPos = wormSpawnerPositions[index];
 
 				levelData.WormSpawners.Add((spawnerPos.x, spawnerPos.y));
+				levelData.Interactables.Add(new InteractableData(InteractableType.WormSpawner, spawnerPos.x, spawnerPos.y));
 				spawnersSpawned++;
 
 				// Remove so animals/items don't overlap
@@ -407,10 +426,14 @@ public class ProceduralLevelLoader : MonoBehaviour
 		// Spawn bushes at random positions on grass tiles
 		if (_bushCount > 0 && spawnPositions.Count > 0)
 		{
-			// Collect grass positions for bushes
+			// Collect grass positions for bushes (excluding positions with dens, grass interactables, or other interactables)
 			List<Vector2Int> grassPositions = new List<Vector2Int>();
 			foreach (Vector2Int pos in spawnPositions)
 			{
+				// Skip if position is already occupied by a den, grass interactable, or other interactable
+				if (IsPositionOccupiedByInteractable(pos, levelData))
+					continue;
+
 				// Find the tile type for this position
 				TileType tileType = TileType.Empty;
 				foreach (var (tx, ty, tt) in levelData.Tiles)
@@ -441,10 +464,12 @@ public class ProceduralLevelLoader : MonoBehaviour
 					Vector2Int bushPos = grassPositions[index];
 
 					levelData.Bushes.Add((bushPos.x, bushPos.y));
+					levelData.Interactables.Add(new InteractableData(InteractableType.Bush, bushPos.x, bushPos.y));
 					bushesSpawned++;
 
-					// Remove so animals/items don't overlap (but allow multiple bushes in same area)
+					// Remove so animals/items don't overlap
 					grassPositions.RemoveAt(index);
+					spawnPositions.Remove(bushPos);
 				}
 			}
 			else
@@ -456,10 +481,14 @@ public class ProceduralLevelLoader : MonoBehaviour
 		// Spawn grass interactables at random positions on grass tiles
 		if (_grassCount > 0 && spawnPositions.Count > 0)
 		{
-			// Collect grass positions for grass interactables
+			// Collect grass positions for grass interactables (excluding positions with dens, bushes, or other interactables)
 			List<Vector2Int> grassPositions = new List<Vector2Int>();
 			foreach (Vector2Int pos in spawnPositions)
 			{
+				// Skip if position is already occupied by a den, bush, or other interactable
+				if (IsPositionOccupiedByInteractable(pos, levelData))
+					continue;
+
 				// Find the tile type for this position
 				TileType tileType = TileType.Empty;
 				foreach (var (tx, ty, tt) in levelData.Tiles)
@@ -490,10 +519,12 @@ public class ProceduralLevelLoader : MonoBehaviour
 					Vector2Int grassPos = grassPositions[index];
 
 					levelData.Grasses.Add((grassPos.x, grassPos.y));
+					levelData.Interactables.Add(new InteractableData(InteractableType.Grass, grassPos.x, grassPos.y));
 					grassesSpawned++;
 
-					// Remove so animals/items don't overlap (but allow multiple grasses in same area)
+					// Remove so animals/items don't overlap
 					grassPositions.RemoveAt(index);
+					spawnPositions.Remove(grassPos);
 				}
 			}
 			else
@@ -511,14 +542,35 @@ public class ProceduralLevelLoader : MonoBehaviour
                     break;
                 
                 // Pick a random center position for this patch (this will be the predator den location)
-                // Use spawnPositions to avoid water tiles
-                Vector2Int patchCenter = spawnPositions[Random.Range(0, spawnPositions.Count)];
+                // Use spawnPositions to avoid water tiles, but also check for existing interactables
+                Vector2Int patchCenter = Vector2Int.zero;
+                bool foundValidPosition = false;
+                int patchAttempts = 0;
+                int maxPatchAttempts = spawnPositions.Count * 2;
+                
+                while (patchAttempts < maxPatchAttempts && spawnPositions.Count > 0)
+                {
+                    patchCenter = spawnPositions[Random.Range(0, spawnPositions.Count)];
+                    patchAttempts++;
+                    
+                    if (!IsPositionOccupiedByInteractable(patchCenter, levelData))
+                    {
+                        foundValidPosition = true;
+                        break;
+                    }
+                }
+                
+                if (!foundValidPosition)
+                {
+                    continue; // Skip this patch if no valid position found
+                }
                 
                 // Pick ONE predator type for this entire patch (all predators in this patch will be the same type)
                 string patchPredatorType = _predatorNames[Random.Range(0, _predatorNames.Length)];
                 
                 // Spawn a predator den at the patch center with the selected predator type
                 levelData.PredatorDens.Add((patchCenter.x, patchCenter.y, patchPredatorType));
+                levelData.Interactables.Add(new InteractableData(InteractableType.PredatorDen, patchCenter.x, patchCenter.y, patchPredatorType));
                 
                 // Remove patch center from available positions (den occupies it)
                 spawnPositions.Remove(patchCenter);

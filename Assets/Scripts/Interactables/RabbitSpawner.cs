@@ -4,7 +4,7 @@ using UnityEngine;
 /// Interactable that periodically spawns rabbits on its tile.
 /// Spawn cadence is turn-based and the amount spawned varies by season.
 /// </summary>
-public class RabbitSpawner : MonoBehaviour
+public class RabbitSpawner : Interactable
 {
 	[Header("Spawner Settings")]
 	[Tooltip("Name of the animal to spawn. Must match an AnimalData asset.")]
@@ -26,14 +26,8 @@ public class RabbitSpawner : MonoBehaviour
 	[SerializeField, Tooltip("Multiplier applied to spawn count during Winter.")]
 	private float _winterSpawnMultiplier = 0.5f;
 
-	private Vector2Int _gridPosition;
 	private int _turnsSinceLastSpawn;
 	private bool _initialized;
-
-	/// <summary>
-	/// Grid position used for spawning and tile placement.
-	/// </summary>
-	public Vector2Int GridPosition => _gridPosition;
 
 	private void OnEnable()
 	{
@@ -64,7 +58,7 @@ public class RabbitSpawner : MonoBehaviour
 	/// <summary>
 	/// Initializes the spawner at the specified grid position.
 	/// </summary>
-	public void Initialize(Vector2Int gridPosition)
+	public override void Initialize(Vector2Int gridPosition)
 	{
 		_gridPosition = gridPosition;
 		_turnsSinceLastSpawn = 0;

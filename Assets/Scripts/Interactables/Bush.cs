@@ -6,10 +6,9 @@ using UnityEngine;
 /// A bush interactable that provides hiding for controllable animals.
 /// When a controllable animal is on the same tile as a bush, they are hidden and time progresses.
 /// </summary>
-public class Bush : MonoBehaviour, IHideable
+public class Bush : Interactable, IHideable
 {
     [Header("Bush Settings")]
-    private Vector2Int _gridPosition;
     
     [Header("Visuals")]
     [SerializeField] private SpriteRenderer _spriteRenderer;
@@ -22,8 +21,6 @@ public class Bush : MonoBehaviour, IHideable
     
     // Coroutine for passive time progression
     private Coroutine _timeProgressionCoroutine;
-    
-    public Vector2Int GridPosition => _gridPosition;
     
     private void Awake()
     {
@@ -50,7 +47,7 @@ public class Bush : MonoBehaviour, IHideable
     /// <summary>
     /// Initializes the bush at the specified grid position.
     /// </summary>
-    public void Initialize(Vector2Int gridPosition)
+    public override void Initialize(Vector2Int gridPosition)
     {
         _gridPosition = gridPosition;
         

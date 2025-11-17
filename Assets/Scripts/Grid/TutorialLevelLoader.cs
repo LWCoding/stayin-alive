@@ -220,7 +220,21 @@ public class TutorialLevelLoader : MonoBehaviour
         // Set virtual camera to follow the controllable animal
         SetupCameraFollow();
 
-        Debug.Log($"TutorialLevelLoader: Successfully loaded tutorial level with {levelData.Tiles.Count} tiles, {levelData.Animals.Count} animals, {levelData.Items.Count} items, {levelData.Dens.Count} dens, {levelData.RabbitSpawners.Count} rabbit spawners, {levelData.WormSpawners.Count} worm spawners, {levelData.PredatorDens.Count} predator dens, {levelData.Bushes.Count} bushes, and {levelData.Grasses.Count} grass interactables");
+		// Count interactables by type for debug log
+		int densCount = 0, rabbitSpawnersCount = 0, wormSpawnersCount = 0, predatorDensCount = 0, bushesCount = 0, grassesCount = 0;
+		foreach (var interactable in levelData.Interactables)
+		{
+			switch (interactable.Type)
+			{
+				case InteractableType.Den: densCount++; break;
+				case InteractableType.RabbitSpawner: rabbitSpawnersCount++; break;
+				case InteractableType.WormSpawner: wormSpawnersCount++; break;
+				case InteractableType.PredatorDen: predatorDensCount++; break;
+				case InteractableType.Bush: bushesCount++; break;
+				case InteractableType.Grass: grassesCount++; break;
+			}
+		}
+		Debug.Log($"TutorialLevelLoader: Successfully loaded tutorial level with {levelData.Tiles.Count} tiles, {levelData.Animals.Count} animals, {levelData.Items.Count} items, {levelData.Interactables.Count} interactables ({densCount} dens, {rabbitSpawnersCount} rabbit spawners, {wormSpawnersCount} worm spawners, {predatorDensCount} predator dens, {bushesCount} bushes, {grassesCount} grasses)");
     }
 
     /// <summary>
@@ -274,18 +288,22 @@ public class TutorialLevelLoader : MonoBehaviour
         // Initialize lists
         levelData.Animals = new List<(string animalName, int x, int y, int count)>();
         levelData.Items = new List<(string itemName, int x, int y)>();
+        levelData.Interactables = new List<InteractableData>();
+        levelData.FoodCount = 0;
+        
+        // Initialize legacy lists for backward compatibility
         levelData.Dens = new List<(int x, int y)>();
         levelData.RabbitSpawners = new List<(int x, int y)>();
         levelData.PredatorDens = new List<(int x, int y, string predatorType)>();
         levelData.WormSpawners = new List<(int x, int y)>();
         levelData.Bushes = new List<(int x, int y)>();
         levelData.Grasses = new List<(int x, int y)>();
-        levelData.FoodCount = 0;
 
         // Place den
         if (IsValidGridPosition(_denPosition.x, _denPosition.y))
         {
             levelData.Dens.Add((_denPosition.x, _denPosition.y));
+            levelData.Interactables.Add(new InteractableData(InteractableType.Den, _denPosition.x, _denPosition.y));
         }
         else
         {
@@ -330,6 +348,7 @@ public class TutorialLevelLoader : MonoBehaviour
                 if (!string.IsNullOrEmpty(placement.predatorType))
                 {
                     levelData.PredatorDens.Add((placement.position.x, placement.position.y, placement.predatorType));
+                    levelData.Interactables.Add(new InteractableData(InteractableType.PredatorDen, placement.position.x, placement.position.y, placement.predatorType));
                 }
                 else
                 {
@@ -361,6 +380,7 @@ public class TutorialLevelLoader : MonoBehaviour
             if (IsValidGridPosition(pos.x, pos.y))
             {
                 levelData.RabbitSpawners.Add((pos.x, pos.y));
+                levelData.Interactables.Add(new InteractableData(InteractableType.RabbitSpawner, pos.x, pos.y));
             }
             else
             {
@@ -374,6 +394,7 @@ public class TutorialLevelLoader : MonoBehaviour
             if (IsValidGridPosition(pos.x, pos.y))
             {
                 levelData.WormSpawners.Add((pos.x, pos.y));
+                levelData.Interactables.Add(new InteractableData(InteractableType.WormSpawner, pos.x, pos.y));
             }
             else
             {
@@ -387,6 +408,7 @@ public class TutorialLevelLoader : MonoBehaviour
             if (IsValidGridPosition(pos.x, pos.y))
             {
                 levelData.Bushes.Add((pos.x, pos.y));
+                levelData.Interactables.Add(new InteractableData(InteractableType.Bush, pos.x, pos.y));
             }
             else
             {
@@ -400,6 +422,7 @@ public class TutorialLevelLoader : MonoBehaviour
             if (IsValidGridPosition(pos.x, pos.y))
             {
                 levelData.Grasses.Add((pos.x, pos.y));
+                levelData.Interactables.Add(new InteractableData(InteractableType.Grass, pos.x, pos.y));
             }
             else
             {

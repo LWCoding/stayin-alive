@@ -4,7 +4,7 @@ using UnityEngine;
 /// A den interactable that defines a territory for predators.
 /// Predators attached to this den will wander within a radius of it.
 /// </summary>
-public class PredatorDen : MonoBehaviour
+public class PredatorDen : Interactable
 {
     [Header("Predator Den Settings")]
     [Tooltip("Radius in grid cells that predators attached to this den will wander within")]
@@ -13,10 +13,8 @@ public class PredatorDen : MonoBehaviour
     [Header("Visuals")]
     [SerializeField] private SpriteRenderer _spriteRenderer;
     
-    private Vector2Int _gridPosition;
     private string _predatorType = null;
     
-    public Vector2Int GridPosition => _gridPosition;
     public int TerritoryRadius => _territoryRadius;
     public string PredatorType => _predatorType;
     
@@ -26,6 +24,14 @@ public class PredatorDen : MonoBehaviour
         {
             _spriteRenderer = GetComponent<SpriteRenderer>();
         }
+    }
+    
+    /// <summary>
+    /// Initializes the predator den at the specified grid position.
+    /// </summary>
+    public override void Initialize(Vector2Int gridPosition)
+    {
+        Initialize(gridPosition, null);
     }
     
     /// <summary>
