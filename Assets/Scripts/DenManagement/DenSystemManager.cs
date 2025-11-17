@@ -35,6 +35,28 @@ public class DenSystemManager : Singleton<DenSystemManager> {
 
   [HideInInspector]
   public int UNASSIGNED_DEN_ID = -1;
+  
+  private int _assignedWorkerCount = 0;
+  private bool _hasTriggeredWin = false;
+  
+  /// <summary>
+  /// Gets the current number of assigned workers. When this reaches the MVP goal, triggers the win condition.
+  /// </summary>
+  public int AssignedWorkerCount
+  {
+    get => _assignedWorkerCount;
+    private set
+    {
+      _assignedWorkerCount = value;
+      
+      // Check if we've reached the MVP goal and trigger win
+      if (!_hasTriggeredWin && _assignedWorkerCount >= Globals.MvpWorkerGoal && GameManager.Instance != null)
+      {
+        _hasTriggeredWin = true;
+        GameManager.Instance.TriggerWin();
+      }
+    }
+  }
 
   public bool CreateWorker() {
     if (workerAnimalData == null) {
@@ -122,6 +144,9 @@ public class DenSystemManager : Singleton<DenSystemManager> {
     // Update the mapping
     workersToDens[animal] = denId;
     
+    // Increment assigned worker count
+    AssignedWorkerCount++;
+    
     Debug.Log($"Worker '{animal.name}' assigned to den at ({targetDen.GridPosition.x}, {targetDen.GridPosition.y})");
 
     return true;
@@ -153,6 +178,9 @@ public class DenSystemManager : Singleton<DenSystemManager> {
     // Update the mapping to unassigned
     workersToDens[animal] = UNASSIGNED_DEN_ID;
     
+    // Decrement assigned worker count
+    AssignedWorkerCount--;
+    
     return true;
   }
   
@@ -175,6 +203,8 @@ public class DenSystemManager : Singleton<DenSystemManager> {
         denInformations[assignedDenId].denObject.RemoveWorker(animal);
         Debug.Log($"Worker '{animal.name}' died and was removed from den at ID {assignedDenId}.");
       }
+      // Decrement assigned worker count since an assigned worker died
+      AssignedWorkerCount--;
     } else {
       // Worker was unassigned, remove from unassigned list
       unassignedWorkers.Remove(animal);

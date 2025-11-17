@@ -277,18 +277,8 @@ public class UIManager : Singleton<UIManager>
             return;
         }
         
-        // Count assigned workers (workers with denId != UNASSIGNED_DEN_ID)
-        int assignedWorkerCount = 0;
-        foreach (var workerDenPair in DenSystemManager.Instance.WorkersToDens)
-        {
-            if (workerDenPair.Value != DenSystemManager.Instance.UNASSIGNED_DEN_ID)
-            {
-                assignedWorkerCount++;
-            }
-        }
-        
         // Update the text with the formatted string
-        _mvpProgressText.text = $"<size=36>MVP:</size>\n{assignedWorkerCount}/{Globals.MvpWorkerGoal}";
+        _mvpProgressText.text = $"<size=36>MVP:</size>\n{DenSystemManager.Instance.AssignedWorkerCount}/{Globals.MvpWorkerGoal}";
     }
 }
 

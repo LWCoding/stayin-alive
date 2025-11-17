@@ -70,6 +70,41 @@ public class GameManager : Singleton<GameManager>
     }
     
     /// <summary>
+    /// Triggers the win condition when the MVP goal is reached.
+    /// Shows win screen and pauses time.
+    /// </summary>
+    public void TriggerWin()
+    {
+        if (_hasWon || _hasLost)
+        {
+            return;
+        }
+        
+        _hasWon = true;
+        
+        // Show win screen
+        if (_winScreen != null)
+        {
+            _winScreen.SetActive(true);
+            Debug.Log("GameManager: Win condition triggered! Showing win screen.");
+        }
+        else
+        {
+            Debug.LogWarning("GameManager: Win condition triggered, but win screen UI element is not assigned!");
+        }
+        
+        // Pause time
+        if (TimeManager.Instance != null)
+        {
+            TimeManager.Instance.Pause();
+        }
+        else
+        {
+            Debug.LogWarning("GameManager: Win condition triggered, but TimeManager instance not found!");
+        }
+    }
+    
+    /// <summary>
     /// Resets the game state. Hides win/lose screens and resumes time.
     /// </summary>
     public void ResetGameState()
