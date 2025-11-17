@@ -107,6 +107,9 @@ public class DenAdministrator : MonoBehaviour {
 
     // Worst case if something is out of sync, error will be in player's favor
     PointsManager.Instance.AddPoints(-1 * DenSystemManager.Instance.denPrice, true);
+    
+    // Automatically enter the den after building it
+    newDen.OnAnimalEnter(playerAnimal);
   }
   
   public void PurchaseWorker() {
