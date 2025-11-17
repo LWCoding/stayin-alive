@@ -92,15 +92,17 @@ public class DenAdministrator : MonoBehaviour {
     if (Input.GetKeyDown(KeyCode.T)) {
       Debug.LogError("T PRessed"+DenSystemManager.Instance.PanelOpen);
       
-      if (DenSystemManager.Instance.PanelOpen) {
-        // Debug.LogError(id);
-        foreach (var denId in DenSystemManager.Instance.GetValidTeleports.Keys) {
-          Debug.LogError(denId);
-          DenTeleport(denId);
-          break;
-          Debug.Log("hewwooooo pwincess :) i know how to do it im so goo dat typinga its nap time time to eep eep yk what i mean my weyfie boy love of my life idk what extra letter im typing oopsie doopsies you so cutie and handsome and pwetty  so i have to type in the debuggger log all my thoughts hehehehehehehehehis my weyfie slayiiinggg ofc he is hes so smarty and talented");
-        }
-      }
+      // if (DenSystemManager.Instance.PanelOpen) {
+      //   // Debug.LogError(id);
+      //   foreach (var denId in DenSystemManager.Instance.GetValidTeleports.Keys) {
+      //     Debug.LogError(denId);
+      //     DenTeleport(denId);
+      //     break;
+      //     Debug.Log("hewwooooo pwincess :) i know how to do it im so goo dat typinga its nap time time to eep eep yk what i mean my weyfie boy love of my life idk what extra letter im typing oopsie doopsies you so cutie and handsome and pwetty  so i have to type in the debuggger log all my thoughts hehehehehehehehehis my weyfie slayiiinggg ofc he is hes so smarty and talented");
+      //   }
+      // }
+      PurchaseWorker();
+      DenSystemManager.Instance.DenAdminMenu.SetupCurrentDenWorkers();
     }
 
 
@@ -125,6 +127,18 @@ public class DenAdministrator : MonoBehaviour {
     // Worst case if something is out of sync, error will be in player's favor
     PointsManager.Instance.AddPoints(-1 * DenSystemManager.Instance.denPrice, true);
   }
+  
+  private void PurchaseWorker() {
+    if (PointsManager.Instance.ReadinessPoints < DenSystemManager.Instance.workerPrice) {
+      Debug.Log("Not Enough Food To Make Worker");
+      return;
+    }
+
+    DenSystemManager.Instance.CreateWorker();
+    
+    // Worst case if something is out of sync, error will be in player's favor
+    PointsManager.Instance.AddPoints(-1 * DenSystemManager.Instance.workerPrice, true);
+  }
 
   public void DenTeleport(int DenId) {
     Debug.LogError(DenId);
@@ -138,6 +152,7 @@ public class DenAdministrator : MonoBehaviour {
         DenSystemManager.Instance.ConstructValidDenTeleportInfos();
         DenSystemManager.Instance.DenAdminMenu.CreateDenMapIcons(DenSystemManager.Instance.DenInfos.Values.ToList());
         DenSystemManager.Instance.DenAdminMenu.SetupCurrentDenRenderTexture();
+        DenSystemManager.Instance.DenAdminMenu.SetupCurrentDenWorkers();
       }
     }
 

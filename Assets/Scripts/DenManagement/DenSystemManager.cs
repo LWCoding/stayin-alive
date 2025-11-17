@@ -17,6 +17,9 @@ public class DenSystemManager : Singleton<DenSystemManager> {
     return new DenInformation { denId = denId, denWorkerPop = denPopulation, denObject = den };
   }
   
+  public int denPrice;
+  public int workerPrice;
+  
   public GameObject FollowerAnimalPrefab;
   
   private Dictionary<int, DenInformation> validTeleports;
@@ -24,12 +27,24 @@ public class DenSystemManager : Singleton<DenSystemManager> {
   private Dictionary<int, DenInformation> denInformations;
 
   private Dictionary<Animal, int> workersToDens;
+  public Dictionary<Animal, int> WorkersToDens => workersToDens;
   
   private List<Animal> unassignedWorkers;
 
-  private int UNASSIGNED_DEN_ID = -1;
+  [HideInInspector]
+  public int UNASSIGNED_DEN_ID = -1;
 
-  private bool AssignUnassignedWorker(Animal animal, int denId) {
+  public bool CreateWorker() {
+    
+    GameObject newWorker = Instantiate(FollowerAnimalPrefab);
+    Animal newWorkerAnimal = newWorker.GetComponent<Animal>();
+    unassignedWorkers.Add(newWorkerAnimal);
+    workersToDens[newWorkerAnimal] = -1;
+    return true;
+  }
+  
+  
+  public bool AssignWorker(Animal animal, int denId) {
     ConstructDenInfos();
     // Make sure animal and den properly exist
     if (!workersToDens.ContainsKey(animal) || !denInformations.ContainsKey(denId)) {
@@ -53,7 +68,7 @@ public class DenSystemManager : Singleton<DenSystemManager> {
     return true;
   }
 
-  private bool UnassignAssignedWorker(Animal animal) {
+  public bool UnassignWorker(Animal animal) {
     ConstructDenInfos();
     if (!workersToDens.ContainsKey(animal) || !workersToDens.ContainsKey(animal)) {
       return false;
@@ -98,6 +113,8 @@ public class DenSystemManager : Singleton<DenSystemManager> {
   private void Start() {
     validTeleports = new Dictionary<int, DenInformation>();
     denInformations = new Dictionary<int, DenInformation>();
+    workersToDens = new Dictionary<Animal, int>();
+    unassignedWorkers = new List<Animal>();
   }
   
   public void OpenPanel() {
@@ -118,9 +135,6 @@ public class DenSystemManager : Singleton<DenSystemManager> {
     validTeleports.Clear();
     TimeManager.Instance.Resume();
   }
-
-
-  public int denPrice;
 
   public List<Den> GetDenList() {
     return InteractableManager.Instance.Dens;

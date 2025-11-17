@@ -11,6 +11,9 @@ public class PointsManager : Singleton<PointsManager>
     [SerializeField] [Tooltip("TextMeshProUGUI component to display the readiness points")]
     private TextMeshProUGUI _pointsText;
     
+    [SerializeField] [Tooltip("TextMeshProUGUI component to display the readiness points")]
+    private TextMeshProUGUI _pointsTextMenu;
+    
     [Header("Settings")]
     [SerializeField] [Tooltip("Format string for displaying points. Use {0} for current points.")]
     private string _pointsFormat = "{0}";
@@ -70,6 +73,11 @@ public class PointsManager : Singleton<PointsManager>
         if (_pointsText != null)
         {
             _pointsText.text = string.Format(_pointsFormat, _readinessPoints);
+        }
+        
+        if (_pointsTextMenu != null)
+        {
+          _pointsTextMenu.text = string.Format(_pointsFormat, _readinessPoints);
         }
     }
 }
