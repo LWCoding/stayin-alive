@@ -13,7 +13,7 @@ public class PredatorAnimal : Animal
     [Tooltip("Priority level of this predator. Higher priority predators can hunt lower priority predators. Predators with the same priority ignore each other.")]
     [SerializeField] private int _priority = 0;
 
-    [SerializeField] private int _stallTurnsAfterHunt = 5;
+    [SerializeField] private int _stallTurnsAfterHunt = 7;
     
     [Header("Visual Indicators")]
     [Tooltip("Visual indicator shown above the predator's head when tracking/hunting prey.")]
