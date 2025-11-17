@@ -501,6 +501,12 @@ public class PredatorAnimal : Animal
                 continue;
             }
 
+            // Skip unassigned workers - they should not be targetable until assigned to a den
+            if (DenSystemManager.Instance != null && DenSystemManager.Instance.IsUnassignedWorker(other))
+            {
+                continue;
+            }
+
             // Check if this animal is a valid target based on priority
             if (!IsValidTarget(other))
             {

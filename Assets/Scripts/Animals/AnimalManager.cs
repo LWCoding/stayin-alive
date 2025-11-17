@@ -202,6 +202,7 @@ public class AnimalManager : Singleton<AnimalManager>
 
     /// <summary>
     /// Ensures that only one animal occupies a grid tile by reverting the most recent mover if needed.
+    /// Unassigned workers are excluded from collision checking as they should not block movement.
     /// </summary>
     /// <param name="movedAnimal">The animal that recently changed tiles.</param>
     public void ResolveTileConflictsForAnimal(Animal movedAnimal)
@@ -229,6 +230,12 @@ public class AnimalManager : Singleton<AnimalManager>
                 continue;
             }
 
+            // Skip unassigned workers - they should not cause collision reverts
+            if (DenSystemManager.Instance != null && DenSystemManager.Instance.IsUnassignedWorker(other))
+            {
+                continue;
+            }
+
             if (other.GridPosition == movedPosition)
             {
                 shouldRevert = true;
@@ -246,6 +253,7 @@ public class AnimalManager : Singleton<AnimalManager>
 
     /// <summary>
     /// Checks whether there is another animal already occupying the specified grid position.
+    /// Unassigned workers are excluded from collision checking as they should not block movement.
     /// </summary>
     public bool HasOtherAnimalAtPosition(Animal origin, Vector2Int position)
     {
@@ -260,6 +268,12 @@ public class AnimalManager : Singleton<AnimalManager>
             }
 
             if (other == origin)
+            {
+                continue;
+            }
+
+            // Skip unassigned workers - they should not block movement
+            if (DenSystemManager.Instance != null && DenSystemManager.Instance.IsUnassignedWorker(other))
             {
                 continue;
             }

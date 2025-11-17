@@ -151,7 +151,7 @@ public class DenAdminMenuGuiController : MonoBehaviour {
     // Update button text based on den capacity
     TextMeshProUGUI buttonText = purchaseWorkerButton.GetComponentInChildren<TextMeshProUGUI>();
     if (buttonText != null) {
-      buttonText.text = denIsFull ? denFullButtonText : purchaseWorkerButtonText;
+      buttonText.text = (denIsFull ? denFullButtonText : purchaseWorkerButtonText).Replace("\\n", "\n");
     }
     
     // Button is only interactable if player has enough points AND den is not full

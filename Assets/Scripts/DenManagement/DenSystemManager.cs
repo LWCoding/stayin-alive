@@ -176,6 +176,20 @@ public class DenSystemManager : Singleton<DenSystemManager> {
     workersToDens.Remove(animal);
   }
   
+  /// <summary>
+  /// Checks if the given animal is an unassigned worker (a worker that hasn't been assigned to a den yet).
+  /// Unassigned workers should not execute turn logic or be visible.
+  /// </summary>
+  /// <param name="animal">The animal to check</param>
+  /// <returns>True if the animal is an unassigned worker, false otherwise</returns>
+  public bool IsUnassignedWorker(Animal animal) {
+    if (animal == null || !workersToDens.ContainsKey(animal)) {
+      return false;
+    }
+    
+    return workersToDens[animal] == UNASSIGNED_DEN_ID;
+  }
+  
   public Dictionary<int, DenInformation> GetValidTeleports => validTeleports;
   public Dictionary<int, DenInformation> DenInfos => denInformations;
   private bool panelOpen;
