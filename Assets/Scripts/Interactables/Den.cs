@@ -31,7 +31,12 @@ public class Den : Interactable, IHideable
     private List<Animal> denWorkers = new List<Animal>();
 
     public void AddWorker(Animal animal) {
-      denWorkers.Add(animal);
+      // Only add if not at capacity
+      if (denWorkers.Count < Globals.MaxWorkersPerDen) {
+        denWorkers.Add(animal);
+      } else {
+        Debug.LogWarning($"Den at ({GridPosition.x}, {GridPosition.y}) is at maximum capacity ({Globals.MaxWorkersPerDen} workers).");
+      }
     }
 
     public void RemoveWorker(Animal animal) {
@@ -40,6 +45,10 @@ public class Den : Interactable, IHideable
 
     public int WorkerCount() {
       return denWorkers.Count;
+    }
+    
+    public bool IsFull() {
+      return denWorkers.Count >= Globals.MaxWorkersPerDen;
     }
     
     public DenSystemManager.DenInformation GetDenInfo() {

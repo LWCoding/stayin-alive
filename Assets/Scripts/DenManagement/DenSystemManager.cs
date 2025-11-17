@@ -89,11 +89,17 @@ public class DenSystemManager : Singleton<DenSystemManager> {
       return false;
     }
     
-    // First, remove from the unassigned worker list
-    unassignedWorkers.Remove(animal);
-    
     // Get the den object
     Den targetDen = denInformations[denId].denObject;
+    
+    // Check if den is at maximum capacity
+    if (targetDen.IsFull()) {
+      Debug.LogWarning($"Cannot assign worker to den at ({targetDen.GridPosition.x}, {targetDen.GridPosition.y}) - den is at maximum capacity ({Globals.MaxWorkersPerDen} workers).");
+      return false;
+    }
+    
+    // First, remove from the unassigned worker list
+    unassignedWorkers.Remove(animal);
     
     animal.SetHome(targetDen);
     animal.SetGridPosition(targetDen.GridPosition);

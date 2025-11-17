@@ -53,5 +53,10 @@ public static class Globals
     /// Goal number of assigned workers required to achieve the MVP milestone.
     /// </summary>
     public static int MvpWorkerGoal = 20;
+
+    /// <summary>
+    /// Maximum number of workers that can be assigned to a single den.
+    /// </summary>
+    public static int MaxWorkersPerDen = 5;
 }
 

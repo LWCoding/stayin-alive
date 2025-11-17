@@ -47,6 +47,14 @@ public class DenAdminMenuGuiController : MonoBehaviour {
   [SerializeField]
   [Tooltip("Button that will purchase a worker when clicked")]
   private Button purchaseWorkerButton;
+  
+  [SerializeField]
+  [Tooltip("Text displayed on the purchase worker button when den is not full")]
+  private string purchaseWorkerButtonText = "Breed Worker";
+  
+  [SerializeField]
+  [Tooltip("Text displayed on the purchase worker button when den is at maximum capacity")]
+  private string denFullButtonText = "Den Full";
 
   private List<DenSystemManager.DenInformation> mapDenInfo;
 
@@ -68,7 +76,7 @@ public class DenAdminMenuGuiController : MonoBehaviour {
     visibilityController.alpha = 1;
     visibilityController.interactable = true;
     SetupCurrentDenWorkers();
-    UpdatePurchaseWorkerButtonState();
+    UpdatePurchaseWorkerButton();
   }
 
   public void Hide() {
@@ -124,19 +132,30 @@ public class DenAdminMenuGuiController : MonoBehaviour {
   private void OnPurchaseWorkerButtonClicked() {
     DenSystemManager.Instance.CurrentDenAdministrator.PurchaseWorker();
     SetupCurrentDenWorkers();
-    UpdatePurchaseWorkerButtonState();
+    UpdatePurchaseWorkerButton();
   }
   
   /// <summary>
   /// Updates the purchase worker button's interactable state based on whether the player has enough points
+  /// and whether the current den is at maximum capacity
   /// </summary>
-  private void UpdatePurchaseWorkerButtonState() {
+  public void UpdatePurchaseWorkerButton() {
     if (purchaseWorkerButton == null) {
       return;
     }
     
-    // Button is only interactable if player has enough points
+    // Check if current den is at maximum capacity
+    Den currentDen = DenSystemManager.Instance.CurrentAdminDen;
+    bool denIsFull = currentDen != null && currentDen.IsFull();
+    
+    // Update button text based on den capacity
+    TextMeshProUGUI buttonText = purchaseWorkerButton.GetComponentInChildren<TextMeshProUGUI>();
+    if (buttonText != null) {
+      buttonText.text = denIsFull ? denFullButtonText : purchaseWorkerButtonText;
+    }
+    
+    // Button is only interactable if player has enough points AND den is not full
     bool canAfford = PointsManager.Instance.ReadinessPoints >= DenSystemManager.Instance.workerPrice;
-    purchaseWorkerButton.interactable = canAfford;
+    purchaseWorkerButton.interactable = canAfford && !denIsFull;
   }
 }
