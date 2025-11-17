@@ -47,6 +47,9 @@ public class Animal : MonoBehaviour
     [Header("Hiding")]
     [Tooltip("The hideable location this animal is currently in (e.g., bush or den), if any.")]
     private IHideable _currentHideable = null;
+    
+    [Tooltip("The hideable location this animal considers home (e.g., spawner or den).")]
+    private IHideable _homeHideable = null;
 
     public AnimalData AnimalData => _animalData;
     public Vector2Int GridPosition => _gridPosition;
@@ -68,6 +71,7 @@ public class Animal : MonoBehaviour
     public int MaxHunger => _maxHunger;
     public float HungerRatio => _maxHunger > 0 ? (float)_currentHunger / _maxHunger : 0f;
     public IHideable CurrentHideable => _currentHideable;
+    public IHideable HomeHideable => _homeHideable;
 
     /// <summary>
     /// Sets the current hideable location this animal is in. Internal use only.
@@ -75,6 +79,24 @@ public class Animal : MonoBehaviour
     internal void SetCurrentHideable(IHideable hideable)
     {
         _currentHideable = hideable;
+    }
+
+    /// <summary>
+    /// Sets the home hideable location for this animal.
+    /// Used when dynamically assigning homes, such as when a worker is assigned to a den.
+    /// </summary>
+    public void SetHome(IHideable hideable)
+    {
+        _homeHideable = hideable;
+    }
+
+    /// <summary>
+    /// Clears the home reference for this animal.
+    /// Used when unassigning an animal from its home location.
+    /// </summary>
+    public void ClearHome()
+    {
+        _homeHideable = null;
     }
 
     /// <summary>

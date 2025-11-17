@@ -17,8 +17,8 @@ MonoBehaviour:
   frame2Sprite: {fileID: 21300000, guid: 2d5a4175bdcb94d438b1d5e19d1826cd, type: 3}
   animationInterval: 0.5
   prefab: {fileID: 5132175799388392085, guid: f03e23e1433890a43ac8735b0379c037, type: 3}
-  maxHunger: 100
-  hungerThreshold: 70
-  criticalHungerThreshold: 30
+  maxHunger: 150
+  hungerThreshold: 120
+  criticalHungerThreshold: 50
   dyingSFX: 0
   chasingSFX: 1

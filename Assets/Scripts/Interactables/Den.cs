@@ -110,7 +110,14 @@ public class Den : Interactable, IHideable
     /// </summary>
     public void OnAnimalEnter(Animal animal)
     {
-        if (animal != null && animal.IsControllable)
+        if (animal == null) {
+            return;
+        }
+        
+        // Allow entry if animal is controllable OR if this den is the animal's home
+        bool canEnter = animal.IsControllable || ReferenceEquals(animal.HomeHideable, this);
+        
+        if (canEnter)
         {
           
             _animalsInDen.Add(animal);
@@ -253,6 +260,17 @@ public class Den : Interactable, IHideable
     {
         bool hasAnimals = _animalsInDen.Count > 0;
         
+        // Check if the player (controllable animal) is specifically in the den
+        bool hasPlayer = false;
+        foreach (Animal animal in _animalsInDen)
+        {
+            if (animal != null && animal.IsControllable)
+            {
+                hasPlayer = true;
+                break;
+            }
+        }
+        
         // Update sprite renderer
         if (_spriteRenderer != null)
         {
@@ -266,10 +284,10 @@ public class Den : Interactable, IHideable
             _spriteRenderer.enabled = targetSprite != null || _spriteRenderer.sprite != null;
         }
         
-        // Update player in den object visibility
+        // Update player in den object visibility - only show when player is in den
         if (_playerInDenObject != null)
         {
-            _playerInDenObject.SetActive(hasAnimals);
+            _playerInDenObject.SetActive(hasPlayer);
         }
     }
 }

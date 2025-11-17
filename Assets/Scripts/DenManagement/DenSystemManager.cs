@@ -20,7 +20,9 @@ public class DenSystemManager : Singleton<DenSystemManager> {
   public int denPrice;
   public int workerPrice;
   
-  public GameObject FollowerAnimalPrefab;
+  [Header("Worker Settings")]
+  [Tooltip("AnimalData ScriptableObject that defines the worker animal type")]
+  public AnimalData workerAnimalData;
   
   private Dictionary<int, DenInformation> validTeleports;
   
@@ -35,11 +37,42 @@ public class DenSystemManager : Singleton<DenSystemManager> {
   public int UNASSIGNED_DEN_ID = -1;
 
   public bool CreateWorker() {
+    if (workerAnimalData == null) {
+      Debug.LogError("DenSystemManager: Worker AnimalData is not assigned! Please assign a worker AnimalData in the Inspector.");
+      return false;
+    }
     
-    GameObject newWorker = Instantiate(FollowerAnimalPrefab);
-    Animal newWorkerAnimal = newWorker.GetComponent<Animal>();
+    if (AnimalManager.Instance == null) {
+      Debug.LogError("DenSystemManager: AnimalManager instance not found!");
+      return false;
+    }
+    
+    // Determine spawn position - use current den position if player is in a den
+    Vector2Int spawnPosition = Vector2Int.zero;
+    if (currentDenAdministrator != null && CurrentAdminDen != null) {
+      spawnPosition = CurrentAdminDen.GridPosition;
+    }
+    
+    // Spawn worker at the determined position
+    // Workers start hidden (unassigned state)
+    Animal newWorkerAnimal = AnimalManager.Instance.SpawnAnimal(
+      workerAnimalData.animalName, 
+      spawnPosition, 
+      1
+    );
+    
+    if (newWorkerAnimal == null) {
+      Debug.LogError("DenSystemManager: Failed to spawn worker animal!");
+      return false;
+    }
+    
+    // Hide the worker since they're unassigned
+    // Workers will only show up at dens when explicitly assigned
+    newWorkerAnimal.SetVisualVisibility(false);
+    
     unassignedWorkers.Add(newWorkerAnimal);
-    workersToDens[newWorkerAnimal] = -1;
+    workersToDens[newWorkerAnimal] = UNASSIGNED_DEN_ID;
+    
     return true;
   }
   
@@ -59,11 +92,22 @@ public class DenSystemManager : Singleton<DenSystemManager> {
     // First, remove from the unassigned worker list
     unassignedWorkers.Remove(animal);
     
-    // Then, add it to the list for the other den
-    denInformations[denId].denObject.AddWorker(animal);
+    // Get the den object
+    Den targetDen = denInformations[denId].denObject;
     
-    // Only then, update the map
+    animal.SetHome(targetDen);
+    animal.SetGridPosition(targetDen.GridPosition);
+  
+    // Make the worker visible
+    animal.SetVisualVisibility(true);
+    
+    // Add it to the den's worker list
+    targetDen.AddWorker(animal);
+    
+    // Update the mapping
     workersToDens[animal] = denId;
+    
+    Debug.Log($"Worker '{animal.name}' assigned to den at ({targetDen.GridPosition.x}, {targetDen.GridPosition.y})");
 
     return true;
   }
@@ -78,13 +122,20 @@ public class DenSystemManager : Singleton<DenSystemManager> {
       return false;
     }
     
-    // Then, remove it from list for the other den
+    // Remove it from the den's worker list
     denInformations[workersToDens[animal]].denObject.RemoveWorker(animal);
+    
+    // Clear the worker's home reference
+    animal.ClearHome();
+    Debug.Log($"Worker '{animal.name}' unassigned and home cleared.");
+    
+    // Hide the worker since they're now unassigned
+    animal.SetVisualVisibility(false);
     
     // Add it to the unassigned list
     unassignedWorkers.Add(animal);
     
-    // Only then, unassign it in the map
+    // Update the mapping to unassigned
     workersToDens[animal] = UNASSIGNED_DEN_ID;
     
     return true;

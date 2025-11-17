@@ -16,12 +16,10 @@ public class PreyAnimal : Animal
     protected Vector2Int? _wanderingDestination = null;
     private Vector2Int? _fleeDestination = null;
     private int _turnCounter = 0;
-    private IHideable _homeHideable = null;
 
-    protected bool HasHomeHideable => _homeHideable != null;
-    protected bool IsAtHomeHideable => HasHomeHideable && GridPosition == _homeHideable.GridPosition;
-    protected bool IsHidingInHome => HasHomeHideable && ReferenceEquals(CurrentHideable, _homeHideable);
-    protected IHideable HomeHideable => _homeHideable;
+    protected bool HasHomeHideable => HomeHideable != null;
+    protected bool IsAtHomeHideable => HasHomeHideable && GridPosition == HomeHideable.GridPosition;
+    protected bool IsHidingInHome => HasHomeHideable && ReferenceEquals(CurrentHideable, HomeHideable);
 
     public override void TakeTurn()
     {
@@ -505,20 +503,39 @@ public class PreyAnimal : Animal
 
     /// <summary>
     /// Assigns the hideable home this prey can use when hiding.
+    /// Includes prey-specific logic to force exit from current home if changing.
     /// </summary>
     protected void SetHomeHideable(IHideable hideable)
     {
-        if (ReferenceEquals(_homeHideable, hideable))
+        if (ReferenceEquals(HomeHideable, hideable))
         {
             return;
         }
 
-        if (!ReferenceEquals(hideable, _homeHideable) && IsHidingInHome)
+        if (!ReferenceEquals(hideable, HomeHideable) && IsHidingInHome)
         {
             ForceExitFromHome();
         }
 
-        _homeHideable = hideable;
+        base.SetHome(hideable);
+    }
+
+    /// <summary>
+    /// Sets a new home for this prey animal (overrides base to include prey-specific exit logic).
+    /// Used when dynamically assigning homes, such as when a worker is assigned to a den.
+    /// </summary>
+    public new void SetHome(IHideable hideable)
+    {
+        SetHomeHideable(hideable);
+    }
+
+    /// <summary>
+    /// Clears the home reference for this prey animal (overrides base to include prey-specific exit logic).
+    /// Used when unassigning a prey from its home location.
+    /// </summary>
+    public new void ClearHome()
+    {
+        SetHomeHideable(null);
     }
 
     /// <summary>
@@ -541,7 +558,7 @@ public class PreyAnimal : Animal
             return false;
         }
 
-        _homeHideable.OnAnimalEnter(this);
+        HomeHideable.OnAnimalEnter(this);
         return true;
     }
 
@@ -555,7 +572,7 @@ public class PreyAnimal : Animal
             return;
         }
 
-        _homeHideable.OnAnimalLeave(this);
+        HomeHideable.OnAnimalLeave(this);
         SetVisualVisibility(true);
         SetCurrentHideable(null);
     }
@@ -576,7 +593,7 @@ public class PreyAnimal : Animal
             return;
         }
 
-        Vector2Int homePos = _homeHideable.GridPosition;
+        Vector2Int homePos = HomeHideable.GridPosition;
 
         if (IsAtHomeHideable)
         {

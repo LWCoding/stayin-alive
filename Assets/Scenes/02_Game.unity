@@ -168,7 +168,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   denPrice: 1
   workerPrice: 1
-  FollowerAnimalPrefab: {fileID: 5487607050269822669, guid: ec45a6d6cf2c9b746947e8d8b8b36756, type: 3}
+  workerAnimalData: {fileID: 11400000, guid: ab461c77659a78c4abbf1422e72cee7f, type: 2}
   UNASSIGNED_DEN_ID: -1
   denAdminMenu: {fileID: 850705210}
 --- !u!1 &2940051
