@@ -1170,7 +1170,7 @@ MonoBehaviour:
   _foodItemName: Worm
   _foodItemCount: 3
   _bushCount: 8
-  _grassCount: 20
+  _grassCount: 25
 --- !u!1 &476097330
 GameObject:
   m_ObjectHideFlags: 0
