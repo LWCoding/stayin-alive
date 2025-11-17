@@ -518,7 +518,7 @@ public class Grass : Interactable
 	}
 
 	/// <summary>
-	/// Checks if a tile is valid for grass spreading (not water, no interactables, valid position).
+	/// Checks if a tile is valid for grass spreading (not water, not obstacle/wall, no interactables, valid position).
 	/// </summary>
 	private bool IsValidTileForSpreading(Vector2Int position)
 	{
@@ -533,9 +533,9 @@ public class Grass : Interactable
 			return false;
 		}
 
-		// Check if tile is water
+		// Check if tile is water or obstacle (walls)
 		TileType tileType = EnvironmentManager.Instance.GetTileType(position);
-		if (tileType == TileType.Water)
+		if (tileType == TileType.Water || tileType == TileType.Obstacle)
 		{
 			return false;
 		}
