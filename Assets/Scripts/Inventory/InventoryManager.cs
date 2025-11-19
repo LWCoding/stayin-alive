@@ -202,13 +202,21 @@ public class InventoryManager : Singleton<InventoryManager>
         }
         
         // Find the first empty slot
-        foreach (InventorySlot slot in _inventorySlots)
+        for (int i = 0; i < _inventorySlots.Count; i++)
         {
+            InventorySlot slot = _inventorySlots[i];
             if (slot.IsEmpty)
             {
                 if (slot.SetItem(itemName, itemSprite))
                 {
                     Debug.Log($"InventoryManager: Added item '{itemName}' to inventory. ({CurrentItemCount}/{Globals.MaxInventorySize})");
+                    
+                    // If the item was added to the currently selected slot, update the usage description
+                    if (i == _selectedSlotIndex)
+                    {
+                        UpdateUsageDescription();
+                    }
+                    
                     return true;
                 }
             }
