@@ -138,6 +138,12 @@ public class Den : Interactable, IHideable
             
             // Handle food delivery: check for food items in inventory
             ProcessFoodDelivery(animal);
+
+            // Ensure inventory selection resets when the player enters the den
+            if (animal.IsControllable && InventoryManager.Instance != null)
+            {
+                InventoryManager.Instance.DeselectSlot();
+            }
             
             // Update passive time progression state (only runs while player is inside)
             UpdatePassiveTimeProgressionState();
