@@ -2,114 +2,38 @@ using System.Collections.Generic;
 using UnityEngine;
 
 /// <summary>
-/// Specialized prey animal that seeks out and eats grass when hungry.
+/// Specialized worker animal (Kangaroo Rat) that seeks out and eats grass when hungry.
 /// Wanders randomly when not hungry, but will prioritize finding fully grown grass when hunger is below threshold.
-/// Below the standard hunger threshold, rabbits will only seek food if no predators are nearby.
-/// Below the critical hunger threshold, rabbits will seek food regardless of predators to avoid starvation.
+/// Below the standard hunger threshold, will only seek food if no predators are nearby.
+/// Below the critical hunger threshold, will seek food regardless of predators to avoid starvation.
+/// Workers can carry food and deposit it at their home den to increase the player's food-in-den amount.
 /// </summary>
-public class RabbitAnimal : PreyAnimal
+public class KangRatWorker : WorkerAnimal
 {
-	[Header("Rabbit Settings")]
+	[Header("Kangaroo Rat Settings")]
 
 	private Vector2Int? _foodDestination = null;
-	private int _rabbitTurnCounter = 0;
-	private RabbitSpawner _rabbitSpawner = null;
+	private int _kangRatTurnCounter = 0;
 
 	/// <summary>
-	/// Gets the rabbit spawner this rabbit belongs to.
-	/// </summary>
-	public RabbitSpawner RabbitSpawner => _rabbitSpawner;
-
-	/// <summary>
-	/// Gets whether this rabbit is hungry (hunger below threshold).
+	/// Gets whether this kangaroo rat is hungry (hunger below threshold).
 	/// Reads the hunger threshold from AnimalData.
 	/// </summary>
 	public bool IsHungry => AnimalData != null && CurrentHunger < AnimalData.hungerThreshold;
 
 
 	/// <summary>
-	/// Gets the hunger threshold below which the rabbit will seek food.
+	/// Gets the hunger threshold below which the kangaroo rat will seek food.
 	/// Reads from AnimalData.
 	/// </summary>
 	public int HungerThreshold => AnimalData != null ? AnimalData.hungerThreshold : 70;
 
 	/// <summary>
-	/// Gets the critical hunger threshold below which the rabbit will seek food regardless of predators.
+	/// Gets the critical hunger threshold below which the kangaroo rat will seek food regardless of predators.
 	/// Reads from AnimalData.
 	/// </summary>
 	public int CriticalHungerThreshold => AnimalData != null ? AnimalData.criticalHungerThreshold : 20;
 
-	/// <summary>
-	/// Sets the rabbit spawner this rabbit belongs to.
-	/// Used when spawning rabbits near specific spawners.
-	/// </summary>
-	public void SetRabbitSpawner(RabbitSpawner spawner)
-	{
-		_rabbitSpawner = spawner;
-		SetHomeHideable(_rabbitSpawner);
-		
-		// Notify the spawner that this rabbit is now attached
-		if (spawner != null)
-		{
-			spawner.OnRabbitAttached(this);
-		}
-	}
-
-	private void Start()
-	{
-		// Find the nearest rabbit spawner to this rabbit's spawn position
-		FindNearestRabbitSpawner();
-	}
-
-	/// <summary>
-	/// Finds the nearest rabbit spawner to this rabbit and associates with it.
-	/// </summary>
-	private void FindNearestRabbitSpawner()
-	{
-		if (InteractableManager.Instance == null)
-		{
-			return;
-		}
-
-		// Skip if already linked to a spawner
-		if (_rabbitSpawner != null)
-		{
-			return;
-		}
-
-		List<RabbitSpawner> allSpawners = InteractableManager.Instance.RabbitSpawners;
-		if (allSpawners == null || allSpawners.Count == 0)
-		{
-			return;
-		}
-
-		Vector2Int myPos = GridPosition;
-		RabbitSpawner nearest = null;
-		int bestDistance = int.MaxValue;
-
-		foreach (RabbitSpawner spawner in allSpawners)
-		{
-			if (spawner == null)
-			{
-				continue;
-			}
-
-			Vector2Int spawnerPos = spawner.GridPosition;
-			int distance = Mathf.Abs(spawnerPos.x - myPos.x) + Mathf.Abs(spawnerPos.y - myPos.y);
-
-			if (distance < bestDistance)
-			{
-				bestDistance = distance;
-				nearest = spawner;
-			}
-		}
-
-		if (nearest != null)
-		{
-			SetRabbitSpawner(nearest);
-			Debug.Log($"RabbitAnimal '{name}' associated with rabbit spawner at ({nearest.GridPosition.x}, {nearest.GridPosition.y})");
-		}
-	}
 
 	/// <summary>
 	/// Override TakeTurn to add food-seeking behavior when hungry.
@@ -126,13 +50,14 @@ public class RabbitAnimal : PreyAnimal
 		bool isCriticallyHungry = CurrentHunger < criticalHungerThreshold;
 		bool isHungry = CurrentHunger < hungerThreshold;
 		
-		// If we're hiding in our spawner and critically hungry, force exit immediately
+		// If we're hiding in our den and critically hungry, force exit immediately
 		if (IsHidingInHome)
 		{
 			if (isCriticallyHungry)
 			{
-				// Force exit from spawner - critical hunger takes priority over safety
-				ForceRabbitExitFromHome(true);
+				// Force exit from den - critical hunger takes priority over safety
+				ForceExitFromHome();
+				Debug.Log($"KangRatWorker '{name}' forced to exit den due to critical hunger (hunger: {CurrentHunger} < threshold: {criticalHungerThreshold})");
 			}
 			else if (!isHungry)
 			{
@@ -146,7 +71,8 @@ public class RabbitAnimal : PreyAnimal
 				if (nearbyPredator == null)
 				{
 					// No predators nearby, safe to exit and look for food
-					ForceRabbitExitFromHome(false);
+					ForceExitFromHome();
+					Debug.Log($"KangRatWorker '{name}' exiting den to seek food (hunger: {CurrentHunger} < threshold: {hungerThreshold})");
 				}
 				else
 				{
@@ -156,30 +82,27 @@ public class RabbitAnimal : PreyAnimal
 			}
 		}
 		
-		_rabbitTurnCounter++;
+		_kangRatTurnCounter++;
 		
-		// Only move every other turn (on even turns: 2, 4, 6, etc.) - same as base PreyAnimal
-		bool shouldMove = (_rabbitTurnCounter % 2 == 0);
-		
-		// If not hungry, always try to return to and stay in the spawner
+		// If not hungry, always try to return to and stay in the den
 		if (!isHungry)
 		{
 			if (HasHomeHideable)
 			{
-				// If we're at the spawner, hide in it
-				if (shouldMove && IsAtHomeHideable)
+				// If we're at the den, hide in it
+				if (IsAtHomeHideable)
 				{
 					TryHideInHome();
 					return;
 				}
-				// If we're not at the spawner, move towards it
-				else if (shouldMove)
-				{
-					// Move one step towards the spawner
+				// If we're not at the den, move towards it
+				else 
+                {
+					// Move one step towards the den
 					Vector2Int homePos = HomeHideable.GridPosition;
 					if (MoveOneStepTowards(homePos))
 					{
-						// Check if we reached the spawner
+						// Check if we reached the den
 						if (IsAtHomeHideable)
 						{
 							TryHideInHome();
@@ -188,7 +111,7 @@ public class RabbitAnimal : PreyAnimal
 					return;
 				}
 			}
-			// If no spawner assigned, just stay put (shouldn't happen, but safety check)
+			// If no den assigned, just stay put (shouldn't happen, but safety check)
 			return;
 		}
 		
@@ -214,8 +137,8 @@ public class RabbitAnimal : PreyAnimal
 						// We're on the grass, try to eat it
 						TryEatGrassAtCurrentPosition();
 					}
-					else if (shouldMove)
-					{
+					else 
+                    {
 						// Move towards the grass (even if predators are nearby when critically hungry)
 						if (!MoveOneStepTowards(nearestGrass.Value))
 						{
@@ -237,17 +160,14 @@ public class RabbitAnimal : PreyAnimal
 				{
 					// No grass found, fall back to wandering (still prioritize food search)
 					_foodDestination = null;
-					WanderIfShouldMove(shouldMove);
+					Wander();
 				}
 			}
 			else
 			{
-				// Standard hungry but predators nearby - prioritize fleeing over food
+				// Standard hungry but predators nearby - prioritize fleeing to den over food
 				_foodDestination = null;
-				if (shouldMove)
-				{
-					FleeFromPredator(nearbyPredator);
-				}
+				TryFleeToHome(nearbyPredator);
 			}
 		}
 	}
@@ -255,13 +175,8 @@ public class RabbitAnimal : PreyAnimal
 	/// <summary>
 	/// Handles wandering behavior when not seeking food or fleeing.
 	/// </summary>
-	private void WanderIfShouldMove(bool shouldMove)
+	private void Wander()
 	{
-		if (!shouldMove)
-		{
-			return;
-		}
-		
 		if (!_wanderingDestination.HasValue || GridPosition == _wanderingDestination.Value)
 		{
 			// Need a new wandering destination
@@ -270,12 +185,12 @@ public class RabbitAnimal : PreyAnimal
 		
 		if (_wanderingDestination.HasValue)
 		{
-			// Check if we detect predators while wandering - if so, cancel wandering
+			// Check if we detect predators while wandering - if so, cancel wandering and flee to den
 			PredatorAnimal detectedPredator = FindNearestPredator();
 			if (detectedPredator != null)
 			{
 				_wanderingDestination = null;
-				FleeFromPredator(detectedPredator);
+				TryFleeToHome(detectedPredator);
 			}
 			else
 			{
@@ -294,27 +209,61 @@ public class RabbitAnimal : PreyAnimal
 	}
 
 	/// <summary>
-	/// Override to choose wandering destinations within the spawner's territory.
+	/// Override to choose wandering destinations around the home den.
 	/// Similar to how predators wander around their den.
 	/// </summary>
 	protected override Vector2Int? ChooseWanderingDestination()
 	{
-		// If we have a spawner, wander within its territory
-		if (_rabbitSpawner != null && EnvironmentManager.Instance != null)
+		if (HasHomeHideable && EnvironmentManager.Instance != null)
 		{
-			// Try multiple times to get a valid territory position that accounts for water walkability
-			for (int attempts = 0; attempts < 10; attempts++)
-			{
-				Vector2Int? territoryPos = _rabbitSpawner.GetRandomPositionInTerritory();
-				if (territoryPos.HasValue && IsTileTraversable(territoryPos.Value))
-				{
-					return territoryPos.Value;
-				}
-			}
+			return ChooseWanderingDestinationAroundHome();
 		}
 		
-		// Fallback: use base class wandering behavior if no spawner is assigned or no valid territory position found
+		// Fallback: use base class wandering behavior if no home is assigned
 		return base.ChooseWanderingDestination();
+	}
+
+	/// <summary>
+	/// Chooses a wandering destination around the home location (for den workers).
+	/// </summary>
+	private Vector2Int? ChooseWanderingDestinationAroundHome()
+	{
+		if (!HasHomeHideable || EnvironmentManager.Instance == null)
+		{
+			return null;
+		}
+
+		Vector2Int homePos = HomeHideable.GridPosition;
+		int maxWanderDistance = 8; // Maximum distance to wander from home
+		int minWanderDistance = 2; // Minimum distance to wander from home
+
+		// Try to find a random position around the home
+		for (int attempts = 0; attempts < 30; attempts++)
+		{
+			// Pick a random direction and distance
+			int distance = Random.Range(minWanderDistance, maxWanderDistance + 1);
+			int angle = Random.Range(0, 360);
+
+			// Convert angle to direction
+			float radians = angle * Mathf.Deg2Rad;
+			int dx = Mathf.RoundToInt(Mathf.Cos(radians) * distance);
+			int dy = Mathf.RoundToInt(Mathf.Sin(radians) * distance);
+
+			Vector2Int targetPos = homePos + new Vector2Int(dx, dy);
+
+			// Clamp to grid bounds
+			Vector2Int gridSize = EnvironmentManager.Instance.GetGridSize();
+			targetPos.x = Mathf.Clamp(targetPos.x, 0, gridSize.x - 1);
+			targetPos.y = Mathf.Clamp(targetPos.y, 0, gridSize.y - 1);
+
+			// Check if this position is valid and walkable
+			if (IsTileTraversable(targetPos))
+			{
+				return targetPos;
+			}
+		}
+
+		return null;
 	}
 	
 
@@ -355,11 +304,11 @@ public class RabbitAnimal : PreyAnimal
 		if (hungerRestored > 0)
 		{
 			IncreaseHunger(hungerRestored);
-			Debug.Log($"Rabbit '{name}' ate grass at ({GridPosition.x}, {GridPosition.y}). Hunger restored by {hungerRestored} to {CurrentHunger}.");
+			Debug.Log($"KangRatWorker '{name}' ate grass at ({GridPosition.x}, {GridPosition.y}). Hunger restored by {hungerRestored} to {CurrentHunger}.");
 		}
 		else
 		{
-			Debug.LogWarning($"Rabbit '{name}' ate grass at ({GridPosition.x}, {GridPosition.y}), but no hunger was restored (food item prefab not set or invalid).");
+			Debug.LogWarning($"KangRatWorker '{name}' ate grass at ({GridPosition.x}, {GridPosition.y}), but no hunger was restored (food item prefab not set or invalid).");
 		}
 
 		// Clear food destination since we've eaten
@@ -369,7 +318,7 @@ public class RabbitAnimal : PreyAnimal
 
 	/// <summary>
 	/// Harvests the grass (changes it from Full to Growing state).
-	/// This simulates the rabbit eating the grass.
+	/// This simulates the kangaroo rat eating the grass.
 	/// </summary>
 	private void HarvestGrass(Grass grass)
 	{
@@ -381,26 +330,9 @@ public class RabbitAnimal : PreyAnimal
 		grass.HarvestForAnimal();
 	}
 
-	/// <summary>
-	/// Logs rabbit-specific info when the base class forces us out of the spawner.
-	/// </summary>
-	private void ForceRabbitExitFromHome(bool isCriticallyHungryContext)
-	{
-		bool wasHidingInHome = IsHidingInHome;
-		ForceExitFromHome();
-
-		if (!wasHidingInHome || _rabbitSpawner == null)
-		{
-			return;
-		}
-
-		string reason = isCriticallyHungryContext ? "critical hunger" : "hunger";
-		int threshold = isCriticallyHungryContext ? CriticalHungerThreshold : HungerThreshold;
-		Debug.Log($"Rabbit '{name}' forced to exit spawner due to {reason} (hunger: {CurrentHunger} < threshold: {threshold})");
-	}
 
 	/// <summary>
-	/// Gets the rabbit's intended destination (food or wandering).
+	/// Gets the kangaroo rat's intended destination (food or wandering).
 	/// Returns null if no destination is set.
 	/// </summary>
 	public Vector2Int? GetIntendedDestination()
@@ -455,13 +387,15 @@ public class RabbitAnimal : PreyAnimal
 			Gizmos.DrawWireSphere(foodWorldPos, 0.25f);
 		}
 
-		// Draw line to rabbit spawner if we have one
-		if (_rabbitSpawner != null)
+		// Draw line to home den if we have one
+		if (HasHomeHideable)
 		{
-			Vector3 spawnerWorldPos = EnvironmentManager.Instance.GridToWorldPosition(_rabbitSpawner.GridPosition);
-			Gizmos.color = Color.yellow; // Yellow for spawner
-			Gizmos.DrawLine(currentWorldPos, spawnerWorldPos);
-			Gizmos.DrawWireSphere(spawnerWorldPos, 0.2f);
+			Vector3 homeWorldPos = EnvironmentManager.Instance.GridToWorldPosition(HomeHideable.GridPosition);
+			Gizmos.color = Color.magenta; // Magenta for den home
+			Gizmos.DrawLine(currentWorldPos, homeWorldPos);
+			Gizmos.DrawWireSphere(homeWorldPos, 0.2f);
 		}
 	}
 }
+
+

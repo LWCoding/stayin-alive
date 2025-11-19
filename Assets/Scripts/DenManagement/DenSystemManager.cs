@@ -128,11 +128,7 @@ public class DenSystemManager : Singleton<DenSystemManager> {
       return false;
     }
 
-    // Ensure workers can haul and deposit resources
-    WorkerResourceCarrier resourceCarrier = newWorkerAnimal.GetComponent<WorkerResourceCarrier>();
-    if (resourceCarrier == null) {
-      resourceCarrier = newWorkerAnimal.gameObject.AddComponent<WorkerResourceCarrier>();
-    }
+
     
     if (workerAnimalData.hungerThreshold > 0) {
       newWorkerAnimal.SetHunger(workerAnimalData.hungerThreshold - 1);
