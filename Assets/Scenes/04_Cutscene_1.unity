@@ -2712,6 +2712,8 @@ MonoBehaviour:
     text: Go on my child! The fate of our species is in your hands.
   _dialogueText: {fileID: 1757647200}
   _dialogueContainer: {fileID: 1143927134}
+  _sceneSwitcher: {fileID: 777046517}
+  _sceneToLoadOnComplete: 03_Tutorial
   _animator: {fileID: 1834225417}
   _ratAnimator: {fileID: 1298318711}
   _ratGodImage: {fileID: 758557693}
