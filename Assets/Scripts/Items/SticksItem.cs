@@ -6,6 +6,36 @@ using UnityEngine;
 /// </summary>
 public class SticksItem : Item
 {
+
+    private static int _densBuiltWithSticks = 0;
+    private static int _configuredStickCostCap = Globals.MaxDenStickCost;
+
+    [Header("Usage Messaging")]
+    [SerializeField] [TextArea(2, 4)] [Tooltip("Shown when the player does not have enough sticks. Use {0} to display how many more are required.")]
+    private string _insufficientSticksDescription = "Can be used for building dens. Requires {0} more sticks.";
+
+    public string InsufficientSticksDescription => _insufficientSticksDescription;
+
+    /// <summary>
+    /// Gets the stick cost needed for the next den placement.
+    /// </summary>
+    public static int GetNextDenStickCost()
+    {
+        return Mathf.Clamp(_densBuiltWithSticks + 1, 1, _configuredStickCostCap);
+    }
+
+    /// <summary>
+    /// Calculates how many more sticks are required, given the player's current inventory.
+    /// </summary>
+    public static int GetStickDeficit(int currentStickCount)
+    {
+        return Mathf.Max(0, GetNextDenStickCost() - currentStickCount);
+    }
+
+    private static void AdvanceCostProgression()
+    {
+        _densBuiltWithSticks++;
+    }
     /// <summary>
     /// When sticks are used, it places a den on the player's current tile.
     /// Returns true if the den was successfully placed (item is consumed), false otherwise.
@@ -14,6 +44,22 @@ public class SticksItem : Item
     {
         if (user == null)
         {
+            return false;
+        }
+        
+        if (InventoryManager.Instance == null)
+        {
+            Debug.LogWarning("SticksItem: InventoryManager instance not found. Cannot validate stick requirements.");
+            return false;
+        }
+        
+        int sticksRequired = GetNextDenStickCost();
+        int availableSticks = InventoryManager.Instance.GetItemCount(ItemName);
+        
+        if (availableSticks < sticksRequired)
+        {
+            int deficit = sticksRequired - availableSticks;
+            Debug.Log($"SticksItem: Cannot place den - need {deficit} more stick(s).");
             return false;
         }
         
@@ -40,6 +86,20 @@ public class SticksItem : Item
             Debug.LogWarning("SticksItem: Failed to spawn den at player position.");
             return false; // Item is not consumed
         }
+        
+        // Remove additional sticks beyond the one consumed by the selected slot
+        int additionalSticksToRemove = Mathf.Max(0, sticksRequired - 1);
+        if (additionalSticksToRemove > 0)
+        {
+            int excludeSlotIndex = InventoryManager.Instance.ActiveUseSlotIndex;
+            bool removed = InventoryManager.Instance.RemoveItems(ItemName, additionalSticksToRemove, excludeSlotIndex);
+            if (!removed)
+            {
+                Debug.LogWarning("SticksItem: Failed to remove the additional sticks required for den placement.");
+            }
+        }
+        
+        AdvanceCostProgression();
         
         // Automatically enter the den after building it
         newDen.OnAnimalEnter(user);

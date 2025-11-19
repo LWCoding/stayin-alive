@@ -33,6 +33,7 @@ public class InventoryManager : Singleton<InventoryManager>
     
     // Currently selected slot index (-1 if none selected)
     private int _selectedSlotIndex = -1;
+    private int _activeUseSlotIndex = -1;
     
     // Store original position of inventory container for shake animation
     private Vector3 _originalContainerPosition;
@@ -73,6 +74,11 @@ public class InventoryManager : Singleton<InventoryManager>
     /// The currently selected slot, or null if none selected.
     /// </summary>
     public InventorySlot SelectedSlot => (_selectedSlotIndex >= 0 && _selectedSlotIndex < _inventorySlots.Count) ? _inventorySlots[_selectedSlotIndex] : null;
+    
+    /// <summary>
+    /// The slot index currently being used (during item consumption). -1 when idle.
+    /// </summary>
+    public int ActiveUseSlotIndex => _activeUseSlotIndex;
     
     protected override void Awake()
     {
@@ -363,7 +369,15 @@ public class InventoryManager : Singleton<InventoryManager>
         
         if (ItemManager.Instance != null)
         {
-            itemUsed = ItemManager.Instance.UseItem(itemName, player);
+            _activeUseSlotIndex = slotIndex;
+            try
+            {
+                itemUsed = ItemManager.Instance.UseItem(itemName, player);
+            }
+            finally
+            {
+                _activeUseSlotIndex = -1;
+            }
         }
         else
         {
@@ -381,6 +395,42 @@ public class InventoryManager : Singleton<InventoryManager>
         {
             Debug.LogWarning($"InventoryManager: Item '{itemName}' could not be used.");
         }
+    }
+    
+    /// <summary>
+    /// Removes a specific number of items matching the provided name from the inventory.
+    /// Optionally skips a slot (e.g., the slot currently being used).
+    /// </summary>
+    public bool RemoveItems(string itemName, int count, int excludeSlotIndex = -1)
+    {
+        if (count <= 0)
+        {
+            return true;
+        }
+        
+        if (string.IsNullOrEmpty(itemName))
+        {
+            return false;
+        }
+        
+        int removed = 0;
+        
+        for (int i = 0; i < _inventorySlots.Count && removed < count; i++)
+        {
+            if (i == excludeSlotIndex)
+            {
+                continue;
+            }
+            
+            InventorySlot slot = _inventorySlots[i];
+            if (!slot.IsEmpty && slot.ItemName == itemName)
+            {
+                slot.ClearSlot();
+                removed++;
+            }
+        }
+        
+        return removed >= count;
     }
     
     /// <summary>
@@ -475,14 +525,30 @@ public class InventoryManager : Singleton<InventoryManager>
             return;
         }
         
-        // Get the usage description from ItemManager
         string description = "";
+        string insufficientDescription = "";
+        bool isSticksItem = false;
+        
         if (ItemManager.Instance != null)
         {
-            description = ItemManager.Instance.GetItemUsageDescription(selectedSlot.ItemName);
+            ItemUsageInfo usageInfo = ItemManager.Instance.GetItemUsageInfo(selectedSlot.ItemName);
+            description = usageInfo.Description;
+            insufficientDescription = usageInfo.InsufficientDescription;
+            isSticksItem = usageInfo.IsSticksItem;
         }
         
-        // Set the text
+        if (isSticksItem)
+        {
+            int availableSticks = GetItemCount(selectedSlot.ItemName);
+            int missing = SticksItem.GetStickDeficit(availableSticks);
+            
+            if (missing > 0 && !string.IsNullOrEmpty(insufficientDescription))
+            {
+                _usageDescriptionText.text = string.Format(insufficientDescription, missing);
+                return;
+            }
+        }
+        
         _usageDescriptionText.text = description;
     }
     

@@ -63,5 +63,11 @@ public static class Globals
     /// Maximum number of inventory slots.
     /// </summary>
     public static int MaxInventorySize = 5;
+
+    /// <summary>
+    /// Maximum number of sticks required to place a den.
+    /// Scales up from 1 until it reaches this value.
+    /// </summary>
+    public static int MaxDenStickCost = 3;
 }
 

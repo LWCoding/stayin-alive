@@ -235,24 +235,23 @@ public class ItemManager : Singleton<ItemManager>
     }
     
     /// <summary>
-    /// Gets the usage description for an item by name. Creates a temporary instance to get the description, then destroys it.
+    /// Gets usage-related metadata for an item by name, including optional conditional descriptions.
     /// </summary>
-    /// <param name="itemName">Name of the item</param>
-    /// <returns>The usage description, or empty string if not found</returns>
-    public string GetItemUsageDescription(string itemName)
+    public ItemUsageInfo GetItemUsageInfo(string itemName)
     {
+        ItemUsageInfo usageInfo = new ItemUsageInfo();
+        
         if (string.IsNullOrEmpty(itemName))
         {
-            return "";
+            return usageInfo;
         }
         
         if (!_itemPrefabLookup.TryGetValue(itemName, out GameObject prefab))
         {
-            Debug.LogWarning($"ItemManager: Cannot get usage description for item '{itemName}' - prefab not found.");
-            return "";
+            Debug.LogWarning($"ItemManager: Cannot get usage info for item '{itemName}' - prefab not found.");
+            return usageInfo;
         }
         
-        // Create a temporary instance to get the description
         GameObject tempItemObj = Instantiate(prefab);
         Item item = tempItemObj.GetComponent<Item>();
         
@@ -260,15 +259,28 @@ public class ItemManager : Singleton<ItemManager>
         {
             Debug.LogWarning($"ItemManager: Item prefab for '{itemName}' does not have an Item component!");
             Destroy(tempItemObj);
-            return "";
+            return usageInfo;
         }
         
-        string description = item.UsageDescription ?? "";
+        usageInfo.Description = item.UsageDescription ?? "";
         
-        // Destroy the temporary instance
+        if (item is SticksItem sticksItem)
+        {
+            usageInfo.IsSticksItem = true;
+            usageInfo.InsufficientDescription = sticksItem.InsufficientSticksDescription ?? "";
+        }
+        
         Destroy(tempItemObj);
         
-        return description;
+        return usageInfo;
+    }
+    
+    /// <summary>
+    /// Gets the usage description for an item by name. Provided for backward compatibility.
+    /// </summary>
+    public string GetItemUsageDescription(string itemName)
+    {
+        return GetItemUsageInfo(itemName).Description;
     }
     
     /// <summary>
@@ -324,5 +336,15 @@ public class ItemManager : Singleton<ItemManager>
         }
         _items.Clear();
     }
+}
+
+/// <summary>
+/// Metadata describing how an item should present its usage information.
+/// </summary>
+public struct ItemUsageInfo
+{
+    public string Description;
+    public string InsufficientDescription;
+    public bool IsSticksItem;
 }
 
