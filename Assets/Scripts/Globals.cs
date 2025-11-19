@@ -24,6 +24,11 @@ public static class Globals
     public static float FollowerScale = 0.7f;
 
     /// <summary>
+    /// Maximum number of follower GameObjects to spawn per animal for visuals.
+    /// </summary>
+    public static int MaxFollowerVisuals = 5;
+
+    /// <summary>
     /// Seconds between automatic NextTurn() calls when animals are in a den.
     /// </summary>
     public static float DenTimeProgressionDelay = 0.5f;
@@ -52,7 +57,7 @@ public static class Globals
     /// <summary>
     /// Goal number of assigned workers required to achieve the MVP milestone.
     /// </summary>
-    public static int MvpWorkerGoal = 20;
+    public static int MvpWorkerGoal = 50;
 
     /// <summary>
     /// Maximum number of workers that can be assigned to a single den.

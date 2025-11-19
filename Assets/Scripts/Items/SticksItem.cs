@@ -7,7 +7,6 @@ using UnityEngine;
 public class SticksItem : Item
 {
 
-    private static int _densBuiltWithSticks = 0;
     private static int _configuredStickCostCap = Globals.MaxDenStickCost;
 
     [Header("Usage Messaging")]
@@ -16,12 +15,19 @@ public class SticksItem : Item
 
     public string InsufficientSticksDescription => _insufficientSticksDescription;
 
+
     /// <summary>
     /// Gets the stick cost needed for the next den placement.
     /// </summary>
     public static int GetNextDenStickCost()
     {
-        return Mathf.Clamp(_densBuiltWithSticks + 1, 1, _configuredStickCostCap);
+        int densBuilt = 0;
+        if (DenSystemManager.Instance != null)
+        {
+            densBuilt = DenSystemManager.Instance.DensBuiltWithSticks;
+        }
+        
+        return Mathf.Clamp(densBuilt + 1, 1, _configuredStickCostCap);
     }
 
     /// <summary>
@@ -34,7 +40,10 @@ public class SticksItem : Item
 
     private static void AdvanceCostProgression()
     {
-        _densBuiltWithSticks++;
+        if (DenSystemManager.Instance != null)
+        {
+            DenSystemManager.Instance.IncrementDensBuiltWithSticks();
+        }
     }
     /// <summary>
     /// When sticks are used, it places a den on the player's current tile.
@@ -73,30 +82,28 @@ public class SticksItem : Item
             return false; // Item is not consumed
         }
         
-        // Spawn den at the player's position
+        // Ensure we have the interactable manager ready before consuming resources
         if (InteractableManager.Instance == null)
         {
             Debug.LogError("SticksItem: InteractableManager instance not found!");
             return false;
         }
         
+        // Consume the exact number of sticks required for this den build
+        bool sticksConsumed = InventoryManager.Instance.ConsumeItemsForActiveUse(ItemName, sticksRequired);
+        if (!sticksConsumed)
+        {
+            Debug.LogWarning("SticksItem: Failed to consume the required sticks for den placement.");
+            return false;
+        }
+        
+        // Spawn den at the player's position
         Den newDen = InteractableManager.Instance.SpawnDen(denPosition);
         if (newDen == null)
         {
             Debug.LogWarning("SticksItem: Failed to spawn den at player position.");
+            RefundConsumedSticks(sticksRequired);
             return false; // Item is not consumed
-        }
-        
-        // Remove additional sticks beyond the one consumed by the selected slot
-        int additionalSticksToRemove = Mathf.Max(0, sticksRequired - 1);
-        if (additionalSticksToRemove > 0)
-        {
-            int excludeSlotIndex = InventoryManager.Instance.ActiveUseSlotIndex;
-            bool removed = InventoryManager.Instance.RemoveItems(ItemName, additionalSticksToRemove, excludeSlotIndex);
-            if (!removed)
-            {
-                Debug.LogWarning("SticksItem: Failed to remove the additional sticks required for den placement.");
-            }
         }
         
         AdvanceCostProgression();
@@ -106,6 +113,24 @@ public class SticksItem : Item
         
         Debug.Log($"SticksItem: Successfully placed den at ({denPosition.x}, {denPosition.y}).");
         return true; // Item is consumed
+    }
+    
+    private void RefundConsumedSticks(int count)
+    {
+        if (InventoryManager.Instance == null || count <= 0)
+        {
+            return;
+        }
+        
+        for (int i = 0; i < count; i++)
+        {
+            bool added = InventoryManager.Instance.AddItem(ItemName);
+            if (!added)
+            {
+                Debug.LogWarning("SticksItem: Failed to refund sticks after a den placement error.");
+                break;
+            }
+        }
     }
     
     /// <summary>

@@ -410,7 +410,7 @@ public class Animal : MonoBehaviour
         _currentHunger = Mathf.Clamp(hunger, 0, _maxHunger);
     }
 
-    private void Awake()
+    protected virtual void Awake()
     {
         _spriteRenderer = GetComponent<SpriteRenderer>();
         if (_spriteRenderer == null)
@@ -902,15 +902,16 @@ public class Animal : MonoBehaviour
     {
         int oldFollowerCount = oldCount > 1 ? oldCount - 1 : 0;
         int newFollowerCount = newCount > 1 ? newCount - 1 : 0;
+        int desiredFollowerCount = Mathf.Min(newFollowerCount, Globals.MaxFollowerVisuals);
 
         // Remove excess followers if count decreased
-        while (_followers.Count > newFollowerCount)
+        while (_followers.Count > desiredFollowerCount)
         {
             RemoveLastFollower();
         }
 
         // Add new followers if count increased
-        while (_followers.Count < newFollowerCount)
+        while (_followers.Count < desiredFollowerCount)
         {
             SpawnFollower();
         }
@@ -937,6 +938,11 @@ public class Animal : MonoBehaviour
     /// </summary>
     private void SpawnFollower()
     {
+        if (_followers.Count >= Globals.MaxFollowerVisuals)
+        {
+            return;
+        }
+
         if (_animalData == null)
         {
             Debug.LogWarning($"Animal '{name}': Cannot spawn follower - AnimalData is null.");
