@@ -14,6 +14,8 @@ public class WormSpawner : Interactable
 	[SerializeField] private int _turnsBetweenSpawns = 8;
 	[Tooltip("Radius of the spawn area around the spawner (in grid tiles).")]
 	[SerializeField] private int _spawnRadius = 3;
+	[Tooltip("Maximum number of worms that can exist around this spawner at once.")]
+	[SerializeField] private int _maxWorms = 2;
 
 	[Header("Season Spawn Multipliers")]
 	[Tooltip("Multiplier applied to spawn rate during Spring. Higher values = faster spawning (fewer turns).")]
@@ -27,6 +29,8 @@ public class WormSpawner : Interactable
 
 	private int _turnsSinceLastSpawn;
 	private bool _initialized;
+	// Track all worms spawned by this spawner
+	private List<Item> _spawnedWorms = new List<Item>();
 
 	private void OnEnable()
 	{
@@ -62,6 +66,7 @@ public class WormSpawner : Interactable
 		_gridPosition = gridPosition;
 		_turnsSinceLastSpawn = 0;
 		_initialized = true;
+		_spawnedWorms.Clear();
 
 		UpdateWorldPosition();
 	}
@@ -102,6 +107,7 @@ public class WormSpawner : Interactable
 
 		_turnsSinceLastSpawn = 0;
 		_initialized = true;
+		_spawnedWorms.Clear();
 	}
 
 	private void UpdateWorldPosition()
@@ -133,8 +139,12 @@ public class WormSpawner : Interactable
 		if (currentTurn == 0)
 		{
 			_turnsSinceLastSpawn = 0;
+			_spawnedWorms.Clear();
 			return;
 		}
+
+		// Clean up destroyed/null worm references
+		CleanupDestroyedWorms();
 
 		_turnsSinceLastSpawn++;
 
@@ -192,6 +202,15 @@ public class WormSpawner : Interactable
 			return false;
 		}
 
+		// Clean up destroyed/null worm references before checking count
+		CleanupDestroyedWorms();
+
+		// Check if we're at max capacity
+		if (_spawnedWorms.Count >= _maxWorms)
+		{
+			return false; // Already at max worms, don't spawn more
+		}
+
 		// Get all valid grass positions in the spawn area
 		List<Vector2Int> validGrassPositions = GetValidGrassPositionsInArea();
 		
@@ -219,12 +238,47 @@ public class WormSpawner : Interactable
 				continue;
 			}
 
-			ItemManager.Instance.SpawnItem(_wormItemName, spawnPos);
-			Debug.Log($"WormSpawner: Spawned worm item at ({spawnPos.x}, {spawnPos.y}).");
-			return true;
+			// Spawn the worm and track it
+			Item spawnedWorm = ItemManager.Instance.SpawnItem(_wormItemName, spawnPos);
+			if (spawnedWorm != null)
+			{
+				_spawnedWorms.Add(spawnedWorm);
+				Debug.Log($"WormSpawner: Spawned worm item at ({spawnPos.x}, {spawnPos.y}). Total worms: {_spawnedWorms.Count}/{_maxWorms}");
+				return true;
+			}
 		}
 
 		return false;
+	}
+
+	/// <summary>
+	/// Removes null or destroyed worm references from the tracking list.
+	/// Called when worms are picked up or destroyed.
+	/// </summary>
+	private void CleanupDestroyedWorms()
+	{
+		for (int i = _spawnedWorms.Count - 1; i >= 0; i--)
+		{
+			Item worm = _spawnedWorms[i];
+			
+			// Check if the item reference is null (Unity sets this when GameObject is destroyed)
+			if (worm == null)
+			{
+				_spawnedWorms.RemoveAt(i);
+				continue;
+			}
+			
+			// Verify the item still exists in ItemManager (picked up items are removed)
+			if (ItemManager.Instance != null)
+			{
+				Item itemAtPos = ItemManager.Instance.GetItemAtPosition(worm.GridPosition);
+				if (itemAtPos != worm)
+				{
+					// Item is no longer at its position (was picked up or destroyed)
+					_spawnedWorms.RemoveAt(i);
+				}
+			}
+		}
 	}
 
 	/// <summary>
