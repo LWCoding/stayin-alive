@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using TMPro;
 
 /// <summary>
 /// Manages the player's inventory system using UI slots.
@@ -22,6 +23,10 @@ public class InventoryManager : Singleton<InventoryManager>
     
     [SerializeField] [Tooltip("Duration of the shake animation in seconds")]
     private float _shakeDuration = 0.5f;
+    
+    [Header("Usage Description")]
+    [SerializeField] [Tooltip("Text component that displays the usage description of the selected item")]
+    private TextMeshProUGUI _usageDescriptionText;
     
     // List of all inventory slots
     private List<InventorySlot> _inventorySlots = new List<InventorySlot>();
@@ -91,6 +96,9 @@ public class InventoryManager : Singleton<InventoryManager>
         
         // Initialize inventory slots
         InitializeInventorySlots();
+        
+        // Clear usage description text at start
+        ClearUsageDescription();
     }
     
     private void Update()
@@ -194,13 +202,21 @@ public class InventoryManager : Singleton<InventoryManager>
         }
         
         // Find the first empty slot
-        foreach (InventorySlot slot in _inventorySlots)
+        for (int i = 0; i < _inventorySlots.Count; i++)
         {
+            InventorySlot slot = _inventorySlots[i];
             if (slot.IsEmpty)
             {
                 if (slot.SetItem(itemName, itemSprite))
                 {
                     Debug.Log($"InventoryManager: Added item '{itemName}' to inventory. ({CurrentItemCount}/{Globals.MaxInventorySize})");
+                    
+                    // If the item was added to the currently selected slot, update the usage description
+                    if (i == _selectedSlotIndex)
+                    {
+                        UpdateUsageDescription();
+                    }
+                    
                     return true;
                 }
             }
@@ -288,6 +304,9 @@ public class InventoryManager : Singleton<InventoryManager>
         // Select new slot
         _selectedSlotIndex = index;
         _inventorySlots[_selectedSlotIndex].SetSelected(true);
+        
+        // Update usage description text
+        UpdateUsageDescription();
     }
     
     /// <summary>
@@ -300,6 +319,9 @@ public class InventoryManager : Singleton<InventoryManager>
             _inventorySlots[_selectedSlotIndex].SetSelected(false);
             _selectedSlotIndex = -1;
         }
+        
+        // Clear usage description text
+        ClearUsageDescription();
     }
     
     /// <summary>
@@ -352,6 +374,8 @@ public class InventoryManager : Singleton<InventoryManager>
         if (itemUsed)
         {
             slot.ClearSlot();
+            // Update usage description since the slot is now empty
+            UpdateUsageDescription();
         }
         else
         {
@@ -431,6 +455,46 @@ public class InventoryManager : Singleton<InventoryManager>
         // Reset to original position
         _inventoryContainer.localPosition = _originalContainerPosition;
         _shakeCoroutine = null;
+    }
+    
+    /// <summary>
+    /// Updates the usage description text based on the currently selected slot's item.
+    /// </summary>
+    private void UpdateUsageDescription()
+    {
+        if (_usageDescriptionText == null)
+        {
+            return;
+        }
+        
+        // Get the selected slot
+        InventorySlot selectedSlot = SelectedSlot;
+        if (selectedSlot == null || selectedSlot.IsEmpty)
+        {
+            ClearUsageDescription();
+            return;
+        }
+        
+        // Get the usage description from ItemManager
+        string description = "";
+        if (ItemManager.Instance != null)
+        {
+            description = ItemManager.Instance.GetItemUsageDescription(selectedSlot.ItemName);
+        }
+        
+        // Set the text
+        _usageDescriptionText.text = description;
+    }
+    
+    /// <summary>
+    /// Clears the usage description text.
+    /// </summary>
+    private void ClearUsageDescription()
+    {
+        if (_usageDescriptionText != null)
+        {
+            _usageDescriptionText.text = "";
+        }
     }
 }
 

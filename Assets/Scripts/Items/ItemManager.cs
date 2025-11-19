@@ -235,6 +235,43 @@ public class ItemManager : Singleton<ItemManager>
     }
     
     /// <summary>
+    /// Gets the usage description for an item by name. Creates a temporary instance to get the description, then destroys it.
+    /// </summary>
+    /// <param name="itemName">Name of the item</param>
+    /// <returns>The usage description, or empty string if not found</returns>
+    public string GetItemUsageDescription(string itemName)
+    {
+        if (string.IsNullOrEmpty(itemName))
+        {
+            return "";
+        }
+        
+        if (!_itemPrefabLookup.TryGetValue(itemName, out GameObject prefab))
+        {
+            Debug.LogWarning($"ItemManager: Cannot get usage description for item '{itemName}' - prefab not found.");
+            return "";
+        }
+        
+        // Create a temporary instance to get the description
+        GameObject tempItemObj = Instantiate(prefab);
+        Item item = tempItemObj.GetComponent<Item>();
+        
+        if (item == null)
+        {
+            Debug.LogWarning($"ItemManager: Item prefab for '{itemName}' does not have an Item component!");
+            Destroy(tempItemObj);
+            return "";
+        }
+        
+        string description = item.UsageDescription ?? "";
+        
+        // Destroy the temporary instance
+        Destroy(tempItemObj);
+        
+        return description;
+    }
+    
+    /// <summary>
     /// Uses an item by name. Creates a temporary instance to call OnUse, then destroys it.
     /// </summary>
     /// <param name="itemName">Name of the item to use</param>

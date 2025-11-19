@@ -426,9 +426,21 @@ public class Grass : Interactable
 					UpdateSprite();
 					_turnsSinceLastSpawn = 0;
 					CalculateNextSpawnTime();
+					
+					// 25% chance to spawn a grass seed item
+					if (Random.Range(0f, 1f) < 0.25f)
+					{
+						SpawnGrassSeedItem();
+					}
 				}
 				else if (_currentState == GrassState.Growing)
 				{
+					// 50% chance to spawn a grass seed item before destroying
+					if (Random.Range(0f, 1f) < 0.5f)
+					{
+						SpawnGrassSeedItem();
+					}
+					
 					Destroy(gameObject);
 				}
 
@@ -484,6 +496,109 @@ public class Grass : Interactable
 		
 		// Use cached player reference instead of looping through all animals
 		return AnimalManager.Instance.GetPlayer();
+	}
+
+	/// <summary>
+	/// Attempts to add a grass seed item to the player's inventory.
+	/// If inventory is full, spawns it on the ground in an unobstructed adjacent spot.
+	/// </summary>
+	private void SpawnGrassSeedItem()
+	{
+		// First, try to add directly to player's inventory
+		if (InventoryManager.Instance != null)
+		{
+			bool added = InventoryManager.Instance.AddItem("GrassSeeds");
+			if (added)
+			{
+				// Successfully added to inventory
+				return;
+			}
+		}
+		
+		// Inventory is full, try to spawn on ground in an adjacent unobstructed spot
+		if (ItemManager.Instance == null)
+		{
+			Debug.LogWarning("Grass: ItemManager instance not found! Cannot spawn grass seed item.");
+			return;
+		}
+		
+		// Try to find an adjacent unobstructed tile
+		Vector2Int? spawnPosition = FindAdjacentUnobstructedTile();
+		if (spawnPosition.HasValue)
+		{
+			ItemManager.Instance.SpawnItem("GrassSeeds", spawnPosition.Value);
+		}
+		else
+		{
+			// No valid adjacent tile found, cannot spawn grass seed
+			Debug.LogWarning("Grass: Cannot spawn grass seed - inventory is full and no adjacent unobstructed tile found.");
+		}
+	}
+	
+	/// <summary>
+	/// Finds an adjacent unobstructed tile where an item can be spawned.
+	/// Returns null if no valid tile is found.
+	/// </summary>
+	private Vector2Int? FindAdjacentUnobstructedTile()
+	{
+		if (EnvironmentManager.Instance == null || ItemManager.Instance == null)
+		{
+			return null;
+		}
+		
+		// Get adjacent tiles (4-directional)
+		Vector2Int[] directions = { Vector2Int.up, Vector2Int.down, Vector2Int.left, Vector2Int.right };
+		
+		foreach (Vector2Int dir in directions)
+		{
+			Vector2Int adjacentPos = _gridPosition + dir;
+			
+			// Check if the adjacent tile is valid for spawning an item
+			if (IsValidTileForItemSpawn(adjacentPos))
+			{
+				return adjacentPos;
+			}
+		}
+		
+		return null;
+	}
+	
+	/// <summary>
+	/// Checks if a tile is valid for spawning an item (not water, not obstacle, no interactables, no existing items, valid position).
+	/// </summary>
+	private bool IsValidTileForItemSpawn(Vector2Int position)
+	{
+		if (EnvironmentManager.Instance == null)
+		{
+			return false;
+		}
+		
+		// Check if position is valid
+		if (!EnvironmentManager.Instance.IsValidPosition(position))
+		{
+			return false;
+		}
+		
+		// Check if tile is water or obstacle (walls)
+		TileType tileType = EnvironmentManager.Instance.GetTileType(position);
+		if (tileType == TileType.Water || tileType == TileType.Obstacle)
+		{
+			return false;
+		}
+		
+		// Check if there's already an interactable at this position
+		if (InteractableManager.Instance != null && InteractableManager.Instance.HasInteractableAtPosition(position))
+		{
+			return false;
+		}
+		
+		// Check if there's already an item at this position
+		if (ItemManager.Instance != null && ItemManager.Instance.GetItemAtPosition(position) != null)
+		{
+			return false;
+		}
+		
+		return true;
 	}
 
 	/// <summary>

@@ -17,6 +17,9 @@ public abstract class Item : MonoBehaviour, IItem
     [SerializeField] [Tooltip("Sprite used when displaying this item in UI (e.g., inventory).")]
     private Sprite _inventorySprite;
     
+    [SerializeField] [TextArea(3, 5)] [Tooltip("Description of how to use this item. Displayed in the inventory when the item is selected.")]
+    private string _usageDescription = "";
+    
     [Header("Interaction")]
     [SerializeField] [Tooltip("GameObject that shows/hides when the player is on the same tile (e.g., interaction indicator)")]
     private GameObject _interactionIndicator;
@@ -35,6 +38,11 @@ public abstract class Item : MonoBehaviour, IItem
     /// The sprite used for displaying this item in the inventory UI.
     /// </summary>
     public Sprite InventorySprite => _inventorySprite;
+    
+    /// <summary>
+    /// The usage description for this item.
+    /// </summary>
+    public string UsageDescription => _usageDescription;
     
     bool _isPlayerOnTile = false;
 
