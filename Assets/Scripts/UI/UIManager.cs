@@ -25,6 +25,16 @@ public class UIManager : Singleton<UIManager>
     [Tooltip("TextMeshProUGUI component that displays the MVP progress (assigned workers / goal).")]
     [SerializeField] private TextMeshProUGUI _mvpProgressText;
     
+    [Header("Points Display")]
+    [Tooltip("TextMeshProUGUI component to display the readiness points")]
+    [SerializeField] private TextMeshProUGUI _pointsText;
+    
+    [Tooltip("TextMeshProUGUI component to display the readiness points in menu")]
+    [SerializeField] private TextMeshProUGUI _pointsTextMenu;
+    
+    [Tooltip("Format string for displaying points. Use {0} for current points.")]
+    [SerializeField] private string _pointsFormat = "{0}";
+    
     [Header("Post-Processing")]
     [Tooltip("Global post-processing volume to modify vignette based on hunger. If not assigned, will attempt to find a global volume.")]
     [SerializeField] private Volume _postProcessingVolume;
@@ -66,6 +76,7 @@ public class UIManager : Singleton<UIManager>
     {
         UpdateBuildIndicator();
         UpdateMvpProgress();
+        UpdatePointsDisplay();
     }
     
     /// <summary>
@@ -279,6 +290,29 @@ public class UIManager : Singleton<UIManager>
         
         // Update the text with the formatted string
         _mvpProgressText.text = $"<size=36>MVP:</size>\n{DenSystemManager.Instance.AssignedWorkerCount}/{Globals.MvpWorkerGoal}";
+    }
+    
+    /// <summary>
+    /// Updates the UI text to display the current points.
+    /// </summary>
+    private void UpdatePointsDisplay()
+    {
+        if (PointsManager.Instance == null)
+        {
+            return;
+        }
+        
+        int currentPoints = PointsManager.Instance.ReadinessPoints;
+        
+        if (_pointsText != null)
+        {
+            _pointsText.text = string.Format(_pointsFormat, currentPoints);
+        }
+        
+        if (_pointsTextMenu != null)
+        {
+            _pointsTextMenu.text = string.Format(_pointsFormat, currentPoints);
+        }
     }
 }
 

@@ -688,6 +688,9 @@ MonoBehaviour:
   _lowHungerThreshold: 0.3
   _buildIndicatorContainer: {fileID: 716587103}
   _mvpProgressText: {fileID: 141558841}
+  _pointsText: {fileID: 2114507784}
+  _pointsTextMenu: {fileID: 707741005}
+  _pointsFormat: 'Total Food in Dens: {0}'
   _postProcessingVolume: {fileID: 1299410282}
   _criticalHungerVignetteIntensity: 0.45
 --- !u!1 &273968416
@@ -4036,9 +4039,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: b1bb878ba6e336046b7565e9fb3ce66d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _pointsText: {fileID: 2114507784}
-  _pointsTextMenu: {fileID: 707741005}
-  _pointsFormat: 'Food Stored In Den: {0}'
 --- !u!1 &1578378495
 GameObject:
   m_ObjectHideFlags: 0
