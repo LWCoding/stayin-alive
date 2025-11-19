@@ -43,14 +43,5 @@ public class TutorialManager : Singleton<TutorialManager>
         }
     }
     
-    private void Update()
-    {
-        // Check for Escape key press to return to title screen
-        if (Input.GetKeyDown(KeyCode.Escape))
-        {
-            Debug.Log("TutorialManager: Escape key pressed. Returning to title screen.");
-            SceneManager.LoadScene("01_Title");
-        }
-    }
 }
 
