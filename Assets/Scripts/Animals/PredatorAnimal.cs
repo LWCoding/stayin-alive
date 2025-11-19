@@ -49,8 +49,10 @@ public class PredatorAnimal : Animal
     protected int DetectionRadius => _detectionRadius;
     protected bool IsEatingStallActive => _isEatingStallActive;
 
-    private void Awake()
+    protected override void Awake()
     {
+        base.Awake();
+
         // Hide tracking indicator by default
         UpdateTrackingIndicator();
         

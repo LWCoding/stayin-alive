@@ -410,7 +410,7 @@ public class Animal : MonoBehaviour
         _currentHunger = Mathf.Clamp(hunger, 0, _maxHunger);
     }
 
-    private void Awake()
+    protected virtual void Awake()
     {
         _spriteRenderer = GetComponent<SpriteRenderer>();
         if (_spriteRenderer == null)

@@ -108,15 +108,6 @@ public class ControllableAnimal : Animal
         // This method is kept for compatibility but does nothing
     }
 
-    private void Awake()
-    {
-        _spriteRenderer = GetComponent<SpriteRenderer>();
-        if (_spriteRenderer == null)
-        {
-            _spriteRenderer = GetComponentInChildren<SpriteRenderer>();
-        }
-    }
-
     /// <summary>
     /// Initializes the animal with AnimalData and grid position.
     /// </summary>
