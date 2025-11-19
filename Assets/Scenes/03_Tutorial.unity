@@ -1467,7 +1467,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ee3bddb2132ef52419c651c73a79a816, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _maxInventorySize: 3
   _inventoryContainer: {fileID: 1403985634}
   _inventorySlotPrefab: {fileID: 3916526104676833151, guid: e77f3e284adf8844380d2e2fc6051538, type: 3}
   _shakeIntensity: 10
@@ -2386,7 +2385,6 @@ MonoBehaviour:
   _interactableParent: {fileID: 1749828367}
   _denPrefab: {fileID: 2062690371380645069, guid: da51f67c3c0174e4cbcc8647c2721208, type: 3}
   _rabbitSpawnerPrefab: {fileID: 1762848270398535883, guid: e39eeb602175d5741a7546f0f6ce32bc, type: 3}
-  _predatorDenPrefab: {fileID: 5993506532279619143, guid: fdd1ac81e13714a4fb1915700a0e8a3e, type: 3}
   _wormSpawnerPrefab: {fileID: 3932865139140560728, guid: 44e40e634051f58408480a0b2e7ca54a, type: 3}
   _bushPrefab: {fileID: 7190123244994547298, guid: ebc09e35edd2c194e8a55411b8405b09, type: 3}
   _grassPrefab: {fileID: 3330622115949650018, guid: b1e6597e20b412d44b7197791ddb2054, type: 3}
@@ -3364,7 +3362,7 @@ MonoBehaviour:
     m_Top: 0
     m_Bottom: 0
   m_ChildAlignment: 3
-  m_Spacing: 30
+  m_Spacing: 16
   m_ChildForceExpandWidth: 0
   m_ChildForceExpandHeight: 1
   m_ChildControlWidth: 0
