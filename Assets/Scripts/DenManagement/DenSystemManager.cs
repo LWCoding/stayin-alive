@@ -59,6 +59,14 @@ public class DenSystemManager : Singleton<DenSystemManager> {
   }
 
   public bool CreateWorker() {
+    Vector2Int spawnPosition = Vector2Int.zero;
+    if (currentDenAdministrator != null && CurrentAdminDen != null) {
+      spawnPosition = CurrentAdminDen.GridPosition;
+    }
+    return CreateWorkerAtPosition(spawnPosition);
+  }
+  
+  public bool CreateWorkerAtPosition(Vector2Int spawnPosition) {
     if (workerAnimalData == null) {
       Debug.LogError("DenSystemManager: Worker AnimalData is not assigned! Please assign a worker AnimalData in the Inspector.");
       return false;
@@ -69,14 +77,6 @@ public class DenSystemManager : Singleton<DenSystemManager> {
       return false;
     }
     
-    // Determine spawn position - use current den position if player is in a den
-    Vector2Int spawnPosition = Vector2Int.zero;
-    if (currentDenAdministrator != null && CurrentAdminDen != null) {
-      spawnPosition = CurrentAdminDen.GridPosition;
-    }
-    
-    // Spawn worker at the determined position
-    // Workers start hidden (unassigned state)
     Animal newWorkerAnimal = AnimalManager.Instance.SpawnAnimal(
       workerAnimalData.animalName, 
       spawnPosition, 
@@ -88,17 +88,13 @@ public class DenSystemManager : Singleton<DenSystemManager> {
       return false;
     }
     
-    // Set hunger to threshold minus one so the worker immediately seeks food
     if (workerAnimalData.hungerThreshold > 0) {
       newWorkerAnimal.SetHunger(workerAnimalData.hungerThreshold - 1);
     }
     
-    // Hide the worker since they're unassigned
-    // Workers will only show up at dens when explicitly assigned
     newWorkerAnimal.SetVisualVisibility(false);
     
-    unassignedWorkers.Add(newWorkerAnimal);
-    workersToDens[newWorkerAnimal] = UNASSIGNED_DEN_ID;
+    AddUnassignedWorker(newWorkerAnimal);
     
     return true;
   }
@@ -125,8 +121,7 @@ public class DenSystemManager : Singleton<DenSystemManager> {
       return false;
     }
     
-    // First, remove from the unassigned worker list
-    unassignedWorkers.Remove(animal);
+    RemoveUnassignedWorker(animal);
     
     animal.SetHome(targetDen);
     
@@ -172,14 +167,11 @@ public class DenSystemManager : Singleton<DenSystemManager> {
     // Hide the worker since they're now unassigned
     animal.SetVisualVisibility(false);
     
-    // Add it to the unassigned list
-    unassignedWorkers.Add(animal);
-    
-    // Update the mapping to unassigned
-    workersToDens[animal] = UNASSIGNED_DEN_ID;
-    
     // Decrement assigned worker count
     AssignedWorkerCount--;
+    
+    // Add it to the unassigned list (this will also update mapping and notify player)
+    AddUnassignedWorker(animal);
     
     return true;
   }
@@ -207,7 +199,7 @@ public class DenSystemManager : Singleton<DenSystemManager> {
       AssignedWorkerCount--;
     } else {
       // Worker was unassigned, remove from unassigned list
-      unassignedWorkers.Remove(animal);
+      RemoveUnassignedWorker(animal);
       Debug.Log($"Unassigned worker '{animal.name}' died and was removed from unassigned list.");
     }
     
@@ -227,6 +219,56 @@ public class DenSystemManager : Singleton<DenSystemManager> {
     }
     
     return workersToDens[animal] == UNASSIGNED_DEN_ID;
+  }
+  
+  /// <summary>
+  /// Gets the current number of unassigned workers.
+  /// </summary>
+  /// <returns>The count of unassigned workers</returns>
+  public int GetUnassignedWorkerCount() {
+    if (unassignedWorkers == null) {
+      return 0;
+    }
+    return unassignedWorkers.Count;
+  }
+  
+  /// <summary>
+  /// Adds a worker to the unassigned workers list and notifies the player to update follower count.
+  /// </summary>
+  /// <param name="animal">The worker animal to add as unassigned</param>
+  private void AddUnassignedWorker(Animal animal) {
+    if (animal == null) {
+      return;
+    }
+    
+    unassignedWorkers.Add(animal);
+    workersToDens[animal] = UNASSIGNED_DEN_ID;
+    NotifyPlayerUpdateFollowerCount();
+  }
+  
+  /// <summary>
+  /// Removes a worker from the unassigned workers list and notifies the player to update follower count.
+  /// </summary>
+  /// <param name="animal">The worker animal to remove from unassigned</param>
+  private void RemoveUnassignedWorker(Animal animal) {
+    if (animal == null) {
+      return;
+    }
+    
+    unassignedWorkers.Remove(animal);
+    NotifyPlayerUpdateFollowerCount();
+  }
+  
+  /// <summary>
+  /// Notifies the player (ControllableAnimal) to update its follower count based on unassigned workers.
+  /// </summary>
+  private void NotifyPlayerUpdateFollowerCount() {
+    if (AnimalManager.Instance != null) {
+      ControllableAnimal player = AnimalManager.Instance.GetPlayer();
+      if (player != null) {
+        player.UpdateFollowerCount();
+      }
+    }
   }
   
   public Dictionary<int, DenInformation> GetValidTeleports => validTeleports;

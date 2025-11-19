@@ -149,6 +149,21 @@ public class ControllableAnimal : Animal
         {
             UIManager.Instance.SetTrackedAnimal(this);
         }
+        
+        // Update follower count based on unassigned workers
+        UpdateFollowerCount();
+    }
+    
+    /// <summary>
+    /// Updates the animal's follower count based on the number of unassigned workers.
+    /// The count will be unassigned workers + 1 (the player itself).
+    /// </summary>
+    public void UpdateFollowerCount() {
+        if (DenSystemManager.Instance != null) {
+            int unassignedCount = DenSystemManager.Instance.GetUnassignedWorkerCount();
+            int newCount = unassignedCount + 1;
+            SetAnimalCount(newCount);
+        }
     }
 
     /// <summary>

@@ -132,6 +132,19 @@ public class ProceduralLevelLoader : MonoBehaviour
         if (AnimalManager.Instance != null)
         {
             AnimalManager.Instance.SpawnAnimalsFromLevelData(levelData.Animals);
+            
+            // Spawn unassigned workers at the player's position
+            if (DenSystemManager.Instance != null && !string.IsNullOrEmpty(_controllableAnimalName))
+            {
+                ControllableAnimal player = AnimalManager.Instance.GetPlayer();
+                if (player != null)
+                {
+                    for (int i = 0; i < _controllableAnimalCount; i++)
+                    {
+                        DenSystemManager.Instance.CreateWorkerAtPosition(player.GridPosition);
+                    }
+                }
+            }
         }
         else
         {
@@ -707,7 +720,7 @@ public class ProceduralLevelLoader : MonoBehaviour
             
             if (foundValidPosition)
             {
-                levelData.Animals.Add((_controllableAnimalName, controllablePos.x, controllablePos.y, _controllableAnimalCount));
+                levelData.Animals.Add((_controllableAnimalName, controllablePos.x, controllablePos.y, 1));
                 
                 // Place den at the same position as the controllable animal
                 levelData.Dens.Add((controllablePos.x, controllablePos.y));

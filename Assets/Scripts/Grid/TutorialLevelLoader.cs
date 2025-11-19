@@ -176,6 +176,15 @@ public class TutorialLevelLoader : MonoBehaviour
         if (AnimalManager.Instance != null)
         {
             AnimalManager.Instance.SpawnAnimalsFromLevelData(levelData.Animals);
+            
+            // Spawn unassigned workers at the player's position
+            if (DenSystemManager.Instance != null && !string.IsNullOrEmpty(_controllableAnimalName) && IsValidGridPosition(_controllableAnimalPosition.x, _controllableAnimalPosition.y))
+            {
+                for (int i = 0; i < _controllableAnimalCount; i++)
+                {
+                    DenSystemManager.Instance.CreateWorkerAtPosition(_controllableAnimalPosition);
+                }
+            }
         }
         else
         {
@@ -319,10 +328,10 @@ public class TutorialLevelLoader : MonoBehaviour
             Debug.LogWarning($"TutorialLevelLoader: Invalid den position ({_denPosition.x}, {_denPosition.y}). Skipping.");
         }
 
-        // Place controllable animal
+        // Place controllable animal with count 1 (followers will be based on unassigned workers)
         if (!string.IsNullOrEmpty(_controllableAnimalName) && IsValidGridPosition(_controllableAnimalPosition.x, _controllableAnimalPosition.y))
         {
-            levelData.Animals.Add((_controllableAnimalName, _controllableAnimalPosition.x, _controllableAnimalPosition.y, _controllableAnimalCount));
+            levelData.Animals.Add((_controllableAnimalName, _controllableAnimalPosition.x, _controllableAnimalPosition.y, 1));
         }
         else if (!string.IsNullOrEmpty(_controllableAnimalName))
         {
