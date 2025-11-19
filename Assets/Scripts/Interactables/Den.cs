@@ -139,12 +139,9 @@ public class Den : Interactable, IHideable
             // Handle food delivery: check for food items in inventory
             ProcessFoodDelivery(animal);
             
-            // Start passive time progression if not already running
-            if (_timeProgressionCoroutine == null)
-            {
-                _timeProgressionCoroutine = StartCoroutine(PassiveTimeProgression());
-            }
-            
+            // Update passive time progression state (only runs while player is inside)
+            UpdatePassiveTimeProgressionState();
+
             UpdateDenVisualState();
         }
     }
@@ -207,12 +204,8 @@ public class Den : Interactable, IHideable
                 animal.SetVisualVisibility(true);
             }
             
-            // Stop passive time progression if no animals are left in the den
-            if (_animalsInDen.Count == 0 && _timeProgressionCoroutine != null)
-            {
-                StopCoroutine(_timeProgressionCoroutine);
-                _timeProgressionCoroutine = null;
-            }
+            // Update passive time progression state (only runs while player is inside)
+            UpdatePassiveTimeProgressionState();
             
             UpdateDenVisualState();
         }
@@ -224,7 +217,7 @@ public class Den : Interactable, IHideable
     /// </summary>
     private IEnumerator PassiveTimeProgression()
     {
-        while (_animalsInDen.Count > 0)
+        while (HasControllableAnimalInside())
         {
             yield return new WaitForSeconds(Globals.DenTimeProgressionDelay);
             
@@ -268,17 +261,7 @@ public class Den : Interactable, IHideable
     private void UpdateDenVisualState()
     {
         bool hasAnimals = _animalsInDen.Count > 0;
-        
-        // Check if the player (controllable animal) is specifically in the den
-        bool hasPlayer = false;
-        foreach (Animal animal in _animalsInDen)
-        {
-            if (animal != null && animal.IsControllable)
-            {
-                hasPlayer = true;
-                break;
-            }
-        }
+        bool hasPlayer = HasControllableAnimalInside();
         
         // Update sprite renderer
         if (_spriteRenderer != null)
@@ -297,6 +280,43 @@ public class Den : Interactable, IHideable
         if (_playerInDenObject != null)
         {
             _playerInDenObject.SetActive(hasPlayer);
+        }
+    }
+
+    /// <summary>
+    /// Checks whether a controllable animal (player) is currently inside the den.
+    /// </summary>
+    private bool HasControllableAnimalInside()
+    {
+        for (int i = 0; i < _animalsInDen.Count; i++)
+        {
+            Animal animal = _animalsInDen[i];
+            if (animal != null && animal.IsControllable)
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    /// <summary>
+    /// Ensures the passive time progression coroutine matches whether the player is inside the den.
+    /// </summary>
+    private void UpdatePassiveTimeProgressionState()
+    {
+        bool hasPlayer = HasControllableAnimalInside();
+        if (hasPlayer)
+        {
+            if (_timeProgressionCoroutine == null)
+            {
+                _timeProgressionCoroutine = StartCoroutine(PassiveTimeProgression());
+            }
+        }
+        else if (_timeProgressionCoroutine != null)
+        {
+            StopCoroutine(_timeProgressionCoroutine);
+            _timeProgressionCoroutine = null;
         }
     }
 }
