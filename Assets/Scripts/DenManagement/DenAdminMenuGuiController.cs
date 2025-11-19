@@ -55,10 +55,6 @@ public class DenAdminMenuGuiController : MonoBehaviour {
   [SerializeField]
   [Tooltip("Text displayed on the purchase worker button when den is at maximum capacity")]
   private string denFullButtonText;
-  
-  [SerializeField]
-  [Tooltip("Text displayed on the purchase worker button when there are too many unassigned workers")]
-  private string tooManyUnassignedButtonText;
 
   private List<DenSystemManager.DenInformation> mapDenInfo;
 
@@ -139,52 +135,21 @@ public class DenAdminMenuGuiController : MonoBehaviour {
     UpdatePurchaseWorkerButton();
   }
   
-  /// <summary>
-  /// Counts the number of unassigned workers
-  /// </summary>
-  private int GetUnassignedWorkerCount() {
-    int count = 0;
-    foreach (Animal worker in DenSystemManager.Instance.WorkersToDens.Keys) {
-      if (DenSystemManager.Instance.WorkersToDens[worker] == DenSystemManager.Instance.UNASSIGNED_DEN_ID) {
-        count++;
-      }
-    }
-    return count;
-  }
-  
-  /// <summary>
-  /// Updates the purchase worker button's interactable state based on whether the player has enough points,
-  /// whether the current den is at maximum capacity, and whether there are too many unassigned workers
-  /// </summary>
   public void UpdatePurchaseWorkerButton() {
     if (purchaseWorkerButton == null) {
       return;
     }
     
-    // Check if current den is at maximum capacity
     Den currentDen = DenSystemManager.Instance.CurrentAdminDen;
     bool denIsFull = currentDen != null && currentDen.IsFull();
     
-    // Check if there are too many unassigned workers
-    int unassignedCount = GetUnassignedWorkerCount();
-    bool tooManyUnassigned = unassignedCount >= Globals.MaxUnassignedWorkers;
-    
-    // Update button text based on constraints (prioritize den full over too many unassigned)
     TextMeshProUGUI buttonText = purchaseWorkerButton.GetComponentInChildren<TextMeshProUGUI>();
     if (buttonText != null) {
-      string displayText;
-      if (denIsFull) {
-        displayText = denFullButtonText;
-      } else if (tooManyUnassigned) {
-        displayText = tooManyUnassignedButtonText;
-      } else {
-        displayText = purchaseWorkerButtonText;
-      }
+      string displayText = denIsFull ? denFullButtonText : purchaseWorkerButtonText;
       buttonText.text = displayText.Replace("\\n", "\n");
     }
     
-    // Button is only interactable if player has enough points AND den is not full AND not too many unassigned
     bool canAfford = PointsManager.Instance.ReadinessPoints >= DenSystemManager.Instance.workerPrice;
-    purchaseWorkerButton.interactable = canAfford && !denIsFull && !tooManyUnassigned;
+    purchaseWorkerButton.interactable = canAfford && !denIsFull;
   }
 }

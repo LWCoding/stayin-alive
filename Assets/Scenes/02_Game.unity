@@ -5686,6 +5686,14 @@ PrefabInstance:
       propertyPath: m_Name
       value: DenAdministratorMenu
       objectReference: {fileID: 0}
+    - target: {fileID: 9215548659676569466, guid: 41066fd52d5460c409bed4831559a961, type: 3}
+      propertyPath: m_AnchorMax.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 9215548659676569466, guid: 41066fd52d5460c409bed4831559a961, type: 3}
+      propertyPath: m_AnchorMax.y
+      value: 0
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
