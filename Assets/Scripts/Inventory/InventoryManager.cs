@@ -9,8 +9,7 @@ using UnityEngine;
 public class InventoryManager : Singleton<InventoryManager>
 {
     [Header("Inventory Settings")]
-    [SerializeField] [Tooltip("Maximum number of inventory slots")]
-    private int _maxInventorySize;
+    // Maximum inventory size is now defined in Globals.MaxInventorySize
     
     [Header("UI References")]
     [SerializeField] [Tooltip("Transform container where inventory slots will be instantiated")]
@@ -60,7 +59,7 @@ public class InventoryManager : Singleton<InventoryManager>
     /// <summary>
     /// Whether the inventory is full.
     /// </summary>
-    public bool IsFull => CurrentItemCount >= _maxInventorySize;
+    public bool IsFull => CurrentItemCount >= Globals.MaxInventorySize;
     
     /// <summary>
     /// The currently selected slot index (0-8, or -1 if none selected).
@@ -137,7 +136,7 @@ public class InventoryManager : Singleton<InventoryManager>
         ClearAllSlots();
         
         // Instantiate slots
-        for (int i = 0; i < _maxInventorySize; i++)
+        for (int i = 0; i < Globals.MaxInventorySize; i++)
         {
             GameObject slotObj = Instantiate(_inventorySlotPrefab, _inventoryContainer);
             slotObj.name = $"InventorySlot_{i}";
@@ -178,7 +177,7 @@ public class InventoryManager : Singleton<InventoryManager>
         
         if (IsFull)
         {
-            Debug.Log($"InventoryManager: Cannot add item '{itemName}' - inventory is full ({CurrentItemCount}/{_maxInventorySize}).");
+            Debug.Log($"InventoryManager: Cannot add item '{itemName}' - inventory is full ({CurrentItemCount}/{Globals.MaxInventorySize}).");
             
             // Trigger shake animation
             ShakeInventory();
@@ -203,7 +202,7 @@ public class InventoryManager : Singleton<InventoryManager>
             {
                 if (slot.SetItem(itemName, itemSprite))
                 {
-                    Debug.Log($"InventoryManager: Added item '{itemName}' to inventory. ({CurrentItemCount}/{_maxInventorySize})");
+                    Debug.Log($"InventoryManager: Added item '{itemName}' to inventory. ({CurrentItemCount}/{Globals.MaxInventorySize})");
                     return true;
                 }
             }

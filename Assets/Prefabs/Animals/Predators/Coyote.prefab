@@ -283,6 +283,6 @@ MonoBehaviour:
   _priority: 0
   _stallTurnsAfterHunt: 5
   _trackingIndicator: {fileID: 2619049416972628233}
-  _denSprite: {fileID: 21300000, guid: 90870eba794346a4e91ec21293bb6178, type: 3}
+  DenPrefab: {fileID: 5993506532279619143, guid: fdd1ac81e13714a4fb1915700a0e8a3e, type: 3}
   _chaseTurnsBeforeBreak: 6
   _breakDuration: 3

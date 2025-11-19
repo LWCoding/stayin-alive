@@ -39,7 +39,7 @@ public class PredatorDen : Interactable
     /// </summary>
     /// <param name="gridPosition">Grid position for the den</param>
     /// <param name="predatorType">Type of predator this den is for (e.g., "Wolf", "Hawk")</param>
-    public void Initialize(Vector2Int gridPosition, string predatorType)
+    public virtual void Initialize(Vector2Int gridPosition, string predatorType)
     {
         _gridPosition = gridPosition;
         _predatorType = predatorType;

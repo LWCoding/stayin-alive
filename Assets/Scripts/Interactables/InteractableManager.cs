@@ -11,6 +11,11 @@ public class InteractableManager : Singleton<InteractableManager>
     [Header("Interactable Settings")]
     [SerializeField] private Transform _interactableParent;
     
+    /// <summary>
+    /// Gets the interactable parent transform.
+    /// </summary>
+    public Transform InteractableParent => _interactableParent;
+    
     [Header("Den Prefab")]
     [Tooltip("Prefab to use when spawning dens. Must have a Den component.")]
     [SerializeField] private GameObject _denPrefab;
@@ -18,10 +23,6 @@ public class InteractableManager : Singleton<InteractableManager>
 	[Header("Rabbit Spawner Prefab")]
 	[Tooltip("Prefab to use when spawning rabbit spawners. Must have a RabbitSpawner component.")]
 	[SerializeField] private GameObject _rabbitSpawnerPrefab;
-	
-	[Header("Predator Den Prefab")]
-	[Tooltip("Prefab to use when spawning predator dens. Must have a PredatorDen component.")]
-	[SerializeField] private GameObject _predatorDenPrefab;
 	
 	[Header("Worm Spawner Prefab")]
 	[Tooltip("Prefab to use when spawning worm spawners. Must have a WormSpawner component.")]
@@ -343,74 +344,6 @@ public class InteractableManager : Singleton<InteractableManager>
 		}
 	}
 
-	/// <summary>
-	/// Spawns a predator den at the specified grid position with a specific predator type.
-	/// </summary>
-	/// <param name="gridPosition">Grid position to spawn the predator den at</param>
-	/// <param name="predatorType">Type of predator this den is for (e.g., "Wolf", "Hawk")</param>
-	/// <returns>The spawned PredatorDen component, or null if prefab is not assigned</returns>
-	public PredatorDen SpawnPredatorDen(Vector2Int gridPosition, string predatorType)
-	{
-		if (_predatorDenPrefab == null)
-		{
-			Debug.LogError("InteractableManager: Predator den prefab is not assigned! Please assign a predator den prefab in the Inspector.");
-			return null;
-		}
-
-		if (EnvironmentManager.Instance == null)
-		{
-			Debug.LogError("InteractableManager: EnvironmentManager instance not found!");
-			return null;
-		}
-
-		if (!EnvironmentManager.Instance.IsValidPosition(gridPosition))
-		{
-			Debug.LogWarning($"InteractableManager: Cannot spawn predator den at invalid position ({gridPosition.x}, {gridPosition.y}).");
-			return null;
-		}
-
-		GameObject denObj = Instantiate(_predatorDenPrefab, _interactableParent);
-		PredatorDen predatorDen = denObj.GetComponent<PredatorDen>();
-
-		if (predatorDen == null)
-		{
-			Debug.LogError("InteractableManager: Predator den prefab does not have a PredatorDen component!");
-			Destroy(denObj);
-			return null;
-		}
-
-		predatorDen.Initialize(gridPosition, predatorType);
-		_predatorDens.Add(predatorDen);
-		_allInteractables.Add(predatorDen);
-
-		Debug.Log($"InteractableManager: Spawned predator den for '{predatorType}' at ({gridPosition.x}, {gridPosition.y})");
-
-		return predatorDen;
-	}
-
-	/// <summary>
-	/// Spawns predator dens from level data.
-	/// </summary>
-	public void SpawnPredatorDensFromLevelData(List<(int x, int y, string predatorType)> predatorDens)
-	{
-		if (predatorDens == null)
-		{
-			return;
-		}
-
-		foreach (var (x, y, predatorType) in predatorDens)
-		{
-			Vector2Int gridPos = new Vector2Int(x, y);
-			if (EnvironmentManager.Instance != null && EnvironmentManager.Instance.IsValidPosition(gridPos))
-			{
-				SpawnPredatorDen(gridPos, predatorType);
-			}
-			else
-			{
-				Debug.LogWarning($"InteractableManager: Predator den at ({x}, {y}) is out of bounds!");
-			}
-		}
-	}
 
 	/// <summary>
 	/// Gets the predator den at the specified grid position, if any.
@@ -432,6 +365,21 @@ public class InteractableManager : Singleton<InteractableManager>
 		}
 
 		return null;
+	}
+
+	/// <summary>
+	/// Registers a predator den with the manager. Called when a den is spawned.
+	/// </summary>
+	public void RegisterPredatorDen(PredatorDen predatorDen)
+	{
+		if (predatorDen != null && _predatorDens != null)
+		{
+			if (!_predatorDens.Contains(predatorDen))
+			{
+				_predatorDens.Add(predatorDen);
+				_allInteractables.Add(predatorDen);
+			}
+		}
 	}
 
 	/// <summary>

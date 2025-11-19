@@ -10,9 +10,9 @@ GameObject:
   m_Component:
   - component: {fileID: 5991469252774007468}
   - component: {fileID: 3774530258286580536}
-  - component: {fileID: 7631085632445008793}
+  - component: {fileID: -8695191892649979434}
   m_Layer: 0
-  m_Name: PredatorDen
+  m_Name: CoyoteDen
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -74,7 +74,7 @@ SpriteRenderer:
   m_SortingLayerID: 0
   m_SortingLayer: 0
   m_SortingOrder: 0
-  m_Sprite: {fileID: 21300000, guid: 5bcf8a0f1bbf08d43b31a1a3f04204f1, type: 3}
+  m_Sprite: {fileID: 21300000, guid: 90870eba794346a4e91ec21293bb6178, type: 3}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_FlipX: 0
   m_FlipY: 0
@@ -85,7 +85,7 @@ SpriteRenderer:
   m_WasSpriteAssigned: 1
   m_MaskInteraction: 0
   m_SpriteSortPoint: 0
---- !u!114 &7631085632445008793
+--- !u!114 &-8695191892649979434
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -94,7 +94,7 @@ MonoBehaviour:
   m_GameObject: {fileID: 5993506532279619143}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 5d70a03e43c677c40b0424f46d0c1477, type: 3}
+  m_Script: {fileID: 11500000, guid: b79e505b41149884f93240c1a1922670, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
   _territoryRadius: 4

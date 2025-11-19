@@ -119,7 +119,6 @@ public class ProceduralLevelLoader : MonoBehaviour
 			InteractableManager.Instance.ClearAllInteractables();
 			InteractableManager.Instance.SpawnDensFromLevelData(levelData.Dens);
 			InteractableManager.Instance.SpawnRabbitSpawnersFromLevelData(levelData.RabbitSpawners);
-			InteractableManager.Instance.SpawnPredatorDensFromLevelData(levelData.PredatorDens);
 			InteractableManager.Instance.SpawnWormSpawnersFromLevelData(levelData.WormSpawners);
 			InteractableManager.Instance.SpawnBushesFromLevelData(levelData.Bushes);
 			InteractableManager.Instance.SpawnGrassesFromLevelData(levelData.Grasses);
@@ -128,8 +127,8 @@ public class ProceduralLevelLoader : MonoBehaviour
         {
 			Debug.LogWarning("ProceduralLevelLoader: InteractableManager instance not found! Interactables will not be spawned.");
         }
-
-        // Spawn animals using AnimalManager
+		
+        // Spawn animals using AnimalManager (before predator dens so den prefabs are registered)
         if (AnimalManager.Instance != null)
         {
             AnimalManager.Instance.SpawnAnimalsFromLevelData(levelData.Animals);
@@ -138,6 +137,16 @@ public class ProceduralLevelLoader : MonoBehaviour
         {
             Debug.LogWarning("ProceduralLevelLoader: AnimalManager instance not found! Animals will not be spawned.");
         }
+		
+		// Spawn predator dens using PredatorAnimal (after animals are loaded so den prefabs are registered)
+		if (InteractableManager.Instance != null)
+		{
+			// Set the interactable parent for PredatorAnimal to use
+			PredatorAnimal.SetInteractableParent(InteractableManager.Instance.InteractableParent);
+		}
+		
+		// Spawn predator dens from level data
+		PredatorAnimal.SpawnPredatorDensFromLevelData(levelData.PredatorDens);
 
         // Spawn items using ItemManager
         if (ItemManager.Instance != null)

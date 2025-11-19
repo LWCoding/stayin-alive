@@ -329,6 +329,15 @@ public class AnimalManager : Singleton<AnimalManager>
         // Initialize the animal with its data
         animal.Initialize(animalData, gridPosition);
         
+        // Register den prefab if this is a PredatorAnimal
+        if (animal is PredatorAnimal predatorAnimal)
+        {
+            if (predatorAnimal.DenPrefab != null && !string.IsNullOrEmpty(animalData.animalName))
+            {
+                PredatorAnimal.RegisterDenPrefab(animalData.animalName, predatorAnimal.DenPrefab);
+            }
+        }
+        
         // Set the animal count
         animal.SetAnimalCount(count);
         

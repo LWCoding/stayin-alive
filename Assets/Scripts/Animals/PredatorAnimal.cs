@@ -19,9 +19,20 @@ public class PredatorAnimal : Animal
     [Tooltip("Visual indicator shown above the predator's head when tracking/hunting prey.")]
     [SerializeField] private GameObject _trackingIndicator;
     
-    [Header("Den Visuals")]
-    [Tooltip("Sprite to set on the predator den when this predator associates with it.")]
-    [SerializeField] private Sprite _denSprite;
+    [Header("Den Prefab")]
+    [Tooltip("Prefab to use when spawning dens for this predator type. Must have a PredatorDen component (e.g., CoyoteDen, HawkDen).")]
+    public GameObject DenPrefab;
+    
+    /// <summary>
+    /// Static dictionary mapping predator type names to their den prefabs.
+    /// Populated when predators are spawned.
+    /// </summary>
+    private static Dictionary<string, GameObject> _denPrefabLookup = new Dictionary<string, GameObject>();
+    
+    /// <summary>
+    /// Static reference to the interactable parent transform for spawning dens.
+    /// </summary>
+    private static Transform _interactableParent;
 
     protected int _stallTurnsRemaining = 0;
     protected Vector2Int? _wanderingDestination = null;
@@ -42,10 +53,26 @@ public class PredatorAnimal : Animal
     {
         // Hide tracking indicator by default
         UpdateTrackingIndicator();
+        
+        // Cache interactable parent if not already cached
+        if (_interactableParent == null && InteractableManager.Instance != null)
+        {
+            _interactableParent = InteractableManager.Instance.InteractableParent;
+        }
     }
     
     private void Start()
     {
+        // Register this predator's den prefab if we have one (AnimalData should be available by Start)
+        if (DenPrefab != null && AnimalData != null && !string.IsNullOrEmpty(AnimalData.animalName))
+        {
+            if (!_denPrefabLookup.ContainsKey(AnimalData.animalName))
+            {
+                _denPrefabLookup[AnimalData.animalName] = DenPrefab;
+                Debug.Log($"PredatorAnimal: Registered den prefab for predator type '{AnimalData.animalName}'");
+            }
+        }
+        
         // Find the nearest predator den to this predator's spawn position
         FindNearestPredatorDen();
     }
@@ -119,12 +146,6 @@ public class PredatorAnimal : Animal
         {
             _predatorDen = nearest;
             
-            // Set the den's sprite if we have one
-            if (_denSprite != null)
-            {
-                nearest.SetSprite(_denSprite);
-            }
-            
             Debug.Log($"PredatorAnimal '{name}' (type: {myPredatorType}) associated with predator den at ({nearest.GridPosition.x}, {nearest.GridPosition.y})");
         }
         else
@@ -165,12 +186,6 @@ public class PredatorAnimal : Animal
         }
         
         _predatorDen = predatorDen;
-        
-        // Set the den's sprite if we have one
-        if (_denSprite != null)
-        {
-            predatorDen.SetSprite(_denSprite);
-        }
     }
 
     public override void TakeTurn()
@@ -846,6 +861,126 @@ public class PredatorAnimal : Animal
     {
         // Only show indicator when actively hunting (hungry enough), has a target, and not stalled
         return ShouldHuntBasedOnHunger() && _huntingDestination.HasValue && _stallTurnsRemaining == 0;
+    }
+    
+    /// <summary>
+    /// Sets the interactable parent transform for spawning dens. Should be called before spawning dens.
+    /// </summary>
+    public static void SetInteractableParent(Transform parent)
+    {
+        _interactableParent = parent;
+    }
+    
+    /// <summary>
+    /// Manually registers a den prefab for a predator type. Useful for pre-registering prefabs before animals are spawned.
+    /// </summary>
+    public static void RegisterDenPrefab(string predatorType, GameObject denPrefab)
+    {
+        if (string.IsNullOrEmpty(predatorType) || denPrefab == null)
+        {
+            Debug.LogWarning("PredatorAnimal: Cannot register den prefab with null or empty predator type or null prefab.");
+            return;
+        }
+        
+        if (!_denPrefabLookup.ContainsKey(predatorType))
+        {
+            _denPrefabLookup[predatorType] = denPrefab;
+            Debug.Log($"PredatorAnimal: Manually registered den prefab for predator type '{predatorType}'");
+        }
+    }
+    
+    /// <summary>
+    /// Spawns a predator den at the specified grid position with a specific predator type.
+    /// </summary>
+    /// <param name="gridPosition">Grid position to spawn the predator den at</param>
+    /// <param name="predatorType">Type of predator this den is for (e.g., "Coyote", "Hawk")</param>
+    /// <returns>The spawned PredatorDen component, or null if prefab is not found</returns>
+    public static PredatorDen SpawnPredatorDen(Vector2Int gridPosition, string predatorType)
+    {
+        if (string.IsNullOrEmpty(predatorType))
+        {
+            Debug.LogError("PredatorAnimal: Cannot spawn predator den with null or empty predator type.");
+            return null;
+        }
+        
+        if (!_denPrefabLookup.TryGetValue(predatorType, out GameObject denPrefab))
+        {
+            Debug.LogError($"PredatorAnimal: Den prefab not found for predator type '{predatorType}'. Please ensure a predator with this type has been spawned and has a den prefab assigned.");
+            return null;
+        }
+        
+        if (EnvironmentManager.Instance == null)
+        {
+            Debug.LogError("PredatorAnimal: EnvironmentManager instance not found!");
+            return null;
+        }
+        
+        if (!EnvironmentManager.Instance.IsValidPosition(gridPosition))
+        {
+            Debug.LogWarning($"PredatorAnimal: Cannot spawn predator den at invalid position ({gridPosition.x}, {gridPosition.y}).");
+            return null;
+        }
+        
+        // Ensure interactable parent exists
+        if (_interactableParent == null)
+        {
+            GameObject interactableParentObj = GameObject.Find("Interactables");
+            if (interactableParentObj != null)
+            {
+                _interactableParent = interactableParentObj.transform;
+            }
+            else
+            {
+                interactableParentObj = new GameObject("Interactables");
+                _interactableParent = interactableParentObj.transform;
+            }
+        }
+        
+        GameObject denObj = Object.Instantiate(denPrefab, _interactableParent);
+        PredatorDen predatorDen = denObj.GetComponent<PredatorDen>();
+        
+        if (predatorDen == null)
+        {
+            Debug.LogError($"PredatorAnimal: Den prefab for '{predatorType}' does not have a PredatorDen component!");
+            Destroy(denObj);
+            return null;
+        }
+        
+        predatorDen.Initialize(gridPosition, predatorType);
+        
+        // Register with InteractableManager if it exists
+        if (InteractableManager.Instance != null)
+        {
+            InteractableManager.Instance.RegisterPredatorDen(predatorDen);
+        }
+        
+        Debug.Log($"PredatorAnimal: Spawned predator den for '{predatorType}' at ({gridPosition.x}, {gridPosition.y})");
+        
+        return predatorDen;
+    }
+    
+    /// <summary>
+    /// Spawns predator dens from level data.
+    /// </summary>
+    public static void SpawnPredatorDensFromLevelData(List<(int x, int y, string predatorType)> predatorDens)
+    {
+        if (predatorDens == null)
+        {
+            return;
+        }
+        
+        foreach (var (x, y, predatorType) in predatorDens)
+        {
+            Vector2Int gridPos = new Vector2Int(x, y);
+            if (EnvironmentManager.Instance != null && EnvironmentManager.Instance.IsValidPosition(gridPos))
+            {
+                SpawnPredatorDen(gridPos, predatorType);
+            }
+            else
+            {
+                Debug.LogWarning($"PredatorAnimal: Predator den at ({x}, {y}) is out of bounds!");
+            }
+        }
     }
 }
 

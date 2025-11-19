@@ -63,5 +63,10 @@ public static class Globals
     /// Maximum number of unassigned workers allowed before preventing new worker breeding.
     /// </summary>
     public static int MaxUnassignedWorkers = 5;
+
+    /// <summary>
+    /// Maximum number of inventory slots.
+    /// </summary>
+    public static int MaxInventorySize = 5;
 }
 
