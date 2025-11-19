@@ -10,10 +10,6 @@ using UnityEngine;
 public class RabbitAnimal : PreyAnimal
 {
 	[Header("Rabbit Settings")]
-	[Tooltip("Detection radius for finding grass. Only grass within this distance will be considered.")]
-	[SerializeField] private int _grassDetectionRadius = 10;
-	[Tooltip("Target food type name. This is used for identification purposes.")]
-	[SerializeField] private string _targetFood = "Grass";
 
 	private Vector2Int? _foodDestination = null;
 	private int _rabbitTurnCounter = 0;
@@ -30,12 +26,6 @@ public class RabbitAnimal : PreyAnimal
 	/// </summary>
 	public bool IsHungry => AnimalData != null && CurrentHunger < AnimalData.hungerThreshold;
 
-	/// <summary>
-	/// Gets whether this rabbit is at critical hunger (hunger below critical threshold).
-	/// At critical hunger, the rabbit will seek food regardless of predators.
-	/// Reads the critical hunger threshold from AnimalData.
-	/// </summary>
-	public bool IsCriticallyHungry => AnimalData != null && CurrentHunger < AnimalData.criticalHungerThreshold;
 
 	/// <summary>
 	/// Gets the hunger threshold below which the rabbit will seek food.
@@ -327,59 +317,6 @@ public class RabbitAnimal : PreyAnimal
 		return base.ChooseWanderingDestination();
 	}
 	
-	/// <summary>
-	/// Finds the nearest fully grown grass within detection radius.
-	/// </summary>
-	private Vector2Int? FindNearestFullyGrownGrass()
-	{
-		if (InteractableManager.Instance == null)
-		{
-			return null;
-		}
-
-		List<Grass> allGrasses = InteractableManager.Instance.Grasses;
-		if (allGrasses == null || allGrasses.Count == 0)
-		{
-			return null;
-		}
-
-		Vector2Int myPos = GridPosition;
-		Grass nearest = null;
-		int bestDistance = int.MaxValue;
-
-		for (int i = 0; i < allGrasses.Count; i++)
-		{
-			Grass grass = allGrasses[i];
-			if (grass == null)
-			{
-				continue;
-			}
-
-			// Only consider grass that matches the target food type
-			if (!DoesGrassMatchTargetFood(grass))
-			{
-				continue;
-			}
-
-			// Only consider fully grown grass
-			if (!grass.IsFullyGrown())
-			{
-				continue;
-			}
-
-			Vector2Int grassPos = grass.GridPosition;
-			int distance = Mathf.Abs(grassPos.x - myPos.x) + Mathf.Abs(grassPos.y - myPos.y); // Manhattan distance
-
-			// Only consider grass within detection radius
-			if (distance <= _grassDetectionRadius && distance < bestDistance)
-			{
-				bestDistance = distance;
-				nearest = grass;
-			}
-		}
-
-		return nearest != null ? nearest.GridPosition : (Vector2Int?)null;
-	}
 
 	/// <summary>
 	/// Attempts to eat grass at the current position.
@@ -429,31 +366,6 @@ public class RabbitAnimal : PreyAnimal
 		_foodDestination = null;
 	}
 
-	/// <summary>
-	/// Checks if a grass interactable matches the target food type.
-	/// </summary>
-	private bool DoesGrassMatchTargetFood(Grass grass)
-	{
-		if (grass == null || string.IsNullOrEmpty(_targetFood))
-		{
-			return false;
-		}
-
-		// Check if the grass type name matches the target food
-		string grassTypeName = grass.GetType().Name;
-		if (grassTypeName.Equals(_targetFood, System.StringComparison.OrdinalIgnoreCase))
-		{
-			return true;
-		}
-
-		// Also check if the GameObject name contains the target food name
-		if (grass.gameObject.name.Contains(_targetFood))
-		{
-			return true;
-		}
-
-		return false;
-	}
 
 	/// <summary>
 	/// Harvests the grass (changes it from Full to Growing state).

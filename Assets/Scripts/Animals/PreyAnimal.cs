@@ -12,6 +12,12 @@ public class PreyAnimal : Animal
     [SerializeField] private int _detectionRadius = 5;
     [Tooltip("Distance to flee from predators. The prey will try to move this many cells away from detected predators.")]
     [SerializeField] private int _fleeDistance = 3;
+    
+    [Header("Food Settings")]
+    [Tooltip("Detection radius for finding food. Only food within this distance will be considered.")]
+    [SerializeField] private int _grassDetectionRadius = 10;
+    [Tooltip("Target food type name. This is used for identification purposes.")]
+    [SerializeField] private string _targetFood = "Grass";
 
     protected Vector2Int? _wanderingDestination = null;
     private Vector2Int? _fleeDestination = null;
@@ -20,6 +26,23 @@ public class PreyAnimal : Animal
     protected bool HasHomeHideable => HomeHideable != null;
     protected bool IsAtHomeHideable => HasHomeHideable && GridPosition == HomeHideable.GridPosition;
     protected bool IsHidingInHome => HasHomeHideable && ReferenceEquals(CurrentHideable, HomeHideable);
+    
+    /// <summary>
+    /// Gets whether this prey animal is at critical hunger (hunger below critical threshold).
+    /// At critical hunger, the animal will seek food regardless of predators.
+    /// Override in subclasses to provide specific critical hunger logic.
+    /// </summary>
+    protected virtual bool IsCriticallyHungry
+    {
+        get
+        {
+            if (AnimalData == null)
+            {
+                return false;
+            }
+            return CurrentHunger < AnimalData.criticalHungerThreshold;
+        }
+    }
 
     public override void TakeTurn()
     {
@@ -611,6 +634,104 @@ public class PreyAnimal : Animal
         }
 
         FleeFromPredator(predator);
+    }
+    
+    /// <summary>
+    /// Finds the nearest fully grown grass within detection radius.
+    /// If critically hungry, searches with infinite range (ignores detection radius).
+    /// </summary>
+    protected virtual Vector2Int? FindNearestFullyGrownGrass()
+    {
+        if (InteractableManager.Instance == null)
+        {
+            return null;
+        }
+
+        List<Grass> allGrasses = InteractableManager.Instance.Grasses;
+        if (allGrasses == null || allGrasses.Count == 0)
+        {
+            return null;
+        }
+
+        Vector2Int myPos = GridPosition;
+        Grass nearest = null;
+        int bestDistance = int.MaxValue;
+        
+        // Check if at critical hunger - if so, ignore detection radius (infinite range)
+        bool isCriticallyHungry = IsCriticallyHungry;
+
+        for (int i = 0; i < allGrasses.Count; i++)
+        {
+            Grass grass = allGrasses[i];
+            if (grass == null)
+            {
+                continue;
+            }
+
+            // Only consider grass that matches the target food type
+            if (!DoesGrassMatchTargetFood(grass))
+            {
+                continue;
+            }
+
+            // Only consider fully grown grass
+            if (!grass.IsFullyGrown())
+            {
+                continue;
+            }
+
+            Vector2Int grassPos = grass.GridPosition;
+            int distance = Mathf.Abs(grassPos.x - myPos.x) + Mathf.Abs(grassPos.y - myPos.y); // Manhattan distance
+            
+            // If critically hungry, ignore detection radius. Otherwise, only consider grass within detection radius
+            if (isCriticallyHungry)
+            {
+                // Infinite range when critically hungry - just find the nearest
+                if (distance < bestDistance)
+                {
+                    bestDistance = distance;
+                    nearest = grass;
+                }
+            }
+            else
+            {
+                // Normal behavior - only consider grass within detection radius
+                if (distance <= _grassDetectionRadius && distance < bestDistance)
+                {
+                    bestDistance = distance;
+                    nearest = grass;
+                }
+            }
+        }
+
+        return nearest != null ? nearest.GridPosition : (Vector2Int?)null;
+    }
+    
+    /// <summary>
+    /// Checks if a grass interactable matches the target food type.
+    /// Override in subclasses to provide custom food matching logic.
+    /// </summary>
+    protected virtual bool DoesGrassMatchTargetFood(Grass grass)
+    {
+        if (grass == null || string.IsNullOrEmpty(_targetFood))
+        {
+            return false;
+        }
+
+        // Check if the grass type name matches the target food
+        string grassTypeName = grass.GetType().Name;
+        if (grassTypeName.Equals(_targetFood, System.StringComparison.OrdinalIgnoreCase))
+        {
+            return true;
+        }
+
+        // Also check if the GameObject name contains the target food name
+        if (grass.gameObject.name.Contains(_targetFood))
+        {
+            return true;
+        }
+
+        return false;
     }
 }
 
