@@ -3251,6 +3251,8 @@ MonoBehaviour:
     prefab: {fileID: 8448244147295851740, guid: e84f021d7e9761a49bce026045791447, type: 3}
   - itemName: Sticks
     prefab: {fileID: 1319182490056406658, guid: ef2e7a42ef590ba4cba0c0786a88a599, type: 3}
+  - itemName: GrassSeeds
+    prefab: {fileID: 1186610232297760084, guid: 7d98f356ed2e146488f9b8d2302a3126, type: 3}
 --- !u!1 &1144474249
 GameObject:
   m_ObjectHideFlags: 0
