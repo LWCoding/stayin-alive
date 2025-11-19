@@ -163,6 +163,7 @@ public class ControllableAnimal : Animal
             int unassignedCount = DenSystemManager.Instance.GetUnassignedWorkerCount();
             int newCount = unassignedCount + 1;
             SetAnimalCount(newCount);
+            DenSystemManager.Instance.InitializeMvpPopulationFromFollowerCount(newCount);
         }
     }
 

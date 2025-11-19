@@ -18,7 +18,7 @@ public class UIManager : Singleton<UIManager>
     [SerializeField] private float _lowHungerThreshold = 0.33f;
     
     [Header("MVP Progress")]
-    [Tooltip("TextMeshProUGUI component that displays the MVP progress (assigned workers / goal).")]
+    [Tooltip("TextMeshProUGUI component that displays the MVP progress (current MVP population / goal).")]
     [SerializeField] private TextMeshProUGUI _mvpProgressText;
     
     [Header("Points Display")]
@@ -235,8 +235,8 @@ public class UIManager : Singleton<UIManager>
     }
     
     /// <summary>
-    /// Updates the MVP progress text to show the number of assigned workers vs the goal.
-    /// Format: "MVP:\n\nY/X" where Y is current assigned workers and X is the goal.
+    /// Updates the MVP progress text to show the current MVP population vs the goal.
+    /// Format: "MVP:\n\nY/X" where Y is the current MVP population and X is the goal.
     /// </summary>
     private void UpdateMvpProgress()
     {
@@ -253,7 +253,7 @@ public class UIManager : Singleton<UIManager>
         }
         
         // Update the text with the formatted string
-        _mvpProgressText.text = $"<size=36>MVP:</size>\n{DenSystemManager.Instance.AssignedWorkerCount}/{Globals.MvpWorkerGoal}";
+        _mvpProgressText.text = $"<size=36>MVP:</size>\n{DenSystemManager.Instance.CurrentMvpPopulation}/{Globals.MvpWorkerGoal}";
     }
     
     /// <summary>

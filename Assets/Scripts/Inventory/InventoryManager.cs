@@ -221,6 +221,19 @@ public class InventoryManager : Singleton<InventoryManager>
                     if (i == _selectedSlotIndex)
                     {
                         UpdateUsageDescription();
+                        return true;
+                    }
+                    
+                    // If the player currently has this item selected elsewhere (e.g., holding sticks),
+                    // refresh the usage description so any count-dependent messaging stays accurate.
+                    if (_selectedSlotIndex >= 0 &&
+                        _selectedSlotIndex < _inventorySlots.Count)
+                    {
+                        InventorySlot selectedSlot = _inventorySlots[_selectedSlotIndex];
+                        if (!selectedSlot.IsEmpty && selectedSlot.ItemName == itemName)
+                        {
+                            UpdateUsageDescription();
+                        }
                     }
                     
                     return true;

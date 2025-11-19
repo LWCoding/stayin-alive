@@ -273,6 +273,16 @@ public class Animal : MonoBehaviour
         _animalCount--;
         UpdateCountText();
         UpdateFollowers(oldCount, _animalCount);
+        
+        if (IsControllable && DenSystemManager.Instance != null)
+        {
+            bool hadFollowersAvailable = DenSystemManager.Instance.GetUnassignedWorkerCount() > 0;
+            bool consumedWorker = DenSystemManager.Instance.TryConsumeUnassignedWorkerForPlayerDamage();
+            if (hadFollowersAvailable && !consumedWorker)
+            {
+                Debug.LogWarning("ControllableAnimal took damage but no unassigned worker could be consumed. MVP may be out of sync.");
+            }
+        }
 
         // Spawn blood particle effects when taking damage
         if (ParticleEffectManager.Instance != null)

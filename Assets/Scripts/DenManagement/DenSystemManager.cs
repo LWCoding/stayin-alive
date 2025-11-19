@@ -43,25 +43,59 @@ public class DenSystemManager : Singleton<DenSystemManager> {
   [HideInInspector]
   public int UNASSIGNED_DEN_ID = -1;
   
-  private int _assignedWorkerCount = 0;
+  private int _currentMvpPopulation = 0;
+  private bool _hasInitializedMvpPopulation = false;
   private bool _hasTriggeredWin = false;
   
   /// <summary>
-  /// Gets the current number of assigned workers. When this reaches the MVP goal, triggers the win condition.
+  /// Gets the current MVP population (controllable animal + living workers).
   /// </summary>
-  public int AssignedWorkerCount
+  public int CurrentMvpPopulation => _currentMvpPopulation;
+  
+  /// <summary>
+  /// Initializes the MVP population using the player's follower count (followers + controllable animal).
+  /// This should run once after the controllable animal has spawned.
+  /// </summary>
+  /// <param name="followerCountIncludingPlayer">Follower count including the controllable animal.</param>
+  public void InitializeMvpPopulationFromFollowerCount(int followerCountIncludingPlayer)
   {
-    get => _assignedWorkerCount;
-    private set
+    if (_hasInitializedMvpPopulation)
     {
-      _assignedWorkerCount = value;
-      
-      // Check if we've reached the MVP goal and trigger win
-      if (!_hasTriggeredWin && _assignedWorkerCount >= Globals.MvpWorkerGoal && GameManager.Instance != null)
-      {
-        _hasTriggeredWin = true;
-        GameManager.Instance.TriggerWin();
-      }
+      return;
+    }
+    
+    _hasInitializedMvpPopulation = true;
+    SetMvpPopulation(followerCountIncludingPlayer);
+  }
+  
+  private void IncrementMvpPopulation(int delta = 1)
+  {
+    if (delta <= 0)
+    {
+      return;
+    }
+    
+    SetMvpPopulation(_currentMvpPopulation + delta);
+  }
+  
+  private void DecrementMvpPopulation(int delta = 1)
+  {
+    if (delta <= 0)
+    {
+      return;
+    }
+    
+    SetMvpPopulation(Mathf.Max(0, _currentMvpPopulation - delta));
+  }
+  
+  private void SetMvpPopulation(int newValue)
+  {
+    _currentMvpPopulation = Mathf.Max(0, newValue);
+    
+    if (!_hasTriggeredWin && _currentMvpPopulation >= Globals.MvpWorkerGoal && GameManager.Instance != null)
+    {
+      _hasTriggeredWin = true;
+      GameManager.Instance.TriggerWin();
     }
   }
 
@@ -137,6 +171,7 @@ public class DenSystemManager : Singleton<DenSystemManager> {
     newWorkerAnimal.SetVisualVisibility(false);
     
     AddUnassignedWorker(newWorkerAnimal);
+    IncrementMvpPopulation();
     
     return true;
   }
@@ -181,9 +216,6 @@ public class DenSystemManager : Singleton<DenSystemManager> {
     // Update the mapping
     workersToDens[animal] = denId;
     
-    // Increment assigned worker count
-    AssignedWorkerCount++;
-    
     Debug.Log($"Worker '{animal.name}' assigned to den at ({targetDen.GridPosition.x}, {targetDen.GridPosition.y})");
 
     return true;
@@ -208,9 +240,6 @@ public class DenSystemManager : Singleton<DenSystemManager> {
     
     // Hide the worker since they're now unassigned
     animal.SetVisualVisibility(false);
-    
-    // Decrement assigned worker count
-    AssignedWorkerCount--;
     
     // Add it to the unassigned list (this will also update mapping and notify player)
     AddUnassignedWorker(animal);
@@ -237,8 +266,6 @@ public class DenSystemManager : Singleton<DenSystemManager> {
         denInformations[assignedDenId].denObject.RemoveWorker(animal);
         Debug.Log($"Worker '{animal.name}' died and was removed from den at ID {assignedDenId}.");
       }
-      // Decrement assigned worker count since an assigned worker died
-      AssignedWorkerCount--;
     } else {
       // Worker was unassigned, remove from unassigned list
       RemoveUnassignedWorker(animal);
@@ -247,6 +274,7 @@ public class DenSystemManager : Singleton<DenSystemManager> {
     
     // Remove from the worker tracking dictionary
     workersToDens.Remove(animal);
+    DecrementMvpPopulation();
   }
   
   /// <summary>
@@ -272,6 +300,41 @@ public class DenSystemManager : Singleton<DenSystemManager> {
       return 0;
     }
     return unassignedWorkers.Count;
+  }
+  
+  /// <summary>
+  /// Consumes one unassigned worker to represent the controllable animal taking damage.
+  /// This removes the worker from tracking, destroys the worker GameObject, and decreases MVP.
+  /// </summary>
+  /// <returns>True if a worker was consumed, false if no unassigned workers were available.</returns>
+  public bool TryConsumeUnassignedWorkerForPlayerDamage()
+  {
+    if (unassignedWorkers == null || unassignedWorkers.Count == 0)
+    {
+      return false;
+    }
+    
+    Animal workerToRemove = null;
+    for (int i = unassignedWorkers.Count - 1; i >= 0; i--)
+    {
+      Animal candidate = unassignedWorkers[i];
+      if (candidate == null)
+      {
+        unassignedWorkers.RemoveAt(i);
+        continue;
+      }
+      
+      workerToRemove = candidate;
+      break;
+    }
+    
+    if (workerToRemove == null)
+    {
+      return false;
+    }
+    
+    workerToRemove.Die();
+    return true;
   }
   
   /// <summary>
@@ -343,6 +406,9 @@ public class DenSystemManager : Singleton<DenSystemManager> {
     denInformations ??= new Dictionary<int, DenInformation>();
     workersToDens ??= new Dictionary<Animal, int>();
     unassignedWorkers ??= new List<Animal>();
+    _currentMvpPopulation = 0;
+    _hasInitializedMvpPopulation = false;
+    _hasTriggeredWin = false;
     ResetDenFood();
   }
   
