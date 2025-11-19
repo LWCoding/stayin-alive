@@ -2526,6 +2526,8 @@ MonoBehaviour:
   - type: 6
     clip: {fileID: 8300000, guid: a7892fa6af848994698fde11d3653fff, type: 3}
     volume: 0.289
+  autoplayMusicOnStart: 1
+  startupMusicType: 2
 --- !u!1 &880794004
 GameObject:
   m_ObjectHideFlags: 0
