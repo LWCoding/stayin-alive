@@ -7,7 +7,7 @@ using UnityEngine;
 /// Below the standard hunger threshold, rabbits will only seek food if no predators are nearby.
 /// Below the critical hunger threshold, rabbits will seek food regardless of predators to avoid starvation.
 /// </summary>
-public class RabbitAnimal : PreyAnimal
+public class RabbitPrey : PreyAnimal
 {
 	[Header("Rabbit Settings")]
 
@@ -107,7 +107,7 @@ public class RabbitAnimal : PreyAnimal
 		if (nearest != null)
 		{
 			SetRabbitSpawner(nearest);
-			Debug.Log($"RabbitAnimal '{name}' associated with rabbit spawner at ({nearest.GridPosition.x}, {nearest.GridPosition.y})");
+			Debug.Log($"RabbitPrey '{name}' associated with rabbit spawner at ({nearest.GridPosition.x}, {nearest.GridPosition.y})");
 		}
 	}
 
@@ -465,3 +465,4 @@ public class RabbitAnimal : PreyAnimal
 		}
 	}
 }
+

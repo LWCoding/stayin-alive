@@ -75,7 +75,7 @@ SpriteRenderer:
   m_SortingLayerID: 0
   m_SortingLayer: 0
   m_SortingOrder: 0
-  m_Sprite: {fileID: 21300000, guid: ab5dfb7be7b722147baa3d1b9aa09e8f, type: 3}
+  m_Sprite: {fileID: 21300000, guid: e4b09442ef04a1e42ac8eb71b9c149da, type: 3}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_FlipX: 0
   m_FlipY: 0
@@ -99,7 +99,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _itemName: GrassSeeds
-  _inventorySprite: {fileID: 21300000, guid: ab5dfb7be7b722147baa3d1b9aa09e8f, type: 3}
+  _inventorySprite: {fileID: 21300000, guid: e4b09442ef04a1e42ac8eb71b9c149da, type: 3}
   _usageDescription: Use to plant grass on your tile
   _interactionIndicator: {fileID: 6682148183303101780}
 --- !u!1001 &500646548194671527

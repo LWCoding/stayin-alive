@@ -82,14 +82,14 @@ PrefabInstance:
     m_AddedComponents:
     - targetCorrespondingSourceObject: {fileID: 2195891697856963084, guid: 373ac555e5fbaf34c84fc9ea003210dd, type: 3}
       insertIndex: 1
-      addedObject: {fileID: 3233285308533383207}
+      addedObject: {fileID: 396187051812524201}
   m_SourcePrefab: {fileID: 100100000, guid: 373ac555e5fbaf34c84fc9ea003210dd, type: 3}
 --- !u!1 &3642965620983378769 stripped
 GameObject:
   m_CorrespondingSourceObject: {fileID: 2195891697856963084, guid: 373ac555e5fbaf34c84fc9ea003210dd, type: 3}
   m_PrefabInstance: {fileID: 3240118050398327133}
   m_PrefabAsset: {fileID: 0}
---- !u!114 &3233285308533383207
+--- !u!114 &396187051812524201
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -98,7 +98,7 @@ MonoBehaviour:
   m_GameObject: {fileID: 3642965620983378769}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: f60fbbdaa97bece4ba24dee67a4aa555, type: 3}
+  m_Script: {fileID: 11500000, guid: bb914654eea0550418f353edc77036eb, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
   _animalData: {fileID: 0}
@@ -109,9 +109,9 @@ MonoBehaviour:
   _spriteRenderer: {fileID: 0}
   _animalCount: 1
   _countText: {fileID: 3935340389763193239}
-  _detectionRadius: 5
+  _detectionRadius: 7
   _fleeDistance: 3
-  _grassDetectionRadius: 12
+  _grassDetectionRadius: 15
   _targetFood: Grass
 --- !u!114 &3935340389763193239 stripped
 MonoBehaviour:

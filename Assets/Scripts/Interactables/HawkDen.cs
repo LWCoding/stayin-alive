@@ -117,11 +117,12 @@ public class HawkDen : PredatorDen
 		}
 
 		// Reset on fresh level start
-		if (currentTurn == 0)
-		{
-			_turnsSinceLastSpawn = 0;
-			return;
-		}
+        if (currentTurn == 0)
+        {
+            _turnsSinceLastSpawn = 0;
+            EnsurePredatorPopulation();
+            return;
+        }
 
 		_turnsSinceLastSpawn++;
 
@@ -138,6 +139,8 @@ public class HawkDen : PredatorDen
 		{
 			_turnsSinceLastSpawn = 0;
 		}
+
+        EnsurePredatorPopulation();
 	}
 
 	/// <summary>

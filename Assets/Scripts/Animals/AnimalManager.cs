@@ -238,6 +238,11 @@ public class AnimalManager : Singleton<AnimalManager>
 
             if (other.GridPosition == movedPosition)
             {
+                if (movedAnimal != null && movedAnimal.CanShareTileWithOtherAnimal(other, movedPosition))
+                {
+                    continue;
+                }
+
                 shouldRevert = true;
                 break;
             }
@@ -280,11 +285,65 @@ public class AnimalManager : Singleton<AnimalManager>
 
             if (other.GridPosition == position)
             {
+                if (origin != null && origin.CanShareTileWithOtherAnimal(other, position))
+                {
+                    continue;
+                }
+
                 return true;
             }
         }
 
         return false;
+    }
+
+    /// <summary>
+    /// Builds a snapshot of grid positions currently occupied by animals that should block movement/pathfinding.
+    /// Optionally ignores a specific grid position (e.g., the final destination for valid interactions).
+    /// </summary>
+    /// <param name="requestingAnimal">The animal that will use this snapshot for movement.</param>
+    /// <param name="ignoredGridPosition">Optional grid position to treat as unoccupied.</param>
+    public HashSet<Vector2Int> GetBlockedGridPositionsForAnimal(Animal requestingAnimal, Vector2Int? ignoredGridPosition = null)
+    {
+        HashSet<Vector2Int> blockedPositions = new HashSet<Vector2Int>();
+
+        for (int i = _animals.Count - 1; i >= 0; i--)
+        {
+            Animal other = _animals[i];
+
+            if (other == null)
+            {
+                _animals.RemoveAt(i);
+                continue;
+            }
+
+            if (other == requestingAnimal)
+            {
+                continue;
+            }
+
+            // Skip unassigned workers - they should not block movement
+            if (DenSystemManager.Instance != null && DenSystemManager.Instance.IsUnassignedWorker(other))
+            {
+                continue;
+            }
+
+            Vector2Int otherPos = other.GridPosition;
+
+            if (ignoredGridPosition.HasValue && otherPos == ignoredGridPosition.Value)
+            {
+                continue;
+            }
+
+            if (requestingAnimal != null && requestingAnimal.CanShareTileWithOtherAnimal(other, otherPos))
+            {
+                continue;
+            }
+
+            blockedPositions.Add(otherPos);
+        }
+
+        return blockedPositions;
     }
 
     /// <summary>

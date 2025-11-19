@@ -81,6 +81,13 @@ public class ProceduralLevelLoader : MonoBehaviour
 	[Tooltip("Number of grass interactables to spawn on grass tiles")]
 	[SerializeField] private int _grassCount = 10;
 
+	[Header("Stick Spawn Settings")]
+	[Tooltip("Name of the sticks item to spawn on the map")]
+	[SerializeField] private string _stickItemName = "Sticks";
+
+	[Tooltip("Number of sticks to spawn on grass tiles")]
+	[SerializeField] private int _stickCount = 6;
+
     /// <summary>
     /// Generates and applies a procedurally generated level.
     /// </summary>
@@ -171,10 +178,10 @@ public class ProceduralLevelLoader : MonoBehaviour
             Debug.LogWarning("ProceduralLevelLoader: ItemManager instance not found! Items will not be spawned.");
         }
 
-        // Reset points in PointsManager
-        if (PointsManager.Instance != null)
+        // Reset stored den food
+        if (DenSystemManager.Instance != null)
         {
-            PointsManager.Instance.ResetPoints();
+            DenSystemManager.Instance.ResetDenFood();
         }
 
         // Register any animals that are already on dens (safety check)
@@ -531,6 +538,57 @@ public class ProceduralLevelLoader : MonoBehaviour
 			else
 			{
 				Debug.LogWarning("ProceduralLevelLoader: No grass tiles available for spawning grass interactables!");
+			}
+		}
+
+		// Spawn sticks items on valid grass tiles (similar rules to bushes)
+		if (_stickCount > 0 && spawnPositions.Count > 0 && !string.IsNullOrEmpty(_stickItemName))
+		{
+			List<Vector2Int> grassPositionsForSticks = new List<Vector2Int>();
+			foreach (Vector2Int pos in spawnPositions)
+			{
+				if (IsPositionOccupiedByInteractable(pos, levelData))
+					continue;
+
+				TileType tileType = TileType.Empty;
+				foreach (var (tx, ty, tt) in levelData.Tiles)
+				{
+					if (tx == pos.x && ty == pos.y)
+					{
+						tileType = tt;
+						break;
+					}
+				}
+
+				if (tileType == TileType.Grass)
+				{
+					grassPositionsForSticks.Add(pos);
+				}
+			}
+
+			if (grassPositionsForSticks.Count > 0)
+			{
+				int sticksSpawned = 0;
+				int attempts = 0;
+				int maxAttempts = grassPositionsForSticks.Count * 2;
+
+				while (sticksSpawned < _stickCount && grassPositionsForSticks.Count > 0 && attempts < maxAttempts)
+				{
+					attempts++;
+					int index = Random.Range(0, grassPositionsForSticks.Count);
+					Vector2Int stickPos = grassPositionsForSticks[index];
+
+					levelData.Items.Add((_stickItemName, stickPos.x, stickPos.y));
+					sticksSpawned++;
+
+					// Remove so other spawns don't overlap
+					grassPositionsForSticks.RemoveAt(index);
+					spawnPositions.Remove(stickPos);
+				}
+			}
+			else
+			{
+				Debug.LogWarning("ProceduralLevelLoader: No grass tiles available for spawning sticks!");
 			}
 		}
 

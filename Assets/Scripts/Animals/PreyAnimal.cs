@@ -326,12 +326,18 @@ public class PreyAnimal : Animal
         Vector2Int startGrid = GridPosition;
         Vector2Int destGrid = destinationGrid;
 
+        HashSet<Vector2Int> blockedPositions = null;
+        if (AnimalManager.Instance != null)
+        {
+            blockedPositions = AnimalManager.Instance.GetBlockedGridPositionsForAnimal(this);
+        }
+
         Vector3 startWorld = EnvironmentManager.Instance.GridToWorldPosition(startGrid);
         Vector3 destWorld = EnvironmentManager.Instance.GridToWorldPosition(destGrid);
 
         var path = ABPath.Construct(startWorld, destWorld, null);
         // Set custom traversal provider to filter water tiles based on animal's water walkability
-        path.traversalProvider = new WaterTraversalProvider(CanGoOnWater);
+        path.traversalProvider = new WaterTraversalProvider(CanGoOnWater, blockedPositions);
         AstarPath.StartPath(path, true);
         path.BlockUntilCalculated();
 

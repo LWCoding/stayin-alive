@@ -2,12 +2,13 @@ using System.Collections.Generic;
 using UnityEngine;
 
 /// <summary>
-/// Specialized prey animal (Kangaroo Rat) that seeks out and eats grass when hungry.
+/// Specialized worker animal (Kangaroo Rat) that seeks out and eats grass when hungry.
 /// Wanders randomly when not hungry, but will prioritize finding fully grown grass when hunger is below threshold.
 /// Below the standard hunger threshold, will only seek food if no predators are nearby.
 /// Below the critical hunger threshold, will seek food regardless of predators to avoid starvation.
+/// Workers can carry food and deposit it at their home den to increase the player's food-in-den amount.
 /// </summary>
-public class KangRatPrey : PreyAnimal
+public class KangRatWorker : WorkerAnimal
 {
 	[Header("Kangaroo Rat Settings")]
 
@@ -48,15 +49,23 @@ public class KangRatPrey : PreyAnimal
 		int criticalHungerThreshold = AnimalData != null ? AnimalData.criticalHungerThreshold : 20;
 		bool isCriticallyHungry = CurrentHunger < criticalHungerThreshold;
 		bool isHungry = CurrentHunger < hungerThreshold;
+		bool hasStoredDenFood = HasHomeHideable && HasStoredDenFoodAvailable();
+		bool shouldUseDenStoredFood = isCriticallyHungry && hasStoredDenFood;
 		
-		// If we're hiding in our den and critically hungry, force exit immediately
+		// If we're hiding in our den and critically hungry, consume stored food if available.
+        // Otherwise, force exit from den.
 		if (IsHidingInHome)
 		{
+			if (shouldUseDenStoredFood && TryConsumeStoredDenFood())
+			{
+				return;
+			}
+
 			if (isCriticallyHungry)
 			{
 				// Force exit from den - critical hunger takes priority over safety
 				ForceExitFromHome();
-				Debug.Log($"KangRatPrey '{name}' forced to exit den due to critical hunger (hunger: {CurrentHunger} < threshold: {criticalHungerThreshold})");
+				Debug.Log($"KangRatWorker '{name}' forced to exit den due to critical hunger (hunger: {CurrentHunger} < threshold: {criticalHungerThreshold})");
 			}
 			else if (!isHungry)
 			{
@@ -71,7 +80,7 @@ public class KangRatPrey : PreyAnimal
 				{
 					// No predators nearby, safe to exit and look for food
 					ForceExitFromHome();
-					Debug.Log($"KangRatPrey '{name}' exiting den to seek food (hunger: {CurrentHunger} < threshold: {hungerThreshold})");
+					Debug.Log($"KangRatWorker '{name}' exiting den to seek food (hunger: {CurrentHunger} < threshold: {hungerThreshold})");
 				}
 				else
 				{
@@ -117,6 +126,12 @@ public class KangRatPrey : PreyAnimal
 		// If hungry, check if we should seek food
 		if (isHungry)
 		{
+			if (shouldUseDenStoredFood)
+			{
+				ReturnToDenForStoredFood();
+				return;
+			}
+
 			// Check for nearby predators
 			PredatorAnimal nearbyPredator = FindNearestPredator();
 			
@@ -155,19 +170,19 @@ public class KangRatPrey : PreyAnimal
 						}
 					}
 				}
+				else
+				{
+					// No grass found, fall back to wandering (still prioritize food search)
+					_foodDestination = null;
+					Wander();
+				}
+			}
 			else
 			{
-				// No grass found, fall back to wandering (still prioritize food search)
+				// Standard hungry but predators nearby - prioritize fleeing to den over food
 				_foodDestination = null;
-				Wander();
+				TryFleeToHome(nearbyPredator);
 			}
-		}
-		else
-		{
-			// Standard hungry but predators nearby - prioritize fleeing to den over food
-			_foodDestination = null;
-			TryFleeToHome(nearbyPredator);
-		}
 		}
 	}
 	
@@ -303,11 +318,11 @@ public class KangRatPrey : PreyAnimal
 		if (hungerRestored > 0)
 		{
 			IncreaseHunger(hungerRestored);
-			Debug.Log($"KangRatPrey '{name}' ate grass at ({GridPosition.x}, {GridPosition.y}). Hunger restored by {hungerRestored} to {CurrentHunger}.");
+			Debug.Log($"KangRatWorker '{name}' ate grass at ({GridPosition.x}, {GridPosition.y}). Hunger restored by {hungerRestored} to {CurrentHunger}.");
 		}
 		else
 		{
-			Debug.LogWarning($"KangRatPrey '{name}' ate grass at ({GridPosition.x}, {GridPosition.y}), but no hunger was restored (food item prefab not set or invalid).");
+			Debug.LogWarning($"KangRatWorker '{name}' ate grass at ({GridPosition.x}, {GridPosition.y}), but no hunger was restored (food item prefab not set or invalid).");
 		}
 
 		// Clear food destination since we've eaten
@@ -348,6 +363,90 @@ public class KangRatPrey : PreyAnimal
 		}
 		
 		return null;
+	}
+
+	/// <summary>
+	/// Allow stacking with other animals when moving onto the home den tile
+	/// so this worker can enter or exit even if another animal occupies it.
+	/// </summary>
+	public override bool CanShareTileWithOtherAnimal(Animal other, Vector2Int position)
+	{
+		if (HasHomeHideable && HomeHideable != null && HomeHideable.GridPosition == position)
+		{
+			return true;
+		}
+
+		return base.CanShareTileWithOtherAnimal(other, position);
+	}
+
+	/// <summary>
+	/// Returns true if there is stored food available in the den system.
+	/// </summary>
+	private bool HasStoredDenFoodAvailable()
+	{
+		return DenSystemManager.Instance != null && DenSystemManager.Instance.FoodInDen > 0;
+	}
+
+	/// <summary>
+	/// Moves the worker back to its home den to consume stored food.
+	/// </summary>
+	private void ReturnToDenForStoredFood()
+	{
+		if (!HasHomeHideable)
+		{
+			return;
+		}
+
+		_foodDestination = null;
+		_wanderingDestination = null;
+
+		Vector2Int homePos = HomeHideable.GridPosition;
+
+		if (IsAtHomeHideable)
+		{
+			if (!IsHidingInHome)
+			{
+				TryHideInHome();
+			}
+
+			TryConsumeStoredDenFood();
+			return;
+		}
+
+		if (MoveOneStepTowards(homePos) && IsAtHomeHideable)
+		{
+			if (!IsHidingInHome)
+			{
+				TryHideInHome();
+			}
+
+			TryConsumeStoredDenFood();
+		}
+	}
+
+	/// <summary>
+	/// Attempts to consume stored den food, restoring hunger by the configured amount.
+	/// </summary>
+	private bool TryConsumeStoredDenFood()
+	{
+		if (DenSystemManager.Instance == null)
+		{
+			return false;
+		}
+
+		if (!DenSystemManager.Instance.SpendFoodFromDen(1))
+		{
+			return false;
+		}
+
+		int hungerRestored = Mathf.Max(0, Globals.DenFoodHungerRestoration);
+		if (hungerRestored > 0)
+		{
+			IncreaseHunger(hungerRestored);
+		}
+
+		Debug.Log($"KangRatWorker '{name}' consumed stored den food. Hunger restored by {hungerRestored}. Current hunger: {CurrentHunger}. Remaining den food: {DenSystemManager.Instance.FoodInDen}");
+		return true;
 	}
 
 	/// <summary>
@@ -396,4 +495,5 @@ public class KangRatPrey : PreyAnimal
 		}
 	}
 }
+
 

@@ -258,8 +258,8 @@ public class RabbitSpawner : Interactable, IHideable
 			}
 
 			// Only let hungry rabbits leave - fed rabbits stay in the den
-			RabbitAnimal rabbitAnimal = rabbit as RabbitAnimal;
-			if (rabbitAnimal != null && !rabbitAnimal.IsHungry)
+			RabbitPrey rabbitPrey = rabbit as RabbitPrey;
+			if (rabbitPrey != null && !rabbitPrey.IsHungry)
 			{
 				// Fed rabbit - keep it in the den
 				continue;
@@ -352,13 +352,13 @@ public class RabbitSpawner : Interactable, IHideable
 		{
 			// Assign this spawner to the rabbit
 			// SetRabbitSpawner will automatically call OnRabbitAttached to track the rabbit
-			RabbitAnimal rabbitAnimal = spawned as RabbitAnimal;
-			if (rabbitAnimal != null)
+			RabbitPrey rabbitPrey = spawned as RabbitPrey;
+			if (rabbitPrey != null)
 			{
-				rabbitAnimal.SetRabbitSpawner(this);
+				rabbitPrey.SetRabbitSpawner(this);
 				
 				// Set hunger to just below threshold so rabbit will want to hunt for food
-				spawned.SetHunger(rabbitAnimal.HungerThreshold + Random.Range(HUNGER_RANDOM_MIN, HUNGER_RANDOM_MAX + 1));
+				spawned.SetHunger(rabbitPrey.HungerThreshold + Random.Range(HUNGER_RANDOM_MIN, HUNGER_RANDOM_MAX + 1));
 			}
 
 			return spawned;
@@ -407,10 +407,10 @@ public class RabbitSpawner : Interactable, IHideable
 		{
 			// Assign this spawner to the rabbit
 			// SetRabbitSpawner will automatically call OnRabbitAttached to track the rabbit
-			RabbitAnimal rabbitAnimal = spawned as RabbitAnimal;
-			if (rabbitAnimal != null)
+			RabbitPrey rabbitPrey = spawned as RabbitPrey;
+			if (rabbitPrey != null)
 			{
-				rabbitAnimal.SetRabbitSpawner(this);
+				rabbitPrey.SetRabbitSpawner(this);
 			}
 
 			Debug.Log($"RabbitSpawner: Spawned {amount} rabbits at ({_gridPosition.x}, {_gridPosition.y}).");
@@ -448,13 +448,13 @@ public class RabbitSpawner : Interactable, IHideable
 		}
 
 		// Only allow rabbits to hide here
-		if (!(animal is RabbitAnimal))
+		if (!(animal is RabbitPrey))
 		{
 			return;
 		}
 
 		// Check if this rabbit belongs to this spawner
-		RabbitAnimal rabbit = animal as RabbitAnimal;
+		RabbitPrey rabbit = animal as RabbitPrey;
 		if (rabbit != null && rabbit.RabbitSpawner != this)
 		{
 			return;
@@ -517,13 +517,13 @@ public class RabbitSpawner : Interactable, IHideable
 		}
 
 		// Get the rabbit's intended destination
-		RabbitAnimal rabbitAnimal = rabbit as RabbitAnimal;
-		if (rabbitAnimal == null)
+		RabbitPrey rabbitPrey = rabbit as RabbitPrey;
+		if (rabbitPrey == null)
 		{
 			return false;
 		}
 
-		Vector2Int? destination = rabbitAnimal.GetIntendedDestination();
+		Vector2Int? destination = rabbitPrey.GetIntendedDestination();
 		if (!destination.HasValue)
 		{
 			// No destination set, can't move
