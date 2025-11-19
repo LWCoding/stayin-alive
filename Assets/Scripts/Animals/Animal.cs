@@ -64,6 +64,18 @@ public class Animal : MonoBehaviour
         _encounteredAnimalDuringMove = false;
     }
 
+	/// <summary>
+	/// Determines whether this animal is allowed to share a tile with another animal.
+	/// Override in subclasses to permit exceptions (e.g., stacking on a den entrance).
+	/// </summary>
+	/// <param name="other">The other animal currently occupying the tile.</param>
+	/// <param name="position">The grid position being evaluated.</param>
+	/// <returns>True if this animal can share the tile; otherwise false.</returns>
+	public virtual bool CanShareTileWithOtherAnimal(Animal other, Vector2Int position)
+	{
+		return false;
+	}
+
     /// <summary>
     /// Whether this animal can be controlled by the player. Override in subclasses to specify controllability.
     /// </summary>

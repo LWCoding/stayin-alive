@@ -238,6 +238,11 @@ public class AnimalManager : Singleton<AnimalManager>
 
             if (other.GridPosition == movedPosition)
             {
+                if (movedAnimal != null && movedAnimal.CanShareTileWithOtherAnimal(other, movedPosition))
+                {
+                    continue;
+                }
+
                 shouldRevert = true;
                 break;
             }
@@ -280,6 +285,11 @@ public class AnimalManager : Singleton<AnimalManager>
 
             if (other.GridPosition == position)
             {
+                if (origin != null && origin.CanShareTileWithOtherAnimal(other, position))
+                {
+                    continue;
+                }
+
                 return true;
             }
         }

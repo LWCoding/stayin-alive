@@ -352,6 +352,20 @@ public class KangRatWorker : WorkerAnimal
 	}
 
 	/// <summary>
+	/// Allow stacking with other animals when moving onto the home den tile
+	/// so this worker can enter or exit even if another animal occupies it.
+	/// </summary>
+	public override bool CanShareTileWithOtherAnimal(Animal other, Vector2Int position)
+	{
+		if (HasHomeHideable && HomeHideable != null && HomeHideable.GridPosition == position)
+		{
+			return true;
+		}
+
+		return base.CanShareTileWithOtherAnimal(other, position);
+	}
+
+	/// <summary>
 	/// Draws gizmos when the object is selected in the editor.
 	/// Shows food destination and wandering destination.
 	/// </summary>
