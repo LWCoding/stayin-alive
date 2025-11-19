@@ -1685,6 +1685,14 @@ PrefabInstance:
       propertyPath: m_Name
       value: DenAdministratorMenu
       objectReference: {fileID: 0}
+    - target: {fileID: 7270563615182057910, guid: 41066fd52d5460c409bed4831559a961, type: 3}
+      propertyPath: m_Size
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 7270563615182057910, guid: 41066fd52d5460c409bed4831559a961, type: 3}
+      propertyPath: m_Value
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 9215548659676569466, guid: 41066fd52d5460c409bed4831559a961, type: 3}
       propertyPath: m_AnchorMax.x
       value: 0
@@ -4052,8 +4060,8 @@ RectTransform:
   - {fileID: 66686257}
   - {fileID: 55037757}
   - {fileID: 1115185571}
-  - {fileID: 2097759965}
   - {fileID: 707741003}
+  - {fileID: 2097759965}
   m_Father: {fileID: 715102101}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}

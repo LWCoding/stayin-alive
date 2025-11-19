@@ -11,7 +11,15 @@ public class SwitchSceneTo : MonoBehaviour
     /// Meant to be used for button clicks.
     /// </summary>
     public void GoToScene(string sceneName) {
-        SceneManager.LoadScene(sceneName);
+        if (ScreenWipe.Instance != null) 
+        {
+            ScreenWipe.Instance.WipeToScene(sceneName);
+        } 
+        else 
+        {
+            Debug.LogError("ScreenWipe instance not found!");
+            SceneManager.LoadScene(sceneName);
+        }
     }
 
 }

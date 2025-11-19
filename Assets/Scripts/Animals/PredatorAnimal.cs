@@ -79,6 +79,8 @@ public class PredatorAnimal : Animal
     
     private void OnDestroy()
     {
+        UpdateDenAssociation(null);
+        
         // Remove from targeting list if we were targeting the player
         if (_isTargetingControllable && AnimalManager.Instance != null)
         {
@@ -144,12 +146,13 @@ public class PredatorAnimal : Animal
         
         if (nearest != null)
         {
-            _predatorDen = nearest;
+            UpdateDenAssociation(nearest);
             
             Debug.Log($"PredatorAnimal '{name}' (type: {myPredatorType}) associated with predator den at ({nearest.GridPosition.x}, {nearest.GridPosition.y})");
         }
         else
         {
+            UpdateDenAssociation(null);
             Debug.LogWarning($"PredatorAnimal '{name}' (type: {myPredatorType}): No matching predator den found!");
         }
     }
@@ -162,7 +165,7 @@ public class PredatorAnimal : Animal
     {
         if (predatorDen == null)
         {
-            _predatorDen = null;
+            UpdateDenAssociation(null);
             return;
         }
         
@@ -185,7 +188,30 @@ public class PredatorAnimal : Animal
             return;
         }
         
-        _predatorDen = predatorDen;
+        UpdateDenAssociation(predatorDen);
+    }
+
+    /// <summary>
+    /// Handles bookkeeping for associating this predator with a predator den.
+    /// </summary>
+    private void UpdateDenAssociation(PredatorDen newDen)
+    {
+        if (_predatorDen == newDen)
+        {
+            return;
+        }
+
+        if (_predatorDen != null)
+        {
+            _predatorDen.OnPredatorDetached(this);
+        }
+
+        _predatorDen = newDen;
+
+        if (_predatorDen != null)
+        {
+            _predatorDen.OnPredatorAttached(this);
+        }
     }
 
     public override void TakeTurn()

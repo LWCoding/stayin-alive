@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using UnityEngine;
 
 /// <summary>
@@ -14,9 +15,12 @@ public class PredatorDen : Interactable
     [SerializeField] private SpriteRenderer _spriteRenderer;
     
     private string _predatorType = null;
+    private readonly List<PredatorAnimal> _attachedPredators = new List<PredatorAnimal>();
+    private int _attachedPredatorCount = 0;
     
     public int TerritoryRadius => _territoryRadius;
     public string PredatorType => _predatorType;
+    public int AttachedPredatorCount => _attachedPredatorCount;
     
     private void Awake()
     {
@@ -146,6 +150,114 @@ public class PredatorDen : Interactable
     {
         int manhattanDistance = Mathf.Abs(position.x - _gridPosition.x) + Mathf.Abs(position.y - _gridPosition.y);
         return manhattanDistance <= _territoryRadius;
+    }
+
+    /// <summary>
+    /// Tracks a predator attaching to this den so we can cache how many remain alive.
+    /// </summary>
+    public void OnPredatorAttached(PredatorAnimal predator)
+    {
+        if (predator == null)
+        {
+            return;
+        }
+
+        if (_attachedPredators.Contains(predator))
+        {
+            return;
+        }
+
+        _attachedPredators.Add(predator);
+        _attachedPredatorCount++;
+    }
+
+    /// <summary>
+    /// Tracks a predator detaching from this den.
+    /// </summary>
+    public void OnPredatorDetached(PredatorAnimal predator)
+    {
+        if (predator == null)
+        {
+            return;
+        }
+
+        if (_attachedPredators.Remove(predator))
+        {
+            _attachedPredatorCount = Mathf.Max(0, _attachedPredatorCount - 1);
+        }
+    }
+
+    /// <summary>
+    /// Removes destroyed predators from the cached list and updates the count.
+    /// </summary>
+    protected void CleanupAttachedPredators()
+    {
+        int removedCount = _attachedPredators.RemoveAll(predator => predator == null);
+        if (removedCount > 0)
+        {
+            _attachedPredatorCount = Mathf.Max(0, _attachedPredatorCount - removedCount);
+        }
+    }
+
+    /// <summary>
+    /// Attempts to spawn a new predator for this den.
+    /// </summary>
+    protected PredatorAnimal TrySpawnPredator(int count = 1)
+    {
+        if (string.IsNullOrEmpty(_predatorType))
+        {
+            Debug.LogWarning("PredatorDen: Cannot spawn predator - predator type is not set.");
+            return null;
+        }
+
+        if (AnimalManager.Instance == null)
+        {
+            Debug.LogWarning("PredatorDen: AnimalManager instance not found. Cannot spawn predator.");
+            return null;
+        }
+
+        if (EnvironmentManager.Instance == null)
+        {
+            Debug.LogWarning("PredatorDen: EnvironmentManager instance not found. Cannot spawn predator.");
+            return null;
+        }
+
+        if (!EnvironmentManager.Instance.IsValidPosition(_gridPosition))
+        {
+            Debug.LogWarning($"PredatorDen: Grid position {_gridPosition} is not valid for spawning predators.");
+            return null;
+        }
+
+        Animal spawned = AnimalManager.Instance.SpawnAnimal(_predatorType, _gridPosition, count);
+        if (spawned is PredatorAnimal predator)
+        {
+            predator.SetPredatorDen(this);
+            Debug.Log($"PredatorDen: Spawned '{_predatorType}' at ({_gridPosition.x}, {_gridPosition.y}) to maintain population.");
+            return predator;
+        }
+
+        Debug.LogWarning($"PredatorDen: Spawned animal for '{_predatorType}' is not a PredatorAnimal.");
+        return null;
+    }
+
+    /// <summary>
+    /// Ensures that at least one predator is attached to this den.
+    /// </summary>
+    protected void EnsurePredatorPopulation()
+    {
+        if (string.IsNullOrEmpty(_predatorType))
+        {
+            return;
+        }
+
+        CleanupAttachedPredators();
+
+        if (_attachedPredatorCount > 0)
+        {
+            return;
+        }
+
+        TrySpawnPredator();
     }
 }
 
