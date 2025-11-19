@@ -1676,6 +1676,60 @@ Canvas:
   m_SortingLayerID: 0
   m_SortingOrder: 1
   m_TargetDisplay: 0
+--- !u!1 &665088410
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 665088411}
+  - component: {fileID: 665088412}
+  m_Layer: 0
+  m_Name: ItemManager
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &665088411
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 665088410}
+  serializedVersion: 2
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 1312731903}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &665088412
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 665088410}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 635625a337ec1e34d8cc3d408c87bf5b, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  _itemParent: {fileID: 1297739609}
+  _itemPrefabs:
+  - itemName: Worm
+    prefab: {fileID: 4416297872513154777, guid: 7a38d1a2aea0ecd4583043449d91dc02, type: 3}
+  - itemName: Grass
+    prefab: {fileID: 8448244147295851740, guid: e84f021d7e9761a49bce026045791447, type: 3}
+  - itemName: Sticks
+    prefab: {fileID: 1319182490056406658, guid: ef2e7a42ef590ba4cba0c0786a88a599, type: 3}
+  - itemName: GrassSeeds
+    prefab: {fileID: 1186610232297760084, guid: 7d98f356ed2e146488f9b8d2302a3126, type: 3}
 --- !u!1 &685993362
 GameObject:
   m_ObjectHideFlags: 0
@@ -3373,56 +3427,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   pauseScreen: {fileID: 929056755}
   titleSceneName: 01_Title
---- !u!1 &1277592619
-GameObject:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
-  m_Component:
-  - component: {fileID: 1277592620}
-  - component: {fileID: 1277592621}
-  m_Layer: 0
-  m_Name: ItemManager
-  m_TagString: Untagged
-  m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
-  m_IsActive: 1
---- !u!4 &1277592620
-Transform:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1277592619}
-  serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
-  m_Children: []
-  m_Father: {fileID: 1312731903}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &1277592621
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1277592619}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 635625a337ec1e34d8cc3d408c87bf5b, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  _itemParent: {fileID: 1297739609}
-  _itemPrefabs:
-  - itemName: Worm
-    prefab: {fileID: 4416297872513154777, guid: 7a38d1a2aea0ecd4583043449d91dc02, type: 3}
-  - itemName: Grass
-    prefab: {fileID: 8448244147295851740, guid: e84f021d7e9761a49bce026045791447, type: 3}
 --- !u!1 &1297739608
 GameObject:
   m_ObjectHideFlags: 0
@@ -3536,7 +3540,7 @@ Transform:
   - {fileID: 1764885300}
   - {fileID: 1677903499}
   - {fileID: 209219026}
-  - {fileID: 1277592620}
+  - {fileID: 665088411}
   - {fileID: 1969167438}
   - {fileID: 1188415741}
   - {fileID: 862879233}
@@ -4870,6 +4874,8 @@ MonoBehaviour:
   - type: 6
     clip: {fileID: 8300000, guid: a7892fa6af848994698fde11d3653fff, type: 3}
     volume: 0.289
+  autoplayMusicOnStart: 0
+  startupMusicType: 1
 --- !u!1 &1677903498
 GameObject:
   m_ObjectHideFlags: 0
