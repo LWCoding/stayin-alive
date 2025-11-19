@@ -7,9 +7,9 @@ public class CoyotePredator : PredatorAnimal
 {
     [Header("Coyote Settings")]
     [Tooltip("Number of turns the coyote will chase before taking a break if it hasn't eaten.")]
-    [SerializeField] private int _chaseTurnsBeforeBreak = 8;
+    [SerializeField] private int _chaseTurnsBeforeBreak;
     [Tooltip("Number of turns the coyote will rest when taking a break.")]
-    [SerializeField] private int _breakDuration = 2;
+    [SerializeField] private int _breakDuration;
 
     private int _chaseTurnsWithoutEating = 0;
     private bool _justAteThisTurn = false;

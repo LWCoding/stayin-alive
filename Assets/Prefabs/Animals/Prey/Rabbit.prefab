@@ -124,10 +124,7 @@ MonoBehaviour:
   _spriteRenderer: {fileID: 0}
   _animalCount: 1
   _countText: {fileID: 5202976279325484043}
-  _currentHunger: 50
   _detectionRadius: 5
   _fleeDistance: 3
-  _hungerThreshold: 30
-  _hungerRestoredPerGrass: 30
   _grassDetectionRadius: 10
   _targetFood: Grass

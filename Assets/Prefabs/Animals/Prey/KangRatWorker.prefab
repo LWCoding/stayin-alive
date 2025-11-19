@@ -111,7 +111,7 @@ MonoBehaviour:
   _countText: {fileID: 3935340389763193239}
   _detectionRadius: 5
   _fleeDistance: 3
-  _grassDetectionRadius: 10
+  _grassDetectionRadius: 12
   _targetFood: Grass
 --- !u!114 &3935340389763193239 stripped
 MonoBehaviour:

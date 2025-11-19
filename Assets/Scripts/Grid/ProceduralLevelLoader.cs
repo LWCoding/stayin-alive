@@ -515,6 +515,18 @@ public class ProceduralLevelLoader : MonoBehaviour
         // 2. Spawn predators in patches with predator dens
         if (_predatorNames != null && _predatorNames.Length > 0 && spawnPositions.Count > 0)
         {
+            // Create a list to ensure at least one of each predator type is assigned
+            List<string> predatorTypesToAssign = new List<string>(_predatorNames);
+            
+            // Shuffle the list to randomize which patch gets which type
+            for (int i = 0; i < predatorTypesToAssign.Count; i++)
+            {
+                int randomIndex = Random.Range(i, predatorTypesToAssign.Count);
+                string temp = predatorTypesToAssign[i];
+                predatorTypesToAssign[i] = predatorTypesToAssign[randomIndex];
+                predatorTypesToAssign[randomIndex] = temp;
+            }
+            
             for (int patch = 0; patch < _predatorPatchCount; patch++)
             {
                 if (spawnPositions.Count == 0)
@@ -545,7 +557,18 @@ public class ProceduralLevelLoader : MonoBehaviour
                 }
                 
                 // Pick ONE predator type for this entire patch (all predators in this patch will be the same type)
-                string patchPredatorType = _predatorNames[Random.Range(0, _predatorNames.Length)];
+                // First ensure at least one of each type is assigned, then randomly assign remaining patches
+                string patchPredatorType;
+                if (patch < predatorTypesToAssign.Count)
+                {
+                    // Assign one of each type for the first N patches (where N = number of predator types)
+                    patchPredatorType = predatorTypesToAssign[patch];
+                }
+                else
+                {
+                    // For remaining patches, randomly assign any predator type
+                    patchPredatorType = _predatorNames[Random.Range(0, _predatorNames.Length)];
+                }
                 
                 // Spawn a predator den at the patch center with the selected predator type
                 levelData.PredatorDens.Add((patchCenter.x, patchCenter.y, patchPredatorType));
