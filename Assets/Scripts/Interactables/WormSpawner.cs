@@ -252,15 +252,7 @@ public class WormSpawner : Interactable
 					continue;
 				}
 
-				// Check if position is walkable
-				if (!EnvironmentManager.Instance.IsWalkable(candidatePos))
-				{
-					continue;
-				}
-
-				// Check if position is grass
-				TileType tileType = EnvironmentManager.Instance.GetTileType(candidatePos);
-				if (tileType != TileType.Grass)
+				if (!IsValidTileForWorm(candidatePos))
 				{
 					continue;
 				}
@@ -284,6 +276,32 @@ public class WormSpawner : Interactable
 			list[i] = list[j];
 			list[j] = temp;
 		}
+	}
+
+	private bool IsValidTileForWorm(Vector2Int candidatePos)
+	{
+		if (EnvironmentManager.Instance == null)
+		{
+			return false;
+		}
+
+		TileType tileType = EnvironmentManager.Instance.GetTileType(candidatePos);
+		if (tileType != TileType.Grass)
+		{
+			return false;
+		}
+
+		if (ItemManager.Instance != null && ItemManager.Instance.GetItemAtPosition(candidatePos) != null)
+		{
+			return false;
+		}
+
+		if (InteractableManager.Instance != null && InteractableManager.Instance.HasInteractableAtPosition(candidatePos))
+		{
+			return false;
+		}
+
+		return true;
 	}
 }
 
