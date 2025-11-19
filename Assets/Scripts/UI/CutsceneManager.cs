@@ -1,4 +1,5 @@
 using System.Collections;
+using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
@@ -40,6 +41,8 @@ public class CutsceneManager : MonoBehaviour
     [Header("UI References")]
     [Tooltip("TextMeshProUGUI component that displays the dialogue text.")]
     [SerializeField] private TextMeshProUGUI _dialogueText;
+    [Tooltip("Root GameObject that contains the dialogue UI (will be hidden when dialogue finishes).")]
+    [SerializeField] private GameObject _dialogueContainer;
     
     [Header("Animation")]
     [Tooltip("Animator component that contains the animation clips. Animation clips should be named to match the DialogueAnimation enum values (e.g., 'FadeRatGod', 'JumpCloser', etc.).")]
@@ -57,13 +60,59 @@ public class CutsceneManager : MonoBehaviour
     [Header("Typing Settings")]
     [Tooltip("Time delay between each character when typing (in seconds).")]
     [SerializeField] private float _typingSpeed = 0.005f;
+
+    [Header("Typing Audio")]
+    [Tooltip("AudioSource used to play the typing blip sounds.")]
+    [SerializeField] private AudioSource _typingAudioSource;
+    [Tooltip("AudioClip that will be played as a blip while text is typing.")]
+    [SerializeField] private AudioClip _typingBlipClip;
+    [Tooltip("Delay between typing blip sounds while characters are revealed.")]
+    [SerializeField] private float _typingBlipDelay = 0.08f;
+    [Tooltip("Random pitch range applied to each typing blip (min <= max).")]
+    [SerializeField] private float _typingPitchMin = 0.95f;
+    [SerializeField] private float _typingPitchMax = 1.05f;
+
+    [Header("Cutscene Objects")]
+    [Tooltip("UI GameObject that represents the stick.")]
+    [SerializeField] private GameObject _stickObject;
+    [Tooltip("UI GameObject that represents the den.")]
+    [SerializeField] private GameObject _denObject;
+    [Tooltip("UI GameObject that represents the worm.")]
+    [SerializeField] private GameObject _wormObject;
+    [Tooltip("UI GameObject that represents the grass.")]
+    [SerializeField] private GameObject _grassObject;
+    [Tooltip("UI GameObject that represents the hawk.")]
+    [SerializeField] private GameObject _hawkObject;
+    [Tooltip("UI GameObject that represents the coyote.")]
+    [SerializeField] private GameObject _coyoteObject;
+
+    [Header("Object Fade Settings")]
+    [Tooltip("Duration (in seconds) for UI objects to fade in.")]
+    [SerializeField] private float _objectFadeDuration = 0.5f;
+
+    [Header("Object Reveal Dialogue Indices")]
+    [Tooltip("Dialogue index at which the stick UI object should fade in.")]
+    [SerializeField] private int _stickDialogueIndex = -1;
+    [Tooltip("Dialogue index at which the den UI object should fade in.")]
+    [SerializeField] private int _denDialogueIndex = -1;
+    [Tooltip("Dialogue index at which the worm UI object should fade in.")]
+    [SerializeField] private int _wormDialogueIndex = -1;
+    [Tooltip("Dialogue index at which the grass UI object should fade in.")]
+    [SerializeField] private int _grassDialogueIndex = -1;
+    [Tooltip("Dialogue index at which the hawk UI object should fade in.")]
+    [SerializeField] private int _hawkDialogueIndex = -1;
+    [Tooltip("Dialogue index at which the coyote UI object should fade in.")]
+    [SerializeField] private int _coyoteDialogueIndex = -1;
     
     private int _currentDialogueIndex = 0;
     private Coroutine _typingCoroutine = null;
+    private Coroutine _typingAudioCoroutine = null;
     private Coroutine _animationWaitCoroutine = null;
+    private Coroutine _ratJumpCoroutine = null;
     private bool _isTyping = false;
     private string _currentFullText = "";
     private DialogueAnimation _currentAnimation = DialogueAnimation.None;
+    private readonly Dictionary<GameObject, Coroutine> _activeFadeCoroutines = new Dictionary<GameObject, Coroutine>();
 
     private void Start()
     {
@@ -80,6 +129,7 @@ public class CutsceneManager : MonoBehaviour
         // Start displaying the first dialogue if available
         if (_dialogueEntries.Length > 0)
         {
+            ShowDialogueUI();
             StartDialogue();
         }
         else if (_dialogueText != null)
@@ -91,7 +141,11 @@ public class CutsceneManager : MonoBehaviour
     private void Update()
     {
         // Check for E key press or mouse click to advance dialogue
-        bool shouldAdvance = Input.GetKeyDown(KeyCode.E) || Input.GetMouseButtonDown(0);
+        bool shouldAdvance =
+            Input.GetKeyDown(KeyCode.E) ||
+            Input.GetMouseButtonDown(0) ||
+            Input.GetKeyDown(KeyCode.Space) ||
+            Input.GetKeyDown(KeyCode.Return);
         
         if (shouldAdvance)
         {
@@ -114,6 +168,7 @@ public class CutsceneManager : MonoBehaviour
     public void StartDialogue()
     {
         _currentDialogueIndex = 0;
+        ShowDialogueUI();
         DisplayDialogue(_currentDialogueIndex);
     }
 
@@ -131,6 +186,7 @@ public class CutsceneManager : MonoBehaviour
             {
                 _dialogueText.text = "";
             }
+            HideDialogueUI();
             return;
         }
         
@@ -150,6 +206,8 @@ public class CutsceneManager : MonoBehaviour
         DialogueEntry entry = _dialogueEntries[index];
         _currentFullText = entry.text;
         _currentAnimation = entry.animation;
+
+        HandleObjectReveals(index);
         
         // Trigger animation if one is specified
         if (entry.animation != DialogueAnimation.None)
@@ -195,6 +253,12 @@ public class CutsceneManager : MonoBehaviour
             // Play JumpCloser on rat animator
             if (_ratAnimator != null)
             {
+                if (_ratJumpCoroutine != null)
+                {
+                    StopCoroutine(_ratJumpCoroutine);
+                    _ratJumpCoroutine = null;
+                }
+
                 // Enable rat animator if it was disabled
                 if (!_ratAnimator.enabled)
                 {
@@ -203,6 +267,7 @@ public class CutsceneManager : MonoBehaviour
                 
                 // Play the JumpCloser animation on the rat animator
                 _ratAnimator.Play(animationName);
+                _ratJumpCoroutine = StartCoroutine(WaitForRatJumpToFinish());
             }
             
             // Also play GodTalk on the main animator
@@ -246,6 +311,7 @@ public class CutsceneManager : MonoBehaviour
     {
         _isTyping = true;
         _dialogueText.text = "";
+        StartTypingAudioLoop();
         
         foreach (char character in text)
         {
@@ -255,6 +321,7 @@ public class CutsceneManager : MonoBehaviour
         
         _isTyping = false;
         _typingCoroutine = null;
+        StopTypingAudioLoop();
         
         // Stop GodTalk animation when typing is complete (for both GodTalk and JumpCloser)
         if (_currentAnimation == DialogueAnimation.GodTalk || _currentAnimation == DialogueAnimation.JumpCloser)
@@ -280,11 +347,226 @@ public class CutsceneManager : MonoBehaviour
         }
         
         _isTyping = false;
+        StopTypingAudioLoop();
         
         // Stop GodTalk animation when typing is skipped (for both GodTalk and JumpCloser)
         if (_currentAnimation == DialogueAnimation.GodTalk || _currentAnimation == DialogueAnimation.JumpCloser)
         {
             StopAnimation();
+        }
+    }
+
+    /// <summary>
+    /// Starts the looping coroutine that plays typing blip sounds.
+    /// </summary>
+    private void StartTypingAudioLoop()
+    {
+        if (_typingAudioSource == null || _typingBlipClip == null || _typingAudioCoroutine != null)
+        {
+            return;
+        }
+
+        _typingAudioCoroutine = StartCoroutine(TypingAudioLoop());
+    }
+
+    /// <summary>
+    /// Stops the typing audio coroutine and any currently playing audio.
+    /// </summary>
+    private void StopTypingAudioLoop()
+    {
+        if (_typingAudioCoroutine != null)
+        {
+            StopCoroutine(_typingAudioCoroutine);
+            _typingAudioCoroutine = null;
+        }
+
+        if (_typingAudioSource != null)
+        {
+            _typingAudioSource.Stop();
+        }
+    }
+
+    /// <summary>
+    /// Coroutine that repeatedly plays the typing blip audio with a delay and random pitch.
+    /// </summary>
+    private IEnumerator TypingAudioLoop()
+    {
+        float delay = Mathf.Max(0f, _typingBlipDelay);
+
+        while (_isTyping)
+        {
+            PlayTypingBlip();
+
+            if (delay <= 0f)
+            {
+                yield return null;
+            }
+            else
+            {
+                yield return new WaitForSeconds(delay);
+            }
+        }
+
+        _typingAudioCoroutine = null;
+    }
+
+    /// <summary>
+    /// Plays a single typing blip with randomized pitch.
+    /// </summary>
+    private void PlayTypingBlip()
+    {
+        if (_typingAudioSource == null || _typingBlipClip == null)
+        {
+            return;
+        }
+
+        float minPitch = Mathf.Min(_typingPitchMin, _typingPitchMax);
+        float maxPitch = Mathf.Max(_typingPitchMin, _typingPitchMax);
+        _typingAudioSource.pitch = Random.Range(minPitch, maxPitch);
+        _typingAudioSource.PlayOneShot(_typingBlipClip);
+    }
+
+    /// <summary>
+    /// Shows the dialogue UI container, if assigned.
+    /// </summary>
+    private void ShowDialogueUI()
+    {
+        if (_dialogueContainer != null && !_dialogueContainer.activeSelf)
+        {
+            _dialogueContainer.SetActive(true);
+        }
+    }
+
+    /// <summary>
+    /// Hides the dialogue UI container, if assigned.
+    /// </summary>
+    private void HideDialogueUI()
+    {
+        if (_dialogueContainer != null && _dialogueContainer.activeSelf)
+        {
+            _dialogueContainer.SetActive(false);
+        }
+    }
+
+    /// <summary>
+    /// Waits for the rat JumpCloser animation to finish, then disables the rat animator.
+    /// </summary>
+    private IEnumerator WaitForRatJumpToFinish()
+    {
+        if (_ratAnimator == null)
+        {
+            yield break;
+        }
+
+        // Ensure we start from the current frame.
+        yield return null;
+
+        AnimatorStateInfo stateInfo = _ratAnimator.GetCurrentAnimatorStateInfo(0);
+        while (_ratAnimator.enabled && stateInfo.IsName("JumpCloser") && stateInfo.normalizedTime < 1f)
+        {
+            yield return null;
+            if (_ratAnimator != null && _ratAnimator.enabled)
+            {
+                stateInfo = _ratAnimator.GetCurrentAnimatorStateInfo(0);
+            }
+            else
+            {
+                break;
+            }
+        }
+
+        if (_ratAnimator != null && _ratAnimator.enabled)
+        {
+            _ratAnimator.enabled = false;
+        }
+
+        _ratJumpCoroutine = null;
+    }
+
+    /// <summary>
+    /// Checks whether any UI objects should be revealed for the given dialogue index.
+    /// </summary>
+    private void HandleObjectReveals(int dialogueIndex)
+    {
+        if (dialogueIndex == _stickDialogueIndex)
+        {
+            FadeInGameObject(_stickObject);
+        }
+
+        if (dialogueIndex == _denDialogueIndex)
+        {
+            FadeInGameObject(_denObject);
+        }
+
+        if (dialogueIndex == _wormDialogueIndex)
+        {
+            FadeInGameObject(_wormObject);
+        }
+
+        if (dialogueIndex == _grassDialogueIndex)
+        {
+            FadeInGameObject(_grassObject);
+        }
+
+        if (dialogueIndex == _hawkDialogueIndex)
+        {
+            FadeInGameObject(_hawkObject);
+        }
+
+        if (dialogueIndex == _coyoteDialogueIndex)
+        {
+            FadeInGameObject(_coyoteObject);
+        }
+    }
+
+    /// <summary>
+    /// Fades in the specified UI GameObject using a CanvasGroup.
+    /// </summary>
+    private void FadeInGameObject(GameObject target)
+    {
+        if (target == null)
+        {
+            return;
+        }
+
+        CanvasGroup canvasGroup = target.GetComponent<CanvasGroup>();
+
+        target.SetActive(true);
+
+        // Stop any existing fade coroutine on this object.
+        if (_activeFadeCoroutines.TryGetValue(target, out Coroutine existingCoroutine) && existingCoroutine != null)
+        {
+            StopCoroutine(existingCoroutine);
+        }
+
+        float duration = Mathf.Max(0.001f, _objectFadeDuration);
+        Coroutine fadeCoroutine = StartCoroutine(FadeCanvasGroupIn(canvasGroup, duration, target));
+        _activeFadeCoroutines[target] = fadeCoroutine;
+    }
+
+    /// <summary>
+    /// Coroutine that fades in a CanvasGroup over the specified duration.
+    /// </summary>
+    private IEnumerator FadeCanvasGroupIn(CanvasGroup canvasGroup, float duration, GameObject key)
+    {
+        float elapsed = 0f;
+        float startAlpha = 0f;
+        float endAlpha = 1f;
+
+        canvasGroup.alpha = startAlpha;
+
+        while (elapsed < duration)
+        {
+            elapsed += Time.deltaTime;
+            float t = Mathf.Clamp01(elapsed / duration);
+            canvasGroup.alpha = Mathf.Lerp(startAlpha, endAlpha, t);
+            yield return null;
+        }
+
+        canvasGroup.alpha = endAlpha;
+        if (_activeFadeCoroutines.ContainsKey(key))
+        {
+            _activeFadeCoroutines[key] = null;
         }
     }
 
@@ -315,14 +597,7 @@ public class CutsceneManager : MonoBehaviour
             _animator.enabled = false;
         }
         
-        // Also stop rat animator if JumpCloser was playing
-        if (_currentAnimation == DialogueAnimation.JumpCloser)
-        {
-            if (_ratAnimator != null && _ratAnimator.enabled)
-            {
-                _ratAnimator.enabled = false;
-            }
-        }
+        // Allow the rat JumpCloser animation to finish naturally (it will disable itself when done).
     }
 }
 
