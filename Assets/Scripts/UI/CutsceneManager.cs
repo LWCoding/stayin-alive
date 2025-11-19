@@ -43,6 +43,10 @@ public class CutsceneManager : MonoBehaviour
     [SerializeField] private TextMeshProUGUI _dialogueText;
     [Tooltip("Root GameObject that contains the dialogue UI (will be hidden when dialogue finishes).")]
     [SerializeField] private GameObject _dialogueContainer;
+    [Tooltip("Script used to switch scenes once dialogue ends.")]
+    [SerializeField] private SwitchSceneTo _sceneSwitcher;
+    [Tooltip("Scene name to load once the dialogue sequence finishes.")]
+    [SerializeField] private string _sceneToLoadOnComplete = "03_Tutorial";
     
     [Header("Animation")]
     [Tooltip("Animator component that contains the animation clips. Animation clips should be named to match the DialogueAnimation enum values (e.g., 'FadeRatGod', 'JumpCloser', etc.).")]
@@ -187,6 +191,7 @@ public class CutsceneManager : MonoBehaviour
                 _dialogueText.text = "";
             }
             HideDialogueUI();
+            SwitchToNextScene();
             return;
         }
         
@@ -445,6 +450,21 @@ public class CutsceneManager : MonoBehaviour
         if (_dialogueContainer != null && _dialogueContainer.activeSelf)
         {
             _dialogueContainer.SetActive(false);
+        }
+    }
+
+    /// <summary>
+    /// Switches to the configured scene after the dialogue finishes.
+    /// </summary>
+    private void SwitchToNextScene()
+    {
+        if (_sceneSwitcher != null && !string.IsNullOrEmpty(_sceneToLoadOnComplete))
+        {
+            _sceneSwitcher.GoToScene(_sceneToLoadOnComplete);
+        }
+        else if (_sceneSwitcher == null)
+        {
+            Debug.LogWarning("CutsceneManager: Scene switcher reference not assigned.");
         }
     }
 
