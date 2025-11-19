@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using UnityEngine;
 using Pathfinding;
 
@@ -18,13 +19,14 @@ public class WaterTraversalProvider : ITraversalProvider
     
     // Cached reference to avoid repeated null checks (set once at construction)
     private readonly bool _hasGridData;
+    private readonly HashSet<int> _blockedNodeIndices;
 
     /// <summary>
     /// Creates a new WaterTraversalProvider.
     /// Takes a snapshot of the grid data at construction time for thread-safe access.
     /// </summary>
     /// <param name="canGoOnWater">Whether the animal can traverse water tiles.</param>
-    public WaterTraversalProvider(bool canGoOnWater)
+    public WaterTraversalProvider(bool canGoOnWater, HashSet<Vector2Int> blockedPositions = null)
     {
         _canGoOnWater = canGoOnWater;
         
@@ -48,6 +50,19 @@ public class WaterTraversalProvider : ITraversalProvider
                     }
                 }
                 _hasGridData = true;
+
+                if (blockedPositions != null && blockedPositions.Count > 0)
+                {
+                    _blockedNodeIndices = new HashSet<int>(blockedPositions.Count);
+                    foreach (Vector2Int pos in blockedPositions)
+                    {
+                        if (pos.x < 0 || pos.x >= _gridWidth || pos.y < 0 || pos.y >= _gridHeight)
+                        {
+                            continue;
+                        }
+                        _blockedNodeIndices.Add(GetNodeIndex(pos.x, pos.y));
+                    }
+                }
             }
             else
             {
@@ -62,6 +77,11 @@ public class WaterTraversalProvider : ITraversalProvider
             _gridHeight = 0;
             _hasGridData = false;
         }
+    }
+
+    private int GetNodeIndex(int x, int y)
+    {
+        return y * _gridWidth + x;
     }
 
     /// <summary>
@@ -98,6 +118,15 @@ public class WaterTraversalProvider : ITraversalProvider
         {
             // Out of bounds - use default traversal check
             return DefaultITraversalProvider.CanTraverse(path, node);
+        }
+
+        if (_blockedNodeIndices != null)
+        {
+            int nodeIndex = GetNodeIndex(x, y);
+            if (_blockedNodeIndices.Contains(nodeIndex))
+            {
+                return false;
+            }
         }
 
         // Check if this is a water tile (reading from cached snapshot - thread-safe)
