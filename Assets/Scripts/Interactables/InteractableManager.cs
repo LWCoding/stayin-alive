@@ -732,8 +732,8 @@ public class InteractableManager : Singleton<InteractableManager>
 				continue;
 			}
 
-			// 50% chance to reduce grass level
-			if (Random.Range(0f, 1f) < 0.5f)
+			// 80% chance to reduce grass level
+			if (Random.Range(0f, 1f) < 0.8f)
 			{
 				grass.ReduceLevelWithoutHarvest();
 			}
