@@ -174,8 +174,6 @@ public class InteractableManager : Singleton<InteractableManager>
         _dens.Add(den);
         _allInteractables.Add(den);
         
-        Debug.Log($"InteractableManager: Spawned den at ({gridPosition.x}, {gridPosition.y})");
-        
         return den;
     }
     
@@ -241,8 +239,6 @@ public class InteractableManager : Singleton<InteractableManager>
 		spawner.Initialize(gridPosition);
 		_rabbitSpawners.Add(spawner);
 		_allInteractables.Add(spawner);
-
-		Debug.Log($"InteractableManager: Spawned rabbit spawner at ({gridPosition.x}, {gridPosition.y})");
 
 		return spawner;
 	}
@@ -433,8 +429,6 @@ public class InteractableManager : Singleton<InteractableManager>
 		_wormSpawners.Add(spawner);
 		_allInteractables.Add(spawner);
 
-		Debug.Log($"InteractableManager: Spawned worm spawner at ({gridPosition.x}, {gridPosition.y})");
-
 		return spawner;
 	}
 
@@ -535,8 +529,6 @@ public class InteractableManager : Singleton<InteractableManager>
 		_bushes.Add(bush);
 		_allInteractables.Add(bush);
 
-		Debug.Log($"InteractableManager: Spawned bush at ({gridPosition.x}, {gridPosition.y})");
-
 		return bush;
 	}
 
@@ -636,8 +628,6 @@ public class InteractableManager : Singleton<InteractableManager>
 		grass.Initialize(gridPosition);
 		_grasses.Add(grass);
 		_allInteractables.Add(grass);
-
-		Debug.Log($"InteractableManager: Spawned grass at ({gridPosition.x}, {gridPosition.y})");
 
 		return grass;
 	}
