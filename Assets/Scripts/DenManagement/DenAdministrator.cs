@@ -90,30 +90,6 @@ public class DenAdministrator : MonoBehaviour {
         DenSystemManager.Instance.ClosePanel();
       }
     }
-
-    if (Input.GetKeyDown(KeyCode.B)) {
-      PurchaseDen();
-    }
-  }
-
-  private void PurchaseDen() {
-    if (PointsManager.Instance.ReadinessPoints < DenSystemManager.Instance.denPrice) {
-      Debug.Log("Not Enough Food To Make Den");
-      return;
-    }
-
-    Den newDen = InteractableManager.Instance.SpawnDen(playerAnimal.GridPosition);
-
-    if (newDen == null) {
-      Debug.Log("Cannot make den at specified location");
-      return;
-    }
-
-    // Worst case if something is out of sync, error will be in player's favor
-    PointsManager.Instance.AddPoints(-1 * DenSystemManager.Instance.denPrice, true);
-    
-    // Automatically enter the den after building it
-    newDen.OnAnimalEnter(playerAnimal);
   }
   
   public void PurchaseWorker() {

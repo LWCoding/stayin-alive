@@ -17,10 +17,6 @@ public class UIManager : Singleton<UIManager>
     [Range(0f, 1f)]
     [SerializeField] private float _lowHungerThreshold = 0.33f;
     
-    [Header("Build Indicator")]
-    [Tooltip("Container transform that holds the build indicator UI (e.g., text saying 'Press B to build den for 1 food'). Shows only when player has enough food.")]
-    [SerializeField] private Transform _buildIndicatorContainer;
-    
     [Header("MVP Progress")]
     [Tooltip("TextMeshProUGUI component that displays the MVP progress (assigned workers / goal).")]
     [SerializeField] private TextMeshProUGUI _mvpProgressText;
@@ -68,13 +64,10 @@ public class UIManager : Singleton<UIManager>
         // Initialize post-processing
         InitializePostProcessing();
         
-        // Initialize build indicator (hide by default)
-        UpdateBuildIndicator();
     }
     
     private void Update()
     {
-        UpdateBuildIndicator();
         UpdateMvpProgress();
         UpdatePointsDisplay();
     }
@@ -224,50 +217,6 @@ public class UIManager : Singleton<UIManager>
         _isVignetteCritical = isCritical;
         _vignette.intensity.overrideState = true;
         _vignette.intensity.value = isCritical ? _criticalHungerVignetteIntensity : _defaultVignetteIntensity;
-    }
-    
-    /// <summary>
-    /// Updates the build indicator container visibility based on whether the player has enough food to build a den
-    /// and whether the player is on a valid location for building.
-    /// Shows the container only when both conditions are met.
-    /// </summary>
-    private void UpdateBuildIndicator()
-    {
-        if (_buildIndicatorContainer == null)
-        {
-            return;
-        }
-        
-        // Check if required managers are available
-        if (PointsManager.Instance == null || DenSystemManager.Instance == null || 
-            InteractableManager.Instance == null || EnvironmentManager.Instance == null ||
-            ItemManager.Instance == null)
-        {
-            Debug.Log("UIManager: I'm lacking the managers I need to update the build indicator :(");
-            _buildIndicatorContainer.gameObject.SetActive(false);
-            return;
-        }
-        
-        // Check if player has enough food
-        int currentFood = PointsManager.Instance.ReadinessPoints;
-        int requiredFood = DenSystemManager.Instance.denPrice;
-        bool canAffordDen = currentFood >= requiredFood;
-        
-        // Check if player is on a valid location for building
-        bool isOnValidLocation = false;
-        if (_trackedAnimal != null)
-        {
-            Vector2Int playerPosition = _trackedAnimal.GridPosition;
-            
-            // Validate position using the same checks as SpawnDen in InteractableManager
-            // Also check that there's no item at the position
-            isOnValidLocation = EnvironmentManager.Instance.IsValidPosition(playerPosition) &&
-                               !InteractableManager.Instance.HasInteractableAtPosition(playerPosition) &&
-                               ItemManager.Instance.GetItemAtPosition(playerPosition) == null;
-        }
-        
-        // Show the build indicator only if player has enough food AND is on a valid location
-        _buildIndicatorContainer.gameObject.SetActive(canAffordDen && isOnValidLocation);
     }
     
     /// <summary>
