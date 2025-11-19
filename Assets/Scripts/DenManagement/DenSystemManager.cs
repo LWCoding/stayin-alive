@@ -333,11 +333,16 @@ public class DenSystemManager : Singleton<DenSystemManager> {
     currentDenAdministrator = administrator;
   }
 
-  private void Start() {
-    validTeleports = new Dictionary<int, DenInformation>();
-    denInformations = new Dictionary<int, DenInformation>();
-    workersToDens = new Dictionary<Animal, int>();
-    unassignedWorkers = new List<Animal>();
+  protected override void Awake() {
+    base.Awake();
+    InitializeState();
+  }
+
+  private void InitializeState() {
+    validTeleports ??= new Dictionary<int, DenInformation>();
+    denInformations ??= new Dictionary<int, DenInformation>();
+    workersToDens ??= new Dictionary<Animal, int>();
+    unassignedWorkers ??= new List<Animal>();
     ResetDenFood();
   }
   
