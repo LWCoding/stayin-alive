@@ -1814,7 +1814,9 @@ MonoBehaviour:
   _pointsTextMenu: {fileID: 1976682970}
   _pointsFormat: 'Total Food in Dens: {0}'
   _postProcessingVolume: {fileID: 443342604}
-  _criticalHungerVignetteIntensity: 0.45
+  _criticalHungerVignetteIntensity: 0.55
+  _criticalHungerVignetteColor: {r: 1, g: 0, b: 0, a: 1}
+  _defaultVignetteColor: {r: 0, g: 0, b: 0, a: 1}
 --- !u!224 &850705209 stripped
 RectTransform:
   m_CorrespondingSourceObject: {fileID: 3218765409383957039, guid: 41066fd52d5460c409bed4831559a961, type: 3}

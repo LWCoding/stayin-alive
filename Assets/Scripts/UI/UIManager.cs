@@ -39,6 +39,12 @@ public class UIManager : Singleton<UIManager>
     [Range(0f, 1f)]
     [SerializeField] private float _criticalHungerVignetteIntensity = 0.7f;
     
+    [Tooltip("Vignette color when hunger is critical (below threshold).")]
+    [SerializeField] private Color _criticalHungerVignetteColor = Color.red;
+    
+    [Tooltip("Default vignette color when hunger is not critical.")]
+    [SerializeField] private Color _defaultVignetteColor = Color.black;
+    
     private ControllableAnimal _trackedAnimal = null;
     private Color _originalColor = Color.white;
     private bool _hasStoredOriginalColor = false;
@@ -113,6 +119,11 @@ public class UIManager : Singleton<UIManager>
                 _defaultVignetteIntensity = _vignette.intensity.overrideState 
                     ? _vignette.intensity.value 
                     : 0.4f; // Default from the profile
+                // Use profile color if serialized default is still at default (black), otherwise use serialized value
+                if (_vignette.color.overrideState && _defaultVignetteColor == Color.black)
+                {
+                    _defaultVignetteColor = _vignette.color.value;
+                }
                 _vignetteInitialized = true;
             }
         }
@@ -204,7 +215,7 @@ public class UIManager : Singleton<UIManager>
     }
     
     /// <summary>
-    /// Sets the vignette intensity depending on whether hunger is critical.
+    /// Sets the vignette intensity and color depending on whether hunger is critical.
     /// </summary>
     private void SetCriticalHungerVignette(bool isCritical)
     {
@@ -213,10 +224,14 @@ public class UIManager : Singleton<UIManager>
             return;
         }
         
-        // Set vignette intensity based on critical hunger state
+        // Set vignette intensity and color based on critical hunger state
         _isVignetteCritical = isCritical;
         _vignette.intensity.overrideState = true;
         _vignette.intensity.value = isCritical ? _criticalHungerVignetteIntensity : _defaultVignetteIntensity;
+        
+        // Set vignette color to critical color when critical, restore default otherwise
+        _vignette.color.overrideState = true;
+        _vignette.color.value = isCritical ? _criticalHungerVignetteColor : _defaultVignetteColor;
     }
     
     /// <summary>

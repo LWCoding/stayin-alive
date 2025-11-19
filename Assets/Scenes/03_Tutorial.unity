@@ -809,7 +809,9 @@ MonoBehaviour:
   _pointsTextMenu: {fileID: 707741005}
   _pointsFormat: 'Total Food in Dens: {0}'
   _postProcessingVolume: {fileID: 1299410282}
-  _criticalHungerVignetteIntensity: 0.45
+  _criticalHungerVignetteIntensity: 0.55
+  _criticalHungerVignetteColor: {r: 1, g: 0, b: 0, a: 1}
+  _defaultVignetteColor: {r: 0, g: 0, b: 0, a: 1}
 --- !u!1 &273968416
 GameObject:
   m_ObjectHideFlags: 0
