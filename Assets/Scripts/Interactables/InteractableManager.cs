@@ -700,30 +700,54 @@ public class InteractableManager : Singleton<InteractableManager>
 		}
 	}
     
-    /// <summary>
-    /// Registers any existing controllable animals that are currently on dens.
-    /// This is a safety check to ensure animals that spawn on dens are properly registered.
-    /// </summary>
-    public void RegisterAnimalsOnDens()
-    {
-        if (AnimalManager.Instance == null)
-        {
-            return;
-        }
-        
-        List<Animal> animals = AnimalManager.Instance.GetAllAnimals();
-        foreach (Animal animal in animals)
-        {
-            if (animal != null && animal.IsControllable)
-            {
-                Den den = GetDenAtPosition(animal.GridPosition);
-                if (den != null && !den.IsAnimalInDen(animal))
-                {
-                    // OnAnimalEnter will handle setting the CurrentHideable reference
-                    den.OnAnimalEnter(animal);
-                }
-            }
-        }
-    }
+	/// <summary>
+	/// Registers any existing controllable animals that are currently on dens.
+	/// This is a safety check to ensure animals that spawn on dens are properly registered.
+	/// </summary>
+	public void RegisterAnimalsOnDens()
+	{
+		if (AnimalManager.Instance == null)
+		{
+			return;
+		}
+		
+		List<Animal> animals = AnimalManager.Instance.GetAllAnimals();
+		foreach (Animal animal in animals)
+		{
+			if (animal != null && animal.IsControllable)
+			{
+				Den den = GetDenAtPosition(animal.GridPosition);
+				if (den != null && !den.IsAnimalInDen(animal))
+				{
+					// OnAnimalEnter will handle setting the CurrentHideable reference
+					den.OnAnimalEnter(animal);
+				}
+			}
+		}
+	}
+
+	/// <summary>
+	/// Handles Winter season grass reduction. Loops through all grass and applies a 50% chance
+	/// to reduce each grass to its next level (Full → Growing, Growing → Destroyed).
+	/// </summary>
+	public void HandleWinterGrassReduction()
+	{
+		// Get all grass and filter out null references
+		List<Grass> allGrass = Grasses;
+		
+		foreach (Grass grass in allGrass)
+		{
+			if (grass == null)
+			{
+				continue;
+			}
+
+			// 50% chance to reduce grass level
+			if (Random.Range(0f, 1f) < 0.5f)
+			{
+				grass.ReduceLevelWithoutHarvest();
+			}
+		}
+	}
 }
 

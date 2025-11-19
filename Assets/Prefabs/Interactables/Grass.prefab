@@ -108,7 +108,7 @@ MonoBehaviour:
   _springGrowthMultiplier: 1
   _summerGrowthMultiplier: 0.8
   _fallGrowthMultiplier: 0.8
-  _winterGrowthMultiplier: 0.2
+  _winterGrowthMultiplier: 0.05
   _averageTurnsBetweenSpreads: 80
   _spreadVariance: 0.25
 --- !u!1001 &3398099433449485630

@@ -95,6 +95,27 @@ public class Grass : Interactable
 		}
 	}
 
+	/// <summary>
+	/// Reduces the grass level without harvesting (for seasonal effects like Winter).
+	/// Full → Growing, Growing → Destroyed.
+	/// </summary>
+	public void ReduceLevelWithoutHarvest()
+	{
+		if (_currentState == GrassState.Full)
+		{
+			// Change from full to growing (half)
+			_currentState = GrassState.Growing;
+			UpdateSprite();
+			_turnsSinceLastSpawn = 0;
+			CalculateNextSpawnTime();
+		}
+		else if (_currentState == GrassState.Growing)
+		{
+			// Destroy the grass (goes to zero)
+			Destroy(gameObject);
+		}
+	}
+
 	private void Awake()
 	{
 		if (_spriteRenderer == null)

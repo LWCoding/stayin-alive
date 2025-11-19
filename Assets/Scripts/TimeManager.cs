@@ -159,6 +159,12 @@ public class TimeManager : Singleton<TimeManager>
 		Season newSeason = (Season)(newSeasonIndex % 4);
 		if (newSeason != _currentSeason)
 		{
+			// Handle Winter grass reduction when switching to Winter
+			if (newSeason == Season.Winter && InteractableManager.Instance != null)
+			{
+				InteractableManager.Instance.HandleWinterGrassReduction();
+			}
+
 			_currentSeason = newSeason;
 			UpdateSeasonImage();
 			UpdateSeasonText();

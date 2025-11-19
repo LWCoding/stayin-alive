@@ -19,6 +19,6 @@ MonoBehaviour:
   prefab: {fileID: 5132175799388392085, guid: f03e23e1433890a43ac8735b0379c037, type: 3}
   maxHunger: 200
   hungerThreshold: 170
-  criticalHungerThreshold: 50
+  criticalHungerThreshold: 100
   dyingSFX: 0
   chasingSFX: 1
