@@ -69,5 +69,10 @@ public static class Globals
     /// Scales up from 1 until it reaches this value.
     /// </summary>
     public static int MaxDenStickCost = 3;
+
+	/// <summary>
+	/// Hunger restored when a worker eats stored food from the den.
+	/// </summary>
+	public static int DenFoodHungerRestoration = 50;
 }
 

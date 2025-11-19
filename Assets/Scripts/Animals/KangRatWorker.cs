@@ -49,10 +49,18 @@ public class KangRatWorker : WorkerAnimal
 		int criticalHungerThreshold = AnimalData != null ? AnimalData.criticalHungerThreshold : 20;
 		bool isCriticallyHungry = CurrentHunger < criticalHungerThreshold;
 		bool isHungry = CurrentHunger < hungerThreshold;
+		bool hasStoredDenFood = HasHomeHideable && HasStoredDenFoodAvailable();
+		bool shouldUseDenStoredFood = isCriticallyHungry && hasStoredDenFood;
 		
-		// If we're hiding in our den and critically hungry, force exit immediately
+		// If we're hiding in our den and critically hungry, consume stored food if available.
+        // Otherwise, force exit from den.
 		if (IsHidingInHome)
 		{
+			if (shouldUseDenStoredFood && TryConsumeStoredDenFood())
+			{
+				return;
+			}
+
 			if (isCriticallyHungry)
 			{
 				// Force exit from den - critical hunger takes priority over safety
@@ -118,6 +126,12 @@ public class KangRatWorker : WorkerAnimal
 		// If hungry, check if we should seek food
 		if (isHungry)
 		{
+			if (shouldUseDenStoredFood)
+			{
+				ReturnToDenForStoredFood();
+				return;
+			}
+
 			// Check for nearby predators
 			PredatorAnimal nearbyPredator = FindNearestPredator();
 			
@@ -363,6 +377,76 @@ public class KangRatWorker : WorkerAnimal
 		}
 
 		return base.CanShareTileWithOtherAnimal(other, position);
+	}
+
+	/// <summary>
+	/// Returns true if there is stored food available in the den system.
+	/// </summary>
+	private bool HasStoredDenFoodAvailable()
+	{
+		return DenSystemManager.Instance != null && DenSystemManager.Instance.FoodInDen > 0;
+	}
+
+	/// <summary>
+	/// Moves the worker back to its home den to consume stored food.
+	/// </summary>
+	private void ReturnToDenForStoredFood()
+	{
+		if (!HasHomeHideable)
+		{
+			return;
+		}
+
+		_foodDestination = null;
+		_wanderingDestination = null;
+
+		Vector2Int homePos = HomeHideable.GridPosition;
+
+		if (IsAtHomeHideable)
+		{
+			if (!IsHidingInHome)
+			{
+				TryHideInHome();
+			}
+
+			TryConsumeStoredDenFood();
+			return;
+		}
+
+		if (MoveOneStepTowards(homePos) && IsAtHomeHideable)
+		{
+			if (!IsHidingInHome)
+			{
+				TryHideInHome();
+			}
+
+			TryConsumeStoredDenFood();
+		}
+	}
+
+	/// <summary>
+	/// Attempts to consume stored den food, restoring hunger by the configured amount.
+	/// </summary>
+	private bool TryConsumeStoredDenFood()
+	{
+		if (DenSystemManager.Instance == null)
+		{
+			return false;
+		}
+
+		if (!DenSystemManager.Instance.SpendFoodFromDen(1))
+		{
+			return false;
+		}
+
+		int hungerRestored = Mathf.Max(0, Globals.DenFoodHungerRestoration);
+		if (hungerRestored > 0)
+		{
+			IncreaseHunger(hungerRestored);
+		}
+
+		Debug.Log($"KangRatWorker '{name}' consumed stored den food. Hunger restored by {hungerRestored}. Current hunger: {CurrentHunger}. Remaining den food: {DenSystemManager.Instance.FoodInDen}");
+		return true;
 	}
 
 	/// <summary>
