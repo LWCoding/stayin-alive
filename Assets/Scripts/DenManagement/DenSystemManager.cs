@@ -87,6 +87,12 @@ public class DenSystemManager : Singleton<DenSystemManager> {
       Debug.LogError("DenSystemManager: Failed to spawn worker animal!");
       return false;
     }
+
+    // Ensure workers can haul and deposit resources
+    WorkerResourceCarrier resourceCarrier = newWorkerAnimal.GetComponent<WorkerResourceCarrier>();
+    if (resourceCarrier == null) {
+      resourceCarrier = newWorkerAnimal.gameObject.AddComponent<WorkerResourceCarrier>();
+    }
     
     if (workerAnimalData.hungerThreshold > 0) {
       newWorkerAnimal.SetHunger(workerAnimalData.hungerThreshold - 1);

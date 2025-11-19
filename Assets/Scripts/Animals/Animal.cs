@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Collections;
 using UnityEngine;
@@ -45,6 +46,7 @@ public class Animal : MonoBehaviour
     [Tooltip("Current hunger value. Decreases by 1 each turn. When it reaches 0, the animal dies.")]
     [HideInInspector] private int _currentHunger = 100;
     private int _maxHunger = 100;
+    public event Action<int> OnFoodConsumed;
 
     [Header("Hiding")]
     [Tooltip("The hideable location this animal is currently in (e.g., bush or den), if any.")]
@@ -365,6 +367,7 @@ public class Animal : MonoBehaviour
 
     /// <summary>
     /// Increases hunger by the specified amount, clamped to max hunger.
+    /// This should be called whenever food is consumed by the animal.
     /// </summary>
     public virtual void IncreaseHunger(int amount)
     {
@@ -374,6 +377,7 @@ public class Animal : MonoBehaviour
         }
 
         _currentHunger = Mathf.Min(_currentHunger + amount, _maxHunger);
+        OnFoodConsumed?.Invoke(amount);
     }
 
     /// <summary>
