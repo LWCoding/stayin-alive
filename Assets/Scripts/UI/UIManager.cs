@@ -246,12 +246,12 @@ public class UIManager : Singleton<UIManager>
     /// </summary>
     private void UpdatePointsDisplay()
     {
-        if (PointsManager.Instance == null)
+        if (DenSystemManager.Instance == null)
         {
             return;
         }
         
-        int currentPoints = PointsManager.Instance.ReadinessPoints;
+        int currentPoints = DenSystemManager.Instance.FoodInDen;
         
         if (_pointsText != null)
         {

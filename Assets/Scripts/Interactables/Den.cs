@@ -151,7 +151,7 @@ public class Den : Interactable, IHideable
     
     /// <summary>
     /// Processes food delivery when an animal enters the den.
-    /// Empties all inventory slots and adds +1 point per item to PointsManager.
+    /// Empties all inventory slots and adds +1 stored food per item to DenSystemManager.
     /// </summary>
     private void ProcessFoodDelivery(Animal animal)
     {
@@ -171,10 +171,10 @@ public class Den : Interactable, IHideable
                 // Clear all items from inventory
                 int clearedCount = InventoryManager.Instance.ClearAllItems();
                 
-                // Add points to PointsManager (+1 point per item)
-                if (PointsManager.Instance != null)
+                // Add stored food to the den (+1 per item)
+                if (DenSystemManager.Instance != null)
                 {
-                    PointsManager.Instance.AddPoints(clearedCount);
+                    DenSystemManager.Instance.AddFoodToDen(clearedCount);
                 }
                 
                 Debug.Log($"Animal '{animal.name}' deposited {clearedCount} items at den. Added {clearedCount} points.");

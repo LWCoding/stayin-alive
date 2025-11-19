@@ -11,10 +11,6 @@ public class WorkerResourceCarrier : MonoBehaviour
     [Header("References")]
     [SerializeField] private Animal _animal;
 
-    [Header("Carrying Settings")]
-    [Tooltip("Readiness points awarded per unit of food carried back.")]
-    [SerializeField] private int _pointsPerFoodUnit = 1;
-
     private int _currentCarriedFood;
 
     private void Awake()
@@ -87,9 +83,11 @@ public class WorkerResourceCarrier : MonoBehaviour
             return;
         }
 
-        if (PointsManager.Instance != null) 
+        int totalFood = _currentCarriedFood;
+
+        if (DenSystemManager.Instance != null)
         {
-            PointsManager.Instance.AddPoints(_currentCarriedFood);
+            DenSystemManager.Instance.AddFoodToDen(totalFood);
         }
 
         _currentCarriedFood = 0;

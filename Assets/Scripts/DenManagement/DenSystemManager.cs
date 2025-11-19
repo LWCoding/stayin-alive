@@ -23,6 +23,13 @@ public class DenSystemManager : Singleton<DenSystemManager> {
   [Header("Worker Settings")]
   [Tooltip("AnimalData ScriptableObject that defines the worker animal type")]
   public AnimalData workerAnimalData;
+
+  [Header("Den Resources")]
+  [Tooltip("Food stored in dens at the start of a run.")]
+  [SerializeField] private int startingDenFood = 0;
+
+  private int storedDenFood;
+  public int FoodInDen => storedDenFood;
   
   private Dictionary<int, DenInformation> validTeleports;
   
@@ -56,6 +63,39 @@ public class DenSystemManager : Singleton<DenSystemManager> {
         GameManager.Instance.TriggerWin();
       }
     }
+  }
+
+  public bool AddFoodToDen(int amount)
+  {
+    if (amount <= 0)
+    {
+      return false;
+    }
+
+    storedDenFood += amount;
+    return true;
+  }
+
+  public bool SpendFoodFromDen(int amount)
+  {
+    if (amount <= 0)
+    {
+      return false;
+    }
+
+    if (storedDenFood - amount < 0)
+    {
+      return false;
+    }
+
+    storedDenFood -= amount;
+    return true;
+  }
+
+  public void ResetDenFood(int? overrideAmount = null)
+  {
+    int target = overrideAmount.HasValue ? overrideAmount.Value : startingDenFood;
+    storedDenFood = Mathf.Max(0, target);
   }
 
   public bool CreateWorker() {
@@ -302,6 +342,7 @@ public class DenSystemManager : Singleton<DenSystemManager> {
     denInformations = new Dictionary<int, DenInformation>();
     workersToDens = new Dictionary<Animal, int>();
     unassignedWorkers = new List<Animal>();
+    ResetDenFood();
   }
   
   public void OpenPanel() {

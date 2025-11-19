@@ -149,7 +149,7 @@ public class DenAdminMenuGuiController : MonoBehaviour {
       buttonText.text = displayText.Replace("\\n", "\n");
     }
     
-    bool canAfford = PointsManager.Instance.ReadinessPoints >= DenSystemManager.Instance.workerPrice;
+    bool canAfford = DenSystemManager.Instance.FoodInDen >= DenSystemManager.Instance.workerPrice;
     purchaseWorkerButton.interactable = canAfford && !denIsFull;
   }
 }
