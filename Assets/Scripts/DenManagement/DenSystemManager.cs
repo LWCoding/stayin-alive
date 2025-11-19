@@ -259,18 +259,18 @@ public class DenSystemManager : Singleton<DenSystemManager> {
   public void OpenPanel() {
     panelOpen = true;
     DenAdminMenu.Show();
-    Debug.LogError("Panel Opened");
+    Debug.LogWarning("Panel Opened");
     ConstructValidDenTeleportInfos();
     DenAdminMenu.CreateDenMapIcons(ConstructDenInfos().Values.ToList());
     DenAdminMenu.SetupCurrentDenRenderTexture();
-    Debug.LogError(validTeleports);
+    Debug.LogWarning(validTeleports);
     TimeManager.Instance.Pause();
   }
 
   public void ClosePanel() {
     panelOpen = false;
     DenAdminMenu.Hide();
-    Debug.LogError("Panel Closed");
+    Debug.LogWarning("Panel Closed");
     validTeleports.Clear();
     TimeManager.Instance.Resume();
   }
@@ -284,7 +284,7 @@ public class DenSystemManager : Singleton<DenSystemManager> {
     List<DenInformation> denInfos = new List<DenInformation>();
     foreach (Den den in denList) {
       denInfos.Add(ConstructDenInformation(den));
-      Debug.LogError(ConstructDenInformation(den).denId);
+      Debug.LogWarning(ConstructDenInformation(den).denId);
     }
 
     return denInfos;
@@ -320,7 +320,7 @@ public class DenSystemManager : Singleton<DenSystemManager> {
     foreach (DenInformation destination in destinations) {
       if (destination.denObject != currentDenAdministrator.Animal.CurrentDen) {
         validDestinations.Add(destination);
-        Debug.LogError(destination.denId.ToString());
+        Debug.LogWarning(destination.denId.ToString());
       }
     }
 

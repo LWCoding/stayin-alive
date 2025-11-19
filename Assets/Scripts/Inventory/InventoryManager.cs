@@ -8,8 +8,6 @@ using UnityEngine;
 /// </summary>
 public class InventoryManager : Singleton<InventoryManager>
 {
-    [Header("Inventory Settings")]
-    // Maximum inventory size is now defined in Globals.MaxInventorySize
     
     [Header("UI References")]
     [SerializeField] [Tooltip("Transform container where inventory slots will be instantiated")]

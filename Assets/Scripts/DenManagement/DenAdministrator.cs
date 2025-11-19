@@ -129,18 +129,20 @@ public class DenAdministrator : MonoBehaviour {
   }
 
   public void DenTeleport(int DenId) {
-    Debug.LogError(DenId);
+    Debug.LogWarning(DenId);
     if (DenSystemManager.Instance.GetValidTeleports.ContainsKey(DenId)) {
       // playerAnimal.CurrentDen.OnAnimalLeave(playerAnimal);
       
       playerAnimal.SetGridPosition(DenSystemManager.Instance.GetValidTeleports[DenId].denObject.GridPosition);
-      Debug.LogError("Teleported");
+      Debug.LogWarning("Teleported");
 
       if (DenSystemManager.Instance.PanelOpen) {
+        DenSystemManager.Instance.ConstructDenInfos();
         DenSystemManager.Instance.ConstructValidDenTeleportInfos();
         DenSystemManager.Instance.DenAdminMenu.CreateDenMapIcons(DenSystemManager.Instance.DenInfos.Values.ToList());
         DenSystemManager.Instance.DenAdminMenu.SetupCurrentDenRenderTexture();
         DenSystemManager.Instance.DenAdminMenu.SetupCurrentDenWorkers();
+        DenSystemManager.Instance.DenAdminMenu.UpdatePurchaseWorkerButton();
       }
     }
 
