@@ -35,6 +35,12 @@ public class RabbitSpawner : Interactable, IHideable
 	// Track rabbits currently hiding in this spawner
 	private List<Animal> _hidingRabbits = new List<Animal>();
 	
+	// Track all rabbits attached to this spawner (for cached count)
+	private List<Animal> _attachedRabbits = new List<Animal>();
+	
+	// Cached count of alive rabbits attached to this spawner
+	private int _attachedRabbitCount = 0;
+	
 	// Track turns since last periodic spawn (only increments when rabbits are hiding)
 	private int _turnsSinceLastSpawn = 0;
 	
@@ -181,8 +187,26 @@ public class RabbitSpawner : Interactable, IHideable
 		// Update hiding rabbits - decrement turns and bring them back after 3 turns
 		UpdateHidingRabbits();
 		
+		// Clean up null rabbits from attached rabbits list and update cached count
+		CleanupAttachedRabbits();
+		
 		// Clean up null rabbits from hiding list
 		_hidingRabbits.RemoveAll(rabbit => rabbit == null);
+		
+		// Check if there are zero rabbits attached to this spawner - if so, spawn one to prevent extinction
+		if (_attachedRabbitCount == 0)
+		{
+			Debug.Log($"RabbitSpawner at ({_gridPosition.x}, {_gridPosition.y}): Zero rabbits detected, spawning new rabbit to prevent extinction.");
+			Animal spawnedAnimal = TrySpawnRabbitGroup(1); // Spawn a single rabbit
+			if (spawnedAnimal != null)
+			{
+				// Add the spawned animal to hiding list
+				if (!_hidingRabbits.Contains(spawnedAnimal))
+				{
+					OnAnimalEnter(spawnedAnimal);
+				}
+			}
+		}
 		
 		// Periodic spawning: spawn new groups every PERIODIC_SPAWN_INTERVAL turns if there are rabbits hiding
 		if (_hidingRabbits.Count > 0)
@@ -327,6 +351,7 @@ public class RabbitSpawner : Interactable, IHideable
 		if (spawned != null)
 		{
 			// Assign this spawner to the rabbit
+			// SetRabbitSpawner will automatically call OnRabbitAttached to track the rabbit
 			RabbitAnimal rabbitAnimal = spawned as RabbitAnimal;
 			if (rabbitAnimal != null)
 			{
@@ -381,6 +406,7 @@ public class RabbitSpawner : Interactable, IHideable
 		if (spawned != null)
 		{
 			// Assign this spawner to the rabbit
+			// SetRabbitSpawner will automatically call OnRabbitAttached to track the rabbit
 			RabbitAnimal rabbitAnimal = spawned as RabbitAnimal;
 			if (rabbitAnimal != null)
 			{
@@ -755,6 +781,40 @@ public class RabbitSpawner : Interactable, IHideable
 			{
 				_spriteRenderer.sprite = _unoccupiedSprite;
 			}
+		}
+	}
+
+	/// <summary>
+	/// Called when a rabbit is attached to this spawner (via SetRabbitSpawner).
+	/// Updates the cached count and tracking list.
+	/// </summary>
+	public void OnRabbitAttached(Animal rabbit)
+	{
+		if (rabbit == null)
+		{
+			return;
+		}
+
+		// Only add if not already in the list
+		if (!_attachedRabbits.Contains(rabbit))
+		{
+			_attachedRabbits.Add(rabbit);
+			_attachedRabbitCount++;
+		}
+	}
+
+	/// <summary>
+	/// Cleans up null rabbits from the attached rabbits list and updates the cached count.
+	/// </summary>
+	private void CleanupAttachedRabbits()
+	{
+		int removedCount = _attachedRabbits.RemoveAll(rabbit => rabbit == null);
+		_attachedRabbitCount -= removedCount;
+		
+		// Ensure count doesn't go negative (safety check)
+		if (_attachedRabbitCount < 0)
+		{
+			_attachedRabbitCount = 0;
 		}
 	}
 }

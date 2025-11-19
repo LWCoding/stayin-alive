@@ -57,6 +57,12 @@ public class RabbitAnimal : PreyAnimal
 	{
 		_rabbitSpawner = spawner;
 		SetHomeHideable(_rabbitSpawner);
+		
+		// Notify the spawner that this rabbit is now attached
+		if (spawner != null)
+		{
+			spawner.OnRabbitAttached(this);
+		}
 	}
 
 	private void Start()
@@ -110,8 +116,7 @@ public class RabbitAnimal : PreyAnimal
 
 		if (nearest != null)
 		{
-			_rabbitSpawner = nearest;
-			SetHomeHideable(_rabbitSpawner);
+			SetRabbitSpawner(nearest);
 			Debug.Log($"RabbitAnimal '{name}' associated with rabbit spawner at ({nearest.GridPosition.x}, {nearest.GridPosition.y})");
 		}
 	}
