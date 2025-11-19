@@ -71,6 +71,10 @@ public class AudioManager : Singleton<AudioManager>
     private Coroutine currentMusicFade;
     private MusicType currentMusicType = MusicType.Menu;
 
+    [Header("Startup Settings")]
+    [SerializeField] private bool autoplayMusicOnStart = false;
+    [SerializeField] private MusicType startupMusicType = MusicType.Menu;
+
     // ======================
     // 🔧 SETUP
     // ======================
@@ -79,6 +83,11 @@ public class AudioManager : Singleton<AudioManager>
     {
         base.Awake();
         BuildDictionaries();
+
+        if (autoplayMusicOnStart)
+        {
+            PlayMusic(startupMusicType);
+        }
     }
 
     private void BuildDictionaries()
