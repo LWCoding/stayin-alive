@@ -2183,6 +2183,8 @@ MonoBehaviour:
   - type: 6
     clip: {fileID: 8300000, guid: a7892fa6af848994698fde11d3653fff, type: 3}
     volume: 0.289
+  autoplayMusicOnStart: 0
+  startupMusicType: 1
 --- !u!1 &1699132515
 GameObject:
   m_ObjectHideFlags: 0
@@ -2701,7 +2703,7 @@ MonoBehaviour:
   - animation: 3
     text: Gather sticks to build us strong dens.
   - animation: 3
-    text: Gather food to the den and breed strong babies.
+    text: Gather food and bring it to the dens to breed strong babies.
   - animation: 3
     text: You must be a leader. Stay strong and be wary of those foul coyotes and
       hawks.
