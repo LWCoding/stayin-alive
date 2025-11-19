@@ -447,6 +447,57 @@ public class InventoryManager : Singleton<InventoryManager>
     }
     
     /// <summary>
+    /// Consumes a specific number of items matching the provided name, prioritizing the slot currently being used.
+    /// This is intended for items (like sticks) whose usage consumes multiple copies at once.
+    /// </summary>
+    /// <param name="itemName">The name of the item to consume.</param>
+    /// <param name="totalCount">The total number of items that should be removed.</param>
+    /// <returns>True if the requested amount was consumed, false otherwise.</returns>
+    public bool ConsumeItemsForActiveUse(string itemName, int totalCount)
+    {
+        if (totalCount <= 0)
+        {
+            return true;
+        }
+        
+        if (string.IsNullOrEmpty(itemName))
+        {
+            return false;
+        }
+        
+        int consumed = 0;
+        
+        // Consume the actively used slot first (if it contains the right item)
+        if (_activeUseSlotIndex >= 0 && _activeUseSlotIndex < _inventorySlots.Count)
+        {
+            InventorySlot activeSlot = _inventorySlots[_activeUseSlotIndex];
+            if (!activeSlot.IsEmpty && activeSlot.ItemName == itemName)
+            {
+                activeSlot.ClearSlot();
+                consumed++;
+            }
+        }
+        
+        // Consume remaining required items from the rest of the inventory
+        for (int i = 0; i < _inventorySlots.Count && consumed < totalCount; i++)
+        {
+            if (i == _activeUseSlotIndex)
+            {
+                continue;
+            }
+            
+            InventorySlot slot = _inventorySlots[i];
+            if (!slot.IsEmpty && slot.ItemName == itemName)
+            {
+                slot.ClearSlot();
+                consumed++;
+            }
+        }
+        
+        return consumed >= totalCount;
+    }
+    
+    /// <summary>
     /// Clears all inventory slots (destroys the GameObjects).
     /// </summary>
     private void ClearAllSlots()

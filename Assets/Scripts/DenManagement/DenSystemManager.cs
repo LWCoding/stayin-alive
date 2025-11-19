@@ -40,6 +40,9 @@ public class DenSystemManager : Singleton<DenSystemManager> {
   
   private List<Animal> unassignedWorkers;
 
+  private int _densBuiltWithSticks;
+  public int DensBuiltWithSticks => _densBuiltWithSticks;
+
   [HideInInspector]
   public int UNASSIGNED_DEN_ID = -1;
   
@@ -401,6 +404,11 @@ public class DenSystemManager : Singleton<DenSystemManager> {
     InitializeState();
   }
 
+  private void Start()
+  {
+    ResetDensBuiltWithSticks();
+  }
+
   private void InitializeState() {
     validTeleports ??= new Dictionary<int, DenInformation>();
     denInformations ??= new Dictionary<int, DenInformation>();
@@ -410,6 +418,16 @@ public class DenSystemManager : Singleton<DenSystemManager> {
     _hasInitializedMvpPopulation = false;
     _hasTriggeredWin = false;
     ResetDenFood();
+  }
+
+  public void ResetDensBuiltWithSticks()
+  {
+    _densBuiltWithSticks = 0;
+  }
+
+  public void IncrementDensBuiltWithSticks()
+  {
+    _densBuiltWithSticks++;
   }
   
   public void OpenPanel() {
