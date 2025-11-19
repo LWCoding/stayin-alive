@@ -38,6 +38,8 @@ public class Animal : MonoBehaviour
     [Tooltip("List of follower GameObjects that visually represent additional animals in the group")]
     private List<GameObject> _followers = new List<GameObject>();
     private Coroutine _followerUpdateCoroutine;
+    private Coroutine _starvationDeathCoroutine;
+    private bool _isDyingFromStarvation = false;
 
     [Header("Hunger")]
     [Tooltip("Current hunger value. Decreases by 1 each turn. When it reaches 0, the animal dies.")]
@@ -333,12 +335,18 @@ public class Animal : MonoBehaviour
     /// </summary>
     public virtual void TakeTurn()
     {
+        // Don't process turns if the animal is dying from starvation
+        if (_isDyingFromStarvation)
+        {
+            return;
+        }
+
         // Decrease hunger each turn
         DecreaseHunger(1);
     }
 
     /// <summary>
-    /// Decreases hunger by the specified amount. If hunger reaches 0 or below, the animal dies.
+    /// Decreases hunger by the specified amount. If hunger reaches 0 or below, the animal dies from starvation.
     /// </summary>
     public virtual void DecreaseHunger(int amount)
     {
@@ -351,7 +359,7 @@ public class Animal : MonoBehaviour
         if (_currentHunger <= 0)
         {
             _currentHunger = 0;
-            Die();
+            DieFromStarvation();
         }
     }
 
@@ -681,6 +689,152 @@ public class Animal : MonoBehaviour
     }
 
     /// <summary>
+    /// Handles death from starvation with a visual animation (flip upside down and fade out).
+    /// </summary>
+    private void DieFromStarvation()
+    {
+        // Prevent multiple starvation death coroutines
+        if (_starvationDeathCoroutine != null)
+        {
+            return;
+        }
+
+        // Mark as dying to prevent any turn logic from executing
+        _isDyingFromStarvation = true;
+
+        // Remove from AnimalManager immediately so it won't receive turns or be processed as an active animal
+        if (AnimalManager.Instance != null)
+        {
+            AnimalManager.Instance.RemoveAnimal(this);
+        }
+
+        _starvationDeathCoroutine = StartCoroutine(StarvationDeathAnimationCoroutine());
+    }
+
+    /// <summary>
+    /// Coroutine that handles the starvation death animation: hides count text, flips upside down, turns red, and fades out over 1.5 seconds.
+    /// </summary>
+    private IEnumerator StarvationDeathAnimationCoroutine()
+    {
+        // Hide the count text immediately (it shouldn't be visible during death animation)
+        if (_countText != null)
+        {
+            _countText.enabled = false;
+        }
+
+        // Flip the sprite upside down by rotating 180 degrees on Z axis
+        if (_spriteRenderer != null)
+        {
+            transform.rotation = Quaternion.Euler(0, 0, 180);
+        }
+
+        // Also flip followers upside down
+        foreach (GameObject follower in _followers)
+        {
+            if (follower != null)
+            {
+                follower.transform.rotation = Quaternion.Euler(0, 0, 180);
+            }
+        }
+
+        // Ensure sprite and followers are visible for the fade animation
+        if (_spriteRenderer != null)
+        {
+            _spriteRenderer.enabled = true;
+        }
+
+        // Re-enable followers for fade animation and turn them red
+        List<Color> followerStartColors = new List<Color>();
+        foreach (GameObject follower in _followers)
+        {
+            if (follower != null)
+            {
+                SpriteRenderer followerSpriteRenderer = follower.GetComponent<SpriteRenderer>();
+                if (followerSpriteRenderer == null)
+                {
+                    followerSpriteRenderer = follower.GetComponentInChildren<SpriteRenderer>();
+                }
+                
+                if (followerSpriteRenderer != null)
+                {
+                    followerSpriteRenderer.enabled = true;
+                    // Turn red while preserving alpha
+                    Color currentColor = followerSpriteRenderer.color;
+                    followerStartColors.Add(new Color(1f, 0f, 0f, currentColor.a));
+                    followerSpriteRenderer.color = followerStartColors[followerStartColors.Count - 1];
+                }
+                else
+                {
+                    followerStartColors.Add(Color.red);
+                }
+            }
+            else
+            {
+                followerStartColors.Add(Color.red);
+            }
+        }
+
+        // Turn the main sprite red
+        Color redColor = Color.red;
+        if (_spriteRenderer != null)
+        {
+            // Preserve the current alpha when turning red
+            redColor = new Color(1f, 0f, 0f, _spriteRenderer.color.a);
+            _spriteRenderer.color = redColor;
+        }
+        
+        float fadeDuration = 1;
+        float elapsed = 0f;
+
+        // Target color is fully transparent red
+        Color targetColor = new Color(redColor.r, redColor.g, redColor.b, 0f);
+
+        while (elapsed < fadeDuration)
+        {
+            elapsed += Time.deltaTime;
+            float t = Mathf.Clamp01(elapsed / fadeDuration);
+            
+            // Fade main sprite from red to transparent
+            if (_spriteRenderer != null)
+            {
+                _spriteRenderer.color = Color.Lerp(redColor, targetColor, t);
+            }
+
+            // Fade followers from red to transparent
+            for (int i = 0; i < _followers.Count && i < followerStartColors.Count; i++)
+            {
+                GameObject follower = _followers[i];
+                if (follower != null)
+                {
+                    SpriteRenderer followerSpriteRenderer = follower.GetComponent<SpriteRenderer>();
+                    if (followerSpriteRenderer == null)
+                    {
+                        followerSpriteRenderer = follower.GetComponentInChildren<SpriteRenderer>();
+                    }
+                    
+                    if (followerSpriteRenderer != null)
+                    {
+                        Color followerStartColor = followerStartColors[i];
+                        Color followerTargetColor = new Color(followerStartColor.r, followerStartColor.g, followerStartColor.b, 0f);
+                        followerSpriteRenderer.color = Color.Lerp(followerStartColor, followerTargetColor, t);
+                    }
+                }
+            }
+
+            yield return null;
+        }
+
+        // Ensure fully transparent
+        if (_spriteRenderer != null)
+        {
+            _spriteRenderer.color = targetColor;
+        }
+
+        // Now destroy the object as usual
+        Die();
+    }
+
+    /// <summary>
     /// Kills this animal by destroying its GameObject.
     /// Override in subclasses to add additional behavior (e.g., trigger lose condition).
     /// </summary>
@@ -935,6 +1089,12 @@ public class Animal : MonoBehaviour
         {
             StopCoroutine(_followerUpdateCoroutine);
             _followerUpdateCoroutine = null;
+        }
+
+        if (_starvationDeathCoroutine != null)
+        {
+            StopCoroutine(_starvationDeathCoroutine);
+            _starvationDeathCoroutine = null;
         }
 
         // Clear all followers
