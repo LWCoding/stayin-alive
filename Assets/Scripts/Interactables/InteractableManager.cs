@@ -717,7 +717,7 @@ public class InteractableManager : Singleton<InteractableManager>
 	}
 
 	/// <summary>
-	/// Handles Winter season grass reduction. Loops through all grass and applies a 50% chance
+	/// Handles Winter season grass reduction. Loops through all grass and applies a chance
 	/// to reduce each grass to its next level (Full → Growing, Growing → Destroyed).
 	/// </summary>
 	public void HandleWinterGrassReduction()
@@ -732,8 +732,8 @@ public class InteractableManager : Singleton<InteractableManager>
 				continue;
 			}
 
-			// 50% chance to reduce grass level
-			if (Random.Range(0f, 1f) < 0.5f)
+			// 80% chance to reduce grass level
+			if (Random.Range(0f, 1f) < 0.8f)
 			{
 				grass.ReduceLevelWithoutHarvest();
 			}

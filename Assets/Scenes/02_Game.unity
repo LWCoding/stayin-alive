@@ -1301,11 +1301,11 @@ MonoBehaviour:
   - Coyote
   - Hawk
   _rabbitSpawnerCount: 3
-  _wormSpawnerCount: 2
+  _wormSpawnerCount: 1
   _foodItemName: Worm
   _foodItemCount: 3
   _bushCount: 8
-  _grassCount: 20
+  _grassCount: 16
   _stickItemName: Sticks
   _stickCount: 5
 --- !u!1 &476097330

@@ -101,7 +101,9 @@ MonoBehaviour:
   _spriteRenderer: {fileID: 6639119743890779358}
   _sticksItemName: Sticks
   _turnsBetweenSpawns: 60
-  _spawnRadius: 2
+  _minSpawnRadius: 2
+  _maxSpawnRadius: 5
+  _maxSticks: 3
   _springSpawnMultiplier: 1
   _summerSpawnMultiplier: 0.5
   _fallSpawnMultiplier: 1.2

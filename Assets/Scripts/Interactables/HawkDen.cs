@@ -16,6 +16,8 @@ public class HawkDen : PredatorDen
 	[SerializeField] private int _minSpawnRadius = 2;
 	[Tooltip("Maximum distance from the den that sticks can spawn (in grid tiles).")]
 	[SerializeField] private int _maxSpawnRadius = 5;
+	[Tooltip("Maximum number of sticks that can exist around this den at once.")]
+	[SerializeField] private int _maxSticks = 3;
 
 	[Header("Season Spawn Multipliers")]
 	[Tooltip("Multiplier applied to spawn rate during Spring. Higher values = faster spawning (fewer turns).")]
@@ -29,6 +31,8 @@ public class HawkDen : PredatorDen
 
 	private int _turnsSinceLastSpawn;
 	private bool _spawnerInitialized;
+	// Track all sticks spawned by this den
+	private List<Item> _spawnedSticks = new List<Item>();
 
 	private void OnEnable()
 	{
@@ -58,6 +62,7 @@ public class HawkDen : PredatorDen
 		base.Initialize(gridPosition, "Hawk");
 		_turnsSinceLastSpawn = 0;
 		_spawnerInitialized = true;
+		_spawnedSticks.Clear();
 	}
 
 	/// <summary>
@@ -68,6 +73,7 @@ public class HawkDen : PredatorDen
 		base.Initialize(gridPosition, predatorType);
 		_turnsSinceLastSpawn = 0;
 		_spawnerInitialized = true;
+		_spawnedSticks.Clear();
 	}
 
 	private void SubscribeToTurnEvents()
@@ -107,6 +113,7 @@ public class HawkDen : PredatorDen
 
 		_turnsSinceLastSpawn = 0;
 		_spawnerInitialized = true;
+		_spawnedSticks.Clear();
 	}
 
 	private void HandleTurnAdvanced(int currentTurn)
@@ -120,9 +127,13 @@ public class HawkDen : PredatorDen
         if (currentTurn == 0)
         {
             _turnsSinceLastSpawn = 0;
+			_spawnedSticks.Clear();
             EnsurePredatorPopulation();
             return;
         }
+
+		// Clean up destroyed/null stick references
+		CleanupDestroyedSticks();
 
 		_turnsSinceLastSpawn++;
 
@@ -182,6 +193,15 @@ public class HawkDen : PredatorDen
 			return false;
 		}
 
+		// Clean up destroyed/null stick references before checking count
+		CleanupDestroyedSticks();
+
+		// Check if we're at max capacity
+		if (_spawnedSticks.Count >= _maxSticks)
+		{
+			return false; // Already at max sticks, don't spawn more
+		}
+
 		// Get all valid walkable positions in the spawn area
 		List<Vector2Int> validPositions = GetValidWalkablePositionsInArea();
 		
@@ -209,12 +229,47 @@ public class HawkDen : PredatorDen
 				continue;
 			}
 
-			ItemManager.Instance.SpawnItem(_sticksItemName, spawnPos);
-			Debug.Log($"HawkDen: Spawned sticks item at ({spawnPos.x}, {spawnPos.y}).");
-			return true;
+			// Spawn the stick and track it
+			Item spawnedStick = ItemManager.Instance.SpawnItem(_sticksItemName, spawnPos);
+			if (spawnedStick != null)
+			{
+				_spawnedSticks.Add(spawnedStick);
+				Debug.Log($"HawkDen: Spawned sticks item at ({spawnPos.x}, {spawnPos.y}). Total sticks: {_spawnedSticks.Count}/{_maxSticks}");
+				return true;
+			}
 		}
 
 		return false;
+	}
+
+	/// <summary>
+	/// Removes null or destroyed stick references from the tracking list.
+	/// Called when sticks are picked up or destroyed.
+	/// </summary>
+	private void CleanupDestroyedSticks()
+	{
+		for (int i = _spawnedSticks.Count - 1; i >= 0; i--)
+		{
+			Item stick = _spawnedSticks[i];
+			
+			// Check if the item reference is null (Unity sets this when GameObject is destroyed)
+			if (stick == null)
+			{
+				_spawnedSticks.RemoveAt(i);
+				continue;
+			}
+			
+			// Verify the item still exists in ItemManager (picked up items are removed)
+			if (ItemManager.Instance != null)
+			{
+				Item itemAtPos = ItemManager.Instance.GetItemAtPosition(stick.GridPosition);
+				if (itemAtPos != stick)
+				{
+					// Item is no longer at its position (was picked up or destroyed)
+					_spawnedSticks.RemoveAt(i);
+				}
+			}
+		}
 	}
 
 	/// <summary>
