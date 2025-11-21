@@ -282,6 +282,24 @@ public class ItemManager : Singleton<ItemManager>
     {
         return GetItemUsageInfo(itemName).Description;
     }
+
+    public Item GetItemFromName(string itemName) {
+      if (string.IsNullOrEmpty(itemName))
+      {
+        return null;
+      }
+        
+      if (!_itemPrefabLookup.TryGetValue(itemName, out GameObject prefab))
+      {
+        Debug.LogWarning($"ItemManager: Cannot use item '{itemName}' - prefab not found.");
+        return null;
+      }
+        
+      // Create a temporary instance to call OnUse
+      GameObject tempItemObj = Instantiate(prefab);
+      Item item = tempItemObj.GetComponent<Item>();
+      return item;
+    }
     
     /// <summary>
     /// Uses an item by name. Creates a temporary instance to call OnUse, then destroys it.

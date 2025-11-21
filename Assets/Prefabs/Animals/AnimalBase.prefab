@@ -9,7 +9,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 2554433907835615291}
-  m_Layer: 0
+  m_Layer: 8
   m_Name: SpriteContainer
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -44,7 +44,7 @@ GameObject:
   - component: {fileID: 6659037512251393770}
   - component: {fileID: 7730277622712715619}
   - component: {fileID: 4534309395414353278}
-  m_Layer: 0
+  m_Layer: 8
   m_Name: AnimalBase
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -143,7 +143,7 @@ GameObject:
   - component: {fileID: 5141221337690020660}
   - component: {fileID: 5689901072742794150}
   - component: {fileID: 1903356919880861898}
-  m_Layer: 0
+  m_Layer: 8
   m_Name: CountText (TMP)
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -314,7 +314,7 @@ GameObject:
   - component: {fileID: 7927312571188450319}
   - component: {fileID: 7930525551410983211}
   - component: {fileID: 4605445770624546905}
-  m_Layer: 0
+  m_Layer: 8
   m_Name: Sprite
   m_TagString: Untagged
   m_Icon: {fileID: 0}

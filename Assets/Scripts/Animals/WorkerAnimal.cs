@@ -73,7 +73,9 @@ public class WorkerAnimal : PreyAnimal
 
         if (DenSystemManager.Instance != null)
         {
-            DenSystemManager.Instance.AddFoodToDen(totalFood);
+          for (int i = 0; i < totalFood; i++) {
+            DenSystemManager.Instance.AddItemToDenInventory(ItemManager.Instance.GetItemFromName(Globals.GRASS_ITEM_NAME_FOR_WORKER_HARDCODE));
+          }
         }
 
         _currentCarriedFood = 0;

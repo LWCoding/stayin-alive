@@ -132,5 +132,9 @@ public class InventorySlot : MonoBehaviour
             _selectedIndicator.SetActive(selected);
         }
     }
+
+    public Item GetItem() {
+      return ItemManager.Instance.GetItemFromName(_itemName);
+    }
 }
 

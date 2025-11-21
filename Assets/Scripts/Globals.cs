@@ -79,5 +79,7 @@ public static class Globals
 	/// Hunger restored when a worker eats stored food from the den.
 	/// </summary>
 	public static int DenFoodHungerRestoration = 50;
+
+  public static string GRASS_ITEM_NAME_FOR_WORKER_HARDCODE = "Grass";
 }
 

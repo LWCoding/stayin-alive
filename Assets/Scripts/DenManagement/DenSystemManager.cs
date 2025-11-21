@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
@@ -41,7 +42,7 @@ public class DenSystemManager : Singleton<DenSystemManager> {
   private List<Animal> unassignedWorkers;
 
   private int _densBuiltWithSticks;
-  public int DensBuiltWithSticks => _densBuiltWithSticks;
+  public int DensBuiltWithSticks => ConstructDenInfos().Count - 1;
 
   [HideInInspector]
   public int UNASSIGNED_DEN_ID = -1;
@@ -49,7 +50,14 @@ public class DenSystemManager : Singleton<DenSystemManager> {
   private int _currentMvpPopulation = 0;
   private bool _hasInitializedMvpPopulation = false;
   private bool _hasTriggeredWin = false;
+
   
+  // Both lists treated as FiFo
+  private List<Item> foodItemsInDen;
+  private List<Item> otherItemsInDen;
+  
+  public int NumFoodItems => foodItemsInDen.Count;
+  public int NumOtherItems => otherItemsInDen.Count;
   /// <summary>
   /// Gets the current MVP population (controllable animal + living workers).
   /// </summary>
@@ -102,11 +110,28 @@ public class DenSystemManager : Singleton<DenSystemManager> {
     }
   }
 
-  public bool AddFoodToDen(int amount)
-  {
+  public void AddItemToDenInventory(Item item) {
+    if (item is FoodItem) {
+      foodItemsInDen.Add(item);
+      AddFoodToDen(1);
+    }
+    else {
+      Debug.LogWarning(item);
+      Debug.LogWarning($"{item.ItemName} added to other items inventory");
+      otherItemsInDen.Add(item);
+    }
+  }
+  
+  // DEPRECATED DO NOT USE
+  public bool AddFoodToDen(int amount) {
+    
     if (amount <= 0)
     {
       return false;
+    }
+    
+    if (amount != 1) {
+      throw new NotImplementedException("Please use the new item inventory system");
     }
 
     storedDenFood += amount;
@@ -126,13 +151,85 @@ public class DenSystemManager : Singleton<DenSystemManager> {
     }
 
     storedDenFood -= amount;
+    foodItemsInDen.RemoveRange(0, amount);
+    
     return true;
   }
 
+  // Transfer indexed food item
+  public bool TransferFoodItemToPlayerByIndex(int index = 0) {
+    if (foodItemsInDen.Count <= index) {
+      return false;
+    }
+    
+    // Get first item in food item list
+    Item itemToTransfer = foodItemsInDen[index];
+    
+    // Attempt to add item to the inventory
+    bool itemAdded = InventoryManager.Instance.AddItem(itemToTransfer.ItemName);
+    
+    // If the item is not added successfully, no-op
+    if (!itemAdded) {
+      return false;
+    }
+    
+    // If it is, remove the ItemObject from the Den System food item list
+    foodItemsInDen.Remove(itemToTransfer);
+    storedDenFood--;
+    DenAdminMenu.UpdateGui();
+    return true;
+  }
+  
+  // Transfer indexed food item
+  public bool TransferOtherItemToPlayerByIndex(int index = 0) {
+    if (otherItemsInDen.Count <= index) {
+      return false;
+    }
+    
+    // Get first item in food item list
+    Item itemToTransfer = otherItemsInDen[index];
+    
+    // Attempt to add item to the inventory
+    bool itemAdded = InventoryManager.Instance.AddItem(itemToTransfer.ItemName);
+    
+    // If the item is not added successfully, no-op
+    if (!itemAdded) {
+      return false;
+    }
+    
+    // If it is, remove the ItemObject from the Den System food item list
+    otherItemsInDen.Remove(itemToTransfer);
+    DenAdminMenu.UpdateGui();
+    return true;
+  }
+
+  // Find a copy of the desired item in the backing lists, transfer it to the player
+  public bool TransferItemToPlayer(Item itemToTransfer) {
+    bool ret;
+    if (itemToTransfer is FoodItem) {
+      int foodIndex = foodItemsInDen.FindIndex(item => item.ItemName == itemToTransfer.ItemName);
+      ret = TransferFoodItemToPlayerByIndex(foodIndex);
+      DenAdminMenu.UpdateGui();
+      return ret;
+    } 
+    int otherIndex = otherItemsInDen.FindIndex(item => item.ItemName == itemToTransfer.ItemName);
+    ret = TransferOtherItemToPlayerByIndex(otherIndex);
+    DenAdminMenu.UpdateGui();
+    return ret;
+  }
+  
+  // If override amount is set, will clear out food and add grass foods to the passed amount
   public void ResetDenFood(int? overrideAmount = null)
   {
     int target = overrideAmount.HasValue ? overrideAmount.Value : startingDenFood;
     storedDenFood = Mathf.Max(0, target);
+    foodItemsInDen.Clear();
+    if (target > 0) {
+      for (int i = 0; i < target; i++) {
+        AddItemToDenInventory(ItemManager.Instance.GetItemFromName(Globals.GRASS_ITEM_NAME_FOR_WORKER_HARDCODE));
+      }
+    }
+    
   }
 
   public bool CreateWorker() {
@@ -178,7 +275,14 @@ public class DenSystemManager : Singleton<DenSystemManager> {
     
     return true;
   }
-  
+
+  // Deposits Player Inventory into Den
+  // Player must be in a den for this to work
+  public void DepositAllPlayerItemsToDen() {
+    if (CurrentAdminDen != null) {
+      CurrentAdminDen.ProcessFoodDelivery(CurrentDenAdministrator.Animal);
+    }
+  }
   
   public bool AssignWorker(Animal animal, int denId) {
     ConstructDenInfos();
@@ -414,6 +518,8 @@ public class DenSystemManager : Singleton<DenSystemManager> {
     denInformations ??= new Dictionary<int, DenInformation>();
     workersToDens ??= new Dictionary<Animal, int>();
     unassignedWorkers ??= new List<Animal>();
+    foodItemsInDen ??= new List<Item>();
+    otherItemsInDen ??= new List<Item>();
     _currentMvpPopulation = 0;
     _hasInitializedMvpPopulation = false;
     _hasTriggeredWin = false;
@@ -435,8 +541,8 @@ public class DenSystemManager : Singleton<DenSystemManager> {
     DenAdminMenu.Show();
     Debug.LogWarning("Panel Opened");
     ConstructValidDenTeleportInfos();
-    DenAdminMenu.CreateDenMapIcons(ConstructDenInfos().Values.ToList());
-    DenAdminMenu.SetupCurrentDenRenderTexture();
+    // DenAdminMenu.CreateDenMapIcons(ConstructDenInfos().Values.ToList());
+    // DenAdminMenu.SetupCurrentDenRenderTexture();
     Debug.LogWarning(validTeleports);
     TimeManager.Instance.Pause();
   }

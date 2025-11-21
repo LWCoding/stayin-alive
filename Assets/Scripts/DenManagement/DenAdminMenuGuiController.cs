@@ -34,8 +34,11 @@ public class DenAdminMenuGuiController : MonoBehaviour {
 
   [SerializeField]
   private RectTransform unassignedWorkers;
-
-
+  
+  [Header("GUI Controllers")]
+  [SerializeField]
+  private DenInventoryPanelGuiController inventoryPanel;
+  
   [Header("Prefabs")]
   [SerializeField]
   private GameObject denMapIconPrefab;
@@ -62,9 +65,19 @@ public class DenAdminMenuGuiController : MonoBehaviour {
 
   private List<WorkerIconGuiController> workerIcons;
 
+  public void UpdateGui() {
+    UpdateDenMapIcons();
+    UpdateCurrentDenRenderTexture();
+    UpdateCurrentDenWorkers();
+    UpdatePurchaseWorkerButton();
+    inventoryPanel.RefreshGui();
+  }
+
   public void Start() {
     mapDenMapIcons = new List<DenMapIconGuiController>();
     workerIcons = new List<WorkerIconGuiController>();
+    
+    Hide();
     
     // Setup button listener
     if (purchaseWorkerButton != null) {
@@ -75,8 +88,7 @@ public class DenAdminMenuGuiController : MonoBehaviour {
   public void Show() {
     visibilityController.alpha = 1;
     visibilityController.interactable = true;
-    SetupCurrentDenWorkers();
-    UpdatePurchaseWorkerButton();
+    UpdateGui();
   }
 
   public void Hide() {
@@ -84,6 +96,10 @@ public class DenAdminMenuGuiController : MonoBehaviour {
     visibilityController.interactable = false;
   }
 
+  public void UpdateDenMapIcons() {
+    CreateDenMapIcons(DenSystemManager.Instance.ConstructDenInfos().Values.ToList());
+  }
+  
   public void CreateDenMapIcons(List<DenSystemManager.DenInformation> denInfos) {
     foreach (DenMapIconGuiController mapIconGuiController in mapDenMapIcons) {
       Destroy(mapIconGuiController.gameObject);
@@ -98,11 +114,11 @@ public class DenAdminMenuGuiController : MonoBehaviour {
     }
   }
 
-  public void SetupCurrentDenRenderTexture() {
+  public void UpdateCurrentDenRenderTexture() {
     currentDenRender.texture = DenSystemManager.Instance.CurrentAdminDen.DenRenderTexture;
   }
 
-  public void SetupCurrentDenWorkers() {
+  public void UpdateCurrentDenWorkers() {
     foreach (WorkerIconGuiController workerIcon in workerIcons) {
       Destroy(workerIcon.gameObject);
     }
@@ -131,7 +147,7 @@ public class DenAdminMenuGuiController : MonoBehaviour {
   /// </summary>
   private void OnPurchaseWorkerButtonClicked() {
     DenSystemManager.Instance.CurrentDenAdministrator.PurchaseWorker();
-    SetupCurrentDenWorkers();
+    UpdateCurrentDenWorkers();
     UpdatePurchaseWorkerButton();
   }
   

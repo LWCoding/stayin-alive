@@ -24,6 +24,9 @@ public class EnvironmentManager : Singleton<EnvironmentManager>
     // Event for when the grid is initialized (useful for camera setup, etc.)
     public Action<int, int> OnGridInitialized;
 
+    [SerializeField]
+    private Camera MiniMapRenderer;
+
 
     protected override void Awake()
     {
@@ -58,6 +61,10 @@ public class EnvironmentManager : Singleton<EnvironmentManager>
                 _grid[x, y] = new GridCell(TileType.Empty, x, y);
             }
         }
+        
+        // Set position and size of MiniMapRendererCamera so it covers the grid properly
+        MiniMapRenderer.transform.position = new Vector3(_gridWidth / 2f, _gridHeight / 2f, 0);
+        MiniMapRenderer.orthographicSize = _gridWidth/2f;
         
         // Notify listeners that the grid has been initialized
         OnGridInitialized?.Invoke(width, height);

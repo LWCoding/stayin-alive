@@ -90,6 +90,18 @@ public class DenAdministrator : MonoBehaviour {
         DenSystemManager.Instance.ClosePanel();
       }
     }
+
+    if (Input.GetKeyDown(KeyCode.Z)) {
+      DenSystemManager.Instance.TransferFoodItemToPlayerByIndex();
+    }
+
+    if (Input.GetKeyDown(KeyCode.X)) {
+      DenSystemManager.Instance.TransferOtherItemToPlayerByIndex();
+    }
+
+    if (Input.GetKeyDown(KeyCode.C)) {
+      DenSystemManager.Instance.DepositAllPlayerItemsToDen();
+    }
   }
   
   public void PurchaseWorker() {
@@ -115,10 +127,7 @@ public class DenAdministrator : MonoBehaviour {
       if (DenSystemManager.Instance.PanelOpen) {
         DenSystemManager.Instance.ConstructDenInfos();
         DenSystemManager.Instance.ConstructValidDenTeleportInfos();
-        DenSystemManager.Instance.DenAdminMenu.CreateDenMapIcons(DenSystemManager.Instance.DenInfos.Values.ToList());
-        DenSystemManager.Instance.DenAdminMenu.SetupCurrentDenRenderTexture();
-        DenSystemManager.Instance.DenAdminMenu.SetupCurrentDenWorkers();
-        DenSystemManager.Instance.DenAdminMenu.UpdatePurchaseWorkerButton();
+        DenSystemManager.Instance.DenAdminMenu.UpdateGui();
       }
     }
 

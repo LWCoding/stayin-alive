@@ -137,7 +137,7 @@ public class Den : Interactable, IHideable
             // animal.SetGridPosition(_gridPosition);
             
             // Handle food delivery: check for food items in inventory
-            ProcessFoodDelivery(animal);
+            // ProcessFoodDelivery(animal); NOT ANYMORE HEHE!
 
             // Ensure inventory selection resets when the player enters the den
             if (animal.IsControllable && InventoryManager.Instance != null)
@@ -154,9 +154,9 @@ public class Den : Interactable, IHideable
     
     /// <summary>
     /// Processes food delivery when an animal enters the den.
-    /// Empties all inventory slots and adds +1 stored food per item to DenSystemManager.
+    /// Empties all inventory slots and adds the items removed to the Den System Inventory
     /// </summary>
-    private void ProcessFoodDelivery(Animal animal)
+    public void ProcessFoodDelivery(Animal animal)
     {
         if (animal == null || !animal.IsControllable)
         {
@@ -172,15 +172,22 @@ public class Den : Interactable, IHideable
             if (itemCount > 0)
             {
                 // Clear all items from inventory
-                int clearedCount = InventoryManager.Instance.ClearAllItems();
-                
+                // int clearedCount = InventoryManager.Instance.ClearAllItems();
+
+                List<Item> inventoryItems = InventoryManager.Instance.GetInventoryItems();
+                Debug.LogWarning(inventoryItems.Count);
+                int inventoryItemsCount = inventoryItems.Count;
                 // Add stored food to the den (+1 per item)
                 if (DenSystemManager.Instance != null)
                 {
-                    DenSystemManager.Instance.AddFoodToDen(clearedCount);
+                  foreach (Item inventoryItem in inventoryItems) {
+                    DenSystemManager.Instance.AddItemToDenInventory(inventoryItem);
+                  }
                 }
                 
-                Debug.Log($"Animal '{animal.name}' deposited {clearedCount} items at den. Added {clearedCount} points.");
+                InventoryManager.Instance.ClearAllItems();
+                
+                Debug.Log($"Animal '{animal.name}' deposited {inventoryItemsCount} items at den. Added {inventoryItemsCount} points.");
             }
         }
         else

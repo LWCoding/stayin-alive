@@ -13,6 +13,7 @@ public class SticksItem : Item
     [SerializeField] [TextArea(2, 4)] [Tooltip("Shown when the player does not have enough sticks. Use {0} to display how many more are required.")]
     private string _insufficientSticksDescription = "Can be used for building dens. Requires {0} more sticks.";
 
+    [HideInInspector]
     public string InsufficientSticksDescription => _insufficientSticksDescription;
 
 

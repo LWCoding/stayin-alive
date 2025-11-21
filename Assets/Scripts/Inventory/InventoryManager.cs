@@ -174,7 +174,6 @@ public class InventoryManager : Singleton<InventoryManager>
         Debug.Log($"InventoryManager: Initialized {_inventorySlots.Count} inventory slots.");
     }
     
-    
     /// <summary>
     /// Attempts to add an item to the inventory. Returns true if successful, false if inventory is full.
     /// The corresponding sprite is resolved automatically using the ItemManager.
@@ -625,6 +624,20 @@ public class InventoryManager : Singleton<InventoryManager>
         {
             _usageDescriptionText.text = "";
         }
+    }
+
+     /// <summary>
+    /// Returns a list of Item Objects representing the items in the player's inventory
+    /// </summary>
+    public List<Item> GetInventoryItems() { 
+       List<Item> items = new List<Item>();
+       foreach (InventorySlot slot in _inventorySlots) {
+         Item item = slot.GetItem();
+         if (item != null) {
+           items.Add(item);
+         }
+       }
+       return items;
     }
 }
 

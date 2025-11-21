@@ -66,7 +66,7 @@ public class WorkerIconGuiController : MonoBehaviour, IPointerEnterHandler, IPoi
       InitializeWorkerIcon(animal);
     }
     
-    DenSystemManager.Instance.DenAdminMenu.SetupCurrentDenWorkers();
+    DenSystemManager.Instance.DenAdminMenu.UpdateCurrentDenWorkers();
     DenSystemManager.Instance.DenAdminMenu.UpdatePurchaseWorkerButton();
   }
 

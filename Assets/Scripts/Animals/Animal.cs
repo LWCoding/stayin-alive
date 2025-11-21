@@ -958,6 +958,9 @@ public class Animal : MonoBehaviour
         // Create a new GameObject for the follower
         GameObject followerObj = new GameObject($"{name}_Follower_{_followers.Count + 1}");
         followerObj.transform.SetParent(transform.parent);
+        if (this is not ControllableAnimal) {
+          followerObj.gameObject.layer = SortingLayer.GetLayerValueFromName("Animal");
+        }
         
         // Add SpriteRenderer component
         SpriteRenderer followerSpriteRenderer = followerObj.AddComponent<SpriteRenderer>();

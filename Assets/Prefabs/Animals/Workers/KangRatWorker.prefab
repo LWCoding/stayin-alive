@@ -8,9 +8,21 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 0}
     m_Modifications:
+    - target: {fileID: 433953086238696978, guid: 373ac555e5fbaf34c84fc9ea003210dd, type: 3}
+      propertyPath: m_Layer
+      value: 8
+      objectReference: {fileID: 0}
     - target: {fileID: 2195891697856963084, guid: 373ac555e5fbaf34c84fc9ea003210dd, type: 3}
       propertyPath: m_Name
       value: KangRatWorker
+      objectReference: {fileID: 0}
+    - target: {fileID: 2195891697856963084, guid: 373ac555e5fbaf34c84fc9ea003210dd, type: 3}
+      propertyPath: m_Layer
+      value: 8
+      objectReference: {fileID: 0}
+    - target: {fileID: 3322274329216274696, guid: 373ac555e5fbaf34c84fc9ea003210dd, type: 3}
+      propertyPath: m_Layer
+      value: 8
       objectReference: {fileID: 0}
     - target: {fileID: 6401602468827057776, guid: 373ac555e5fbaf34c84fc9ea003210dd, type: 3}
       propertyPath: m_LocalPosition.x
@@ -51,6 +63,10 @@ PrefabInstance:
     - target: {fileID: 6401602468827057776, guid: 373ac555e5fbaf34c84fc9ea003210dd, type: 3}
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7907426494263122568, guid: 373ac555e5fbaf34c84fc9ea003210dd, type: 3}
+      propertyPath: m_Layer
+      value: 8
       objectReference: {fileID: 0}
     - target: {fileID: 7927312571188450319, guid: 373ac555e5fbaf34c84fc9ea003210dd, type: 3}
       propertyPath: m_LocalScale.x
