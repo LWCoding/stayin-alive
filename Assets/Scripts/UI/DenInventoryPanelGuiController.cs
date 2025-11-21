@@ -11,8 +11,6 @@ public class DenInventoryPanelGuiController : MonoBehaviour {
   public RectTransform foodPanel;
   public RectTransform itemPanel;
   public Button depositButton;
-  public TextMeshProUGUI foodPanelCountText;
-  public TextMeshProUGUI itemPanelCountText;
   
   [Header("Prefabs")]
   public GameObject inventorySlotPrefab;
@@ -31,9 +29,6 @@ public class DenInventoryPanelGuiController : MonoBehaviour {
   }
 
   public void RefreshGui() {
-    foodPanelCountText.text = $"{DenSystemManager.Instance.NumFoodItems}";
-    itemPanelCountText.text = $"{DenSystemManager.Instance.NumOtherItems}";
-    
     foreach (DenMenuInventorySlotGui inventorySlot in inventorySlots) {
       Destroy(inventorySlot.gameObject);
     } 

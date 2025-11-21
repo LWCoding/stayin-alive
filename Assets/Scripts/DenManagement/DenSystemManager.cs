@@ -56,6 +56,9 @@ public class DenSystemManager : Singleton<DenSystemManager> {
   private List<Item> foodItemsInDen;
   private List<Item> otherItemsInDen;
   
+  public List<Item> FoodItemsInDen => foodItemsInDen;
+  public List<Item> OtherItemsInDen => otherItemsInDen;
+  
   public int NumFoodItems => foodItemsInDen.Count;
   public int NumOtherItems => otherItemsInDen.Count;
   /// <summary>
@@ -152,7 +155,7 @@ public class DenSystemManager : Singleton<DenSystemManager> {
 
     storedDenFood -= amount;
     foodItemsInDen.RemoveRange(0, amount);
-    
+    DenAdminMenu.UpdateGui();
     return true;
   }
 
