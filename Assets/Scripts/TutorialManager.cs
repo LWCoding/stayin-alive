@@ -24,6 +24,8 @@ public class TutorialManager : Singleton<TutorialManager>
     [SerializeField] private GameObject _denUIExplanationUI;
     [Tooltip("UI object that explains the den teleport feature")]
     [SerializeField] private GameObject _denUITeleportExplanationUI;
+    [Tooltip("UI object prompting player to teleport back to original den")]
+    [SerializeField] private GameObject _teleportBackExplanationUI;
     [Tooltip("UI object that explains breeding mechanics")]
     [SerializeField] private GameObject _breedExplanationUI;
     [Tooltip("UI object that explains den inventory management")]
@@ -32,20 +34,22 @@ public class TutorialManager : Singleton<TutorialManager>
     [SerializeField] private GameObject _workersExplanationUI;
     [Tooltip("UI object that explains the game goal and win condition")]
     [SerializeField] private GameObject _goalExplanationUI;
+    [Tooltip("Final tutorial blocker shown after goal explanation")]
+    [SerializeField] private GameObject _endBlockerUI;
     
     [Header("Tutorial Triggers")]
     [Tooltip("Player cannot move past this X value until they pick up grass")]
-    [SerializeField] private float _grassPickupBlockerXThreshold = 3f;
+    [SerializeField] private float _grassPickupBlockerXThreshold;
     [Tooltip("Player cannot move past this X value until they build and enter a den")]
-    [SerializeField] private float _denEntryBlockerXThreshold = 8f;
+    [SerializeField] private float _denEntryBlockerXThreshold;
     [Tooltip("Player X position threshold for showing hunger explanation")]
-    [SerializeField] private float _hungerExplanationXThreshold = 5f;
+    [SerializeField] private float _hungerExplanationXThreshold;
     [Tooltip("Player X position threshold for showing sticks explanation")]
-    [SerializeField] private float _sticksExplanationXThreshold = 10f;
+    [SerializeField] private float _sticksExplanationXThreshold;
     [Tooltip("Player X position threshold for showing rabbits and dens explanation")]
-    [SerializeField] private float _rabbitsAndDensExplanationXThreshold = 15f;
+    [SerializeField] private float _rabbitsAndDensExplanationXThreshold;
     [Tooltip("Player Y position threshold for showing goal explanation")]
-    [SerializeField] private float _goalExplanationYThreshold = 10f;
+    [SerializeField] private float _goalExplanationYThreshold;
 
     private TutorialLevelLoader _tutorialLevelLoader;
     private bool _denManagementUnlocked = false;
@@ -56,10 +60,13 @@ public class TutorialManager : Singleton<TutorialManager>
     private bool _rabbitsAndDensExplanationShown = false;
     private bool _denUIExplanationShown = false;
     private bool _denUITeleportExplanationShown = false;
+    private bool _teleportBackExplanationShown = false;
+    private int _playerTeleportCount = 0;
     private bool _breedExplanationShown = false;
     private bool _denInventoryExplanationShown = false;
     private bool _workersExplanationShown = false;
     private bool _goalExplanationShown = false;
+    private bool _endBlockerShown = false;
     private bool _hasEatenFood = false;
     private bool _hasPickedUpGrass = false;
     private bool _hasEnteredDen = false;
@@ -76,6 +83,7 @@ public class TutorialManager : Singleton<TutorialManager>
         {
             return (_denUIExplanationUI != null && _denUIExplanationUI.activeSelf) ||
                    (_denUITeleportExplanationUI != null && _denUITeleportExplanationUI.activeSelf) ||
+                   (_teleportBackExplanationUI != null && _teleportBackExplanationUI.activeSelf) ||
                    (_denInventoryExplanationUI != null && _denInventoryExplanationUI.activeSelf) ||
                    (_breedExplanationUI != null && _breedExplanationUI.activeSelf) ||
                    (_workersExplanationUI != null && _workersExplanationUI.activeSelf);
@@ -149,6 +157,12 @@ public class TutorialManager : Singleton<TutorialManager>
             _denUITeleportExplanationUI.SetActive(false);
         }
         
+        // Hide teleport back explanation at start
+        if (_teleportBackExplanationUI != null)
+        {
+            _teleportBackExplanationUI.SetActive(false);
+        }
+        
         // Hide breed explanation at start
         if (_breedExplanationUI != null)
         {
@@ -171,6 +185,12 @@ public class TutorialManager : Singleton<TutorialManager>
         if (_goalExplanationUI != null)
         {
             _goalExplanationUI.SetActive(false);
+        }
+        
+        // Hide end blocker at start
+        if (_endBlockerUI != null)
+        {
+            _endBlockerUI.SetActive(false);
         }
     }
     
@@ -371,10 +391,26 @@ public class TutorialManager : Singleton<TutorialManager>
     
     private void OnPlayerTeleported()
     {
-        // Close teleport explanation when player actually teleports
-        if (_denUITeleportExplanationShown && _denUITeleportExplanationUI != null && _denUITeleportExplanationUI.activeSelf)
+        // Increment teleport counter
+        _playerTeleportCount++;
+        
+        // First teleport: Close initial teleport explanation and show teleport back blocker
+        if (_playerTeleportCount == 1 && _denUITeleportExplanationShown && _denUITeleportExplanationUI != null && _denUITeleportExplanationUI.activeSelf)
         {
             _denUITeleportExplanationUI.SetActive(false);
+            
+            // Show teleport back explanation
+            if (!_teleportBackExplanationShown && _teleportBackExplanationUI != null)
+            {
+                _teleportBackExplanationShown = true;
+                _teleportBackExplanationUI.SetActive(true);
+                // Time stays paused - den panel is still open
+            }
+        }
+        // Second teleport: Close teleport back blocker and show den inventory tutorial
+        else if (_playerTeleportCount == 2 && _teleportBackExplanationShown && _teleportBackExplanationUI != null && _teleportBackExplanationUI.activeSelf)
+        {
+            _teleportBackExplanationUI.SetActive(false);
             
             // Show den inventory tutorial
             if (!_denInventoryExplanationShown && _denInventoryExplanationUI != null)
@@ -497,10 +533,25 @@ public class TutorialManager : Singleton<TutorialManager>
             return;
         }
         
-        // Close goal explanation if shown
+        // Transition from goal explanation to end blocker
         if (_goalExplanationShown && _goalExplanationUI != null && _goalExplanationUI.activeSelf)
         {
             _goalExplanationUI.SetActive(false);
+            
+            // Show end blocker next
+            if (!_endBlockerShown && _endBlockerUI != null)
+            {
+                _endBlockerUI.SetActive(true);
+                _endBlockerShown = true;
+                // Time stays paused
+            }
+            return;
+        }
+        
+        // Close end blocker - final tutorial blocker
+        if (_endBlockerShown && _endBlockerUI != null && _endBlockerUI.activeSelf)
+        {
+            _endBlockerUI.SetActive(false);
             TimeManager.Instance?.Resume();
             return;
         }
@@ -521,6 +572,7 @@ public class TutorialManager : Singleton<TutorialManager>
         }
         
         // Note: Den UI teleport explanation closes automatically when player teleports (see OnPlayerTeleported)
+        // Note: Teleport back explanation closes automatically when player teleports a second time (see OnPlayerTeleported)
         // Note: Den inventory explanation closes automatically when player deposits items (see OnItemsDeposited)
         // Note: Breed explanation transitions automatically when player creates a worker (see OnWorkerCreated)
         // Note: Workers explanation closes automatically when player assigns a worker (see OnWorkerAssigned)

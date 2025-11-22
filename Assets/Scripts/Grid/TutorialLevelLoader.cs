@@ -31,6 +31,69 @@ public class TutorialLevelLoader : MonoBehaviour
     [SerializeField] private Vector2Int _rockPatchStart = new Vector2Int(-1, 5);
     [Tooltip("End point for rock patch rectangle")]
     [SerializeField] private Vector2Int _rockPatchEnd = new Vector2Int(-1, 5);
+    
+    [Header("Procedural Generation (Upper Area)")]
+    [Tooltip("Y level above which Perlin noise generation is applied (set to -1 to disable)")]
+    [SerializeField] private int _proceduralYThreshold = 15;
+    
+    [Header("Perlin Noise Settings")]
+    [Tooltip("Scale of the Perlin noise for terrain generation (higher = more variation)")]
+    [SerializeField] private float _terrainNoiseScale = 0.1f;
+    
+    [Tooltip("Scale of the Perlin noise for obstacle generation (higher = more variation)")]
+    [SerializeField] private float _obstacleNoiseScale = 0.15f;
+    
+    [Tooltip("Threshold for water tiles (noise value below this becomes water)")]
+    [Range(0f, 1f)]
+    [SerializeField] private float _waterThreshold = 0.3f;
+    
+    [Tooltip("Threshold for grass tiles (noise value between waterThreshold and this becomes grass)")]
+    [Range(0f, 1f)]
+    [SerializeField] private float _grassThreshold = 0.7f;
+    
+    [Tooltip("Threshold for obstacles (obstacle noise value above this creates obstacles)")]
+    [Range(0f, 1f)]
+    [SerializeField] private float _obstacleThreshold = 0.85f;
+    
+    [Tooltip("Random seed for Perlin noise generation (0 = random each time)")]
+    [SerializeField] private int _perlinSeed = 0;
+    
+    [Header("Procedural Spawn Settings")]
+    [Tooltip("Number of rabbit spawners to spawn in procedural area")]
+    [SerializeField] private int _proceduralRabbitSpawnerCount = 2;
+    
+    [Tooltip("Number of worm spawners to spawn in procedural area")]
+    [SerializeField] private int _proceduralWormSpawnerCount = 2;
+    
+    [Tooltip("Number of bushes to spawn in procedural area")]
+    [SerializeField] private int _proceduralBushCount = 5;
+    
+    [Tooltip("Number of grass interactables to spawn in procedural area")]
+    [SerializeField] private int _proceduralGrassCount = 5;
+    
+    [Tooltip("Number of sticks to spawn in procedural area")]
+    [SerializeField] private int _proceduralStickCount = 3;
+    
+    [Tooltip("Number of food items to spawn in procedural area")]
+    [SerializeField] private int _proceduralFoodCount = 5;
+    
+    [Tooltip("Number of predator patches to spawn in procedural area")]
+    [SerializeField] private int _proceduralPredatorPatchCount = 1;
+    
+    [Tooltip("Number of predators per patch in procedural area")]
+    [SerializeField] private int _proceduralPredatorsPerPatch = 2;
+    
+    [Tooltip("Radius of predator patches in procedural area")]
+    [SerializeField] private int _proceduralPredatorPatchRadius = 3;
+    
+    [Tooltip("Names of predator animals for procedural area (e.g., 'Wolf', 'Hawk')")]
+    [SerializeField] private string[] _proceduralPredatorNames = new string[] { "Wolf", "Hawk" };
+    
+    [Tooltip("Name of food item to spawn in procedural area")]
+    [SerializeField] private string _proceduralFoodItemName = "Food";
+    
+    [Tooltip("Name of sticks item to spawn in procedural area")]
+    [SerializeField] private string _proceduralStickItemName = "Sticks";
 
     [System.Serializable]
     public class TilePlacement
@@ -340,8 +403,77 @@ public class TutorialLevelLoader : MonoBehaviour
             }
             Debug.Log($"TutorialLevelLoader: Created rock patch from ({startX}, {startY}) to ({endX}, {endY}) with {rockCount} tiles");
         }
+        
+        // Apply Perlin noise generation to tiles above Y threshold (if enabled)
+        if (_proceduralYThreshold >= 0)
+        {
+            // Set random seed if specified
+            if (_perlinSeed != 0)
+            {
+                Random.InitState(_perlinSeed);
+            }
+            
+            // Generate random offsets for Perlin noise
+            float terrainOffsetX = Random.Range(0f, 1000f);
+            float terrainOffsetY = Random.Range(0f, 1000f);
+            float obstacleOffsetX = Random.Range(0f, 1000f);
+            float obstacleOffsetY = Random.Range(0f, 1000f);
+            
+            int proceduralTilesGenerated = 0;
+            
+            // Apply Perlin noise only to tiles at or above the Y threshold
+            for (int i = 0; i < levelData.Tiles.Count; i++)
+            {
+                var (x, y, currentTileType) = levelData.Tiles[i];
+                
+                // Only apply to tiles at or above threshold
+                if (y < _proceduralYThreshold)
+                    continue;
+                
+                // Skip border walls
+                if (_addBorderWalls && (x == 0 || x == _levelWidth - 1 || y == 0 || y == _levelHeight - 1))
+                    continue;
+                
+                // Sample Perlin noise for terrain
+                float terrainNoise = Mathf.PerlinNoise(
+                    terrainOffsetX + x * _terrainNoiseScale,
+                    terrainOffsetY + y * _terrainNoiseScale
+                );
+                
+                // Sample Perlin noise for obstacles
+                float obstacleNoise = Mathf.PerlinNoise(
+                    obstacleOffsetX + x * _obstacleNoiseScale,
+                    obstacleOffsetY + y * _obstacleNoiseScale
+                );
+                
+                // Determine tile type based on noise values
+                TileType newTileType;
+                if (obstacleNoise > _obstacleThreshold)
+                {
+                    newTileType = TileType.Obstacle;
+                }
+                else if (terrainNoise < _waterThreshold)
+                {
+                    newTileType = TileType.Water;
+                }
+                else if (terrainNoise < _grassThreshold)
+                {
+                    newTileType = TileType.Grass;
+                }
+                else
+                {
+                    newTileType = TileType.Empty;
+                }
+                
+                // Update the tile
+                levelData.Tiles[i] = (x, y, newTileType);
+                proceduralTilesGenerated++;
+            }
+            
+            Debug.Log($"TutorialLevelLoader: Generated {proceduralTilesGenerated} procedural tiles above Y={_proceduralYThreshold} using Perlin noise");
+        }
 
-        // Initialize lists
+        // Initialize lists BEFORE any spawns are added
         levelData.Animals = new List<(string animalName, int x, int y, int count)>();
         levelData.Items = new List<(string itemName, int x, int y)>();
         levelData.Interactables = new List<InteractableData>();
@@ -354,6 +486,12 @@ public class TutorialLevelLoader : MonoBehaviour
         levelData.WormSpawners = new List<(int x, int y)>();
         levelData.Bushes = new List<(int x, int y)>();
         levelData.Grasses = new List<(int x, int y)>();
+        
+        // Generate spawns in procedural area (after lists are initialized)
+        if (_proceduralYThreshold >= 0)
+        {
+            GenerateProceduralSpawns(levelData);
+        }
 
         // Place den
         if (IsValidGridPosition(_denPosition.x, _denPosition.y))
@@ -514,6 +652,278 @@ public class TutorialLevelLoader : MonoBehaviour
         return levelData;
     }
 
+    /// <summary>
+    /// Generates procedural spawns (dens, interactables, items) in the area above Y threshold.
+    /// </summary>
+    private void GenerateProceduralSpawns(LevelData levelData)
+    {
+        // Collect walkable positions in procedural area only
+        List<Vector2Int> proceduralPositions = new List<Vector2Int>();
+        List<Vector2Int> proceduralGrassPositions = new List<Vector2Int>();
+        
+        foreach (var (x, y, tileType) in levelData.Tiles)
+        {
+            // Only consider positions at or above Y threshold
+            if (y < _proceduralYThreshold)
+                continue;
+            
+            // Skip obstacles
+            if (tileType == TileType.Obstacle)
+                continue;
+            
+            Vector2Int pos = new Vector2Int(x, y);
+            
+            // Add to walkable positions
+            if (tileType != TileType.Water)
+            {
+                proceduralPositions.Add(pos);
+            }
+            
+            // Track grass positions separately
+            if (tileType == TileType.Grass)
+            {
+                proceduralGrassPositions.Add(pos);
+            }
+        }
+        
+        if (proceduralPositions.Count == 0)
+        {
+            Debug.LogWarning("TutorialLevelLoader: No walkable positions in procedural area. Skipping procedural spawns.");
+            return;
+        }
+        
+        Debug.Log($"TutorialLevelLoader: Found {proceduralPositions.Count} walkable positions in procedural area ({proceduralGrassPositions.Count} grass tiles)");
+        
+        // Helper to check if position is already occupied
+        bool IsOccupied(Vector2Int pos)
+        {
+            foreach (var interactable in levelData.Interactables)
+            {
+                if (interactable.X == pos.x && interactable.Y == pos.y)
+                    return true;
+            }
+            foreach (var (_, ix, iy) in levelData.Items)
+            {
+                if (ix == pos.x && iy == pos.y)
+                    return true;
+            }
+            return false;
+        }
+        
+        // Spawn rabbit spawners
+        for (int i = 0; i < _proceduralRabbitSpawnerCount && proceduralPositions.Count > 0; i++)
+        {
+            int attempts = 0;
+            while (attempts < 100 && proceduralPositions.Count > 0)
+            {
+                int index = Random.Range(0, proceduralPositions.Count);
+                Vector2Int pos = proceduralPositions[index];
+                attempts++;
+                
+                if (!IsOccupied(pos))
+                {
+                    levelData.RabbitSpawners.Add((pos.x, pos.y));
+                    levelData.Interactables.Add(new InteractableData(InteractableType.RabbitSpawner, pos.x, pos.y));
+                    proceduralPositions.RemoveAt(index);
+                    break;
+                }
+            }
+        }
+        
+        // Spawn worm spawners
+        List<Vector2Int> wormPositions = proceduralGrassPositions.Count > 0 ? new List<Vector2Int>(proceduralGrassPositions) : new List<Vector2Int>(proceduralPositions);
+        for (int i = 0; i < _proceduralWormSpawnerCount && wormPositions.Count > 0; i++)
+        {
+            int attempts = 0;
+            while (attempts < 100 && wormPositions.Count > 0)
+            {
+                int index = Random.Range(0, wormPositions.Count);
+                Vector2Int pos = wormPositions[index];
+                attempts++;
+                
+                if (!IsOccupied(pos))
+                {
+                    levelData.WormSpawners.Add((pos.x, pos.y));
+                    levelData.Interactables.Add(new InteractableData(InteractableType.WormSpawner, pos.x, pos.y));
+                    wormPositions.RemoveAt(index);
+                    proceduralPositions.Remove(pos);
+                    break;
+                }
+            }
+        }
+        
+        // Spawn bushes on grass tiles
+        List<Vector2Int> bushPositions = new List<Vector2Int>(proceduralGrassPositions);
+        for (int i = 0; i < _proceduralBushCount && bushPositions.Count > 0; i++)
+        {
+            int attempts = 0;
+            while (attempts < 100 && bushPositions.Count > 0)
+            {
+                int index = Random.Range(0, bushPositions.Count);
+                Vector2Int pos = bushPositions[index];
+                attempts++;
+                
+                if (!IsOccupied(pos))
+                {
+                    levelData.Bushes.Add((pos.x, pos.y));
+                    levelData.Interactables.Add(new InteractableData(InteractableType.Bush, pos.x, pos.y));
+                    bushPositions.RemoveAt(index);
+                    proceduralPositions.Remove(pos);
+                    break;
+                }
+            }
+        }
+        
+        // Spawn grass interactables on grass tiles
+        List<Vector2Int> grassIntPositions = new List<Vector2Int>(proceduralGrassPositions);
+        for (int i = 0; i < _proceduralGrassCount && grassIntPositions.Count > 0; i++)
+        {
+            int attempts = 0;
+            while (attempts < 100 && grassIntPositions.Count > 0)
+            {
+                int index = Random.Range(0, grassIntPositions.Count);
+                Vector2Int pos = grassIntPositions[index];
+                attempts++;
+                
+                if (!IsOccupied(pos))
+                {
+                    levelData.Grasses.Add((pos.x, pos.y));
+                    levelData.Interactables.Add(new InteractableData(InteractableType.Grass, pos.x, pos.y));
+                    grassIntPositions.RemoveAt(index);
+                    proceduralPositions.Remove(pos);
+                    break;
+                }
+            }
+        }
+        
+        // Spawn sticks on grass tiles
+        if (!string.IsNullOrEmpty(_proceduralStickItemName))
+        {
+            List<Vector2Int> stickPositions = new List<Vector2Int>(proceduralGrassPositions);
+            for (int i = 0; i < _proceduralStickCount && stickPositions.Count > 0; i++)
+            {
+                int attempts = 0;
+                while (attempts < 100 && stickPositions.Count > 0)
+                {
+                    int index = Random.Range(0, stickPositions.Count);
+                    Vector2Int pos = stickPositions[index];
+                    attempts++;
+                    
+                    if (!IsOccupied(pos))
+                    {
+                        levelData.Items.Add((_proceduralStickItemName, pos.x, pos.y));
+                        stickPositions.RemoveAt(index);
+                        proceduralPositions.Remove(pos);
+                        break;
+                    }
+                }
+            }
+        }
+        
+        // Spawn predator patches with dens
+        if (_proceduralPredatorNames != null && _proceduralPredatorNames.Length > 0)
+        {
+            // Create a list to ensure at least one of each predator type is assigned
+            List<string> predatorTypesToAssign = new List<string>(_proceduralPredatorNames);
+            
+            // Shuffle the list to randomize which patch gets which type
+            for (int i = 0; i < predatorTypesToAssign.Count; i++)
+            {
+                int randomIndex = Random.Range(i, predatorTypesToAssign.Count);
+                string temp = predatorTypesToAssign[i];
+                predatorTypesToAssign[i] = predatorTypesToAssign[randomIndex];
+                predatorTypesToAssign[randomIndex] = temp;
+            }
+            
+            // Ensure we have enough patches for all predator types
+            int minPatchCount = Mathf.Max(_proceduralPredatorPatchCount, _proceduralPredatorNames.Length);
+            
+            for (int patch = 0; patch < minPatchCount && proceduralPositions.Count > 0; patch++)
+            {
+                // Find center for predator den
+                Vector2Int patchCenter = Vector2Int.zero;
+                bool foundCenter = false;
+                
+                for (int attempt = 0; attempt < 100 && proceduralPositions.Count > 0; attempt++)
+                {
+                    int index = Random.Range(0, proceduralPositions.Count);
+                    Vector2Int pos = proceduralPositions[index];
+                    
+                    if (!IsOccupied(pos))
+                    {
+                        patchCenter = pos;
+                        foundCenter = true;
+                        break;
+                    }
+                }
+                
+                if (!foundCenter)
+                    continue;
+                
+                // Pick predator type for this patch
+                string patchPredatorType = patch < predatorTypesToAssign.Count 
+                    ? predatorTypesToAssign[patch] 
+                    : _proceduralPredatorNames[Random.Range(0, _proceduralPredatorNames.Length)];
+                
+                // Spawn predator den
+                levelData.PredatorDens.Add((patchCenter.x, patchCenter.y, patchPredatorType));
+                levelData.Interactables.Add(new InteractableData(InteractableType.PredatorDen, patchCenter.x, patchCenter.y, patchPredatorType));
+                proceduralPositions.Remove(patchCenter);
+                
+                // Spawn predators around den
+                List<Vector2Int> patchPositions = new List<Vector2Int>();
+                for (int dx = -_proceduralPredatorPatchRadius; dx <= _proceduralPredatorPatchRadius; dx++)
+                {
+                    for (int dy = -_proceduralPredatorPatchRadius; dy <= _proceduralPredatorPatchRadius; dy++)
+                    {
+                        Vector2Int candidatePos = patchCenter + new Vector2Int(dx, dy);
+                        
+                        if (candidatePos.y >= _proceduralYThreshold && proceduralPositions.Contains(candidatePos))
+                        {
+                            patchPositions.Add(candidatePos);
+                        }
+                    }
+                }
+                
+                for (int i = 0; i < Mathf.Min(patchPositions.Count, _proceduralPredatorsPerPatch); i++)
+                {
+                    int randomIndex = Random.Range(i, patchPositions.Count);
+                    Vector2Int predatorPos = patchPositions[randomIndex];
+                    Vector2Int temp = patchPositions[i];
+                    patchPositions[i] = patchPositions[randomIndex];
+                    patchPositions[randomIndex] = temp;
+                    
+                    levelData.Animals.Add((patchPredatorType, predatorPos.x, predatorPos.y, 1));
+                    proceduralPositions.Remove(predatorPos);
+                }
+            }
+            
+            // Log which predator types were spawned
+            var spawnedTypes = new System.Collections.Generic.HashSet<string>();
+            foreach (var (_, _, predType) in levelData.PredatorDens)
+            {
+                spawnedTypes.Add(predType);
+            }
+            Debug.Log($"TutorialLevelLoader: Spawned {levelData.PredatorDens.Count} predator patches. Types: {string.Join(", ", spawnedTypes)}");
+        }
+        
+        // Spawn food items
+        if (!string.IsNullOrEmpty(_proceduralFoodItemName))
+        {
+            for (int i = 0; i < _proceduralFoodCount && proceduralPositions.Count > 0; i++)
+            {
+                int index = Random.Range(0, proceduralPositions.Count);
+                Vector2Int pos = proceduralPositions[index];
+                
+                levelData.Items.Add((_proceduralFoodItemName, pos.x, pos.y));
+                levelData.FoodCount++;
+                proceduralPositions.RemoveAt(index);
+            }
+        }
+        
+        Debug.Log($"TutorialLevelLoader: Spawned procedural content above Y={_proceduralYThreshold}");
+    }
+    
     /// <summary>
     /// Checks if a grid position is valid for the current level dimensions.
     /// </summary>
