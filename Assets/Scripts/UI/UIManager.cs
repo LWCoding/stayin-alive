@@ -53,6 +53,7 @@ public class UIManager : Singleton<UIManager>
     private Vignette _vignette = null;
     private float _defaultVignetteIntensity = 0.4f;
     private bool _vignetteInitialized = false;
+    private bool _hasPlayedHungerSoundForCurrentState = true;
 
     public ControllableAnimal TrackedAnimal => _trackedAnimal;
 
@@ -141,6 +142,9 @@ public class UIManager : Singleton<UIManager>
 
         _trackedAnimal = animal;
         
+        // Reset hunger sound flag when tracking a new animal
+        _hasPlayedHungerSoundForCurrentState = false;
+        
         // Store original color if we haven't already (in case image was assigned after Awake)
         if (!_hasStoredOriginalColor && _hungerBarImage != null)
         {
@@ -187,17 +191,25 @@ public class UIManager : Singleton<UIManager>
             rectTransform.localScale = new Vector3(currentScale.x, hungerRatio, currentScale.z);
         }
 
-        // Handle color change and vignette based on hunger level
         if (hungerRatio <= _lowHungerThreshold)
         {
             SetLowHungerColor(true);
             SetCriticalHungerVignette(true);
-            AudioManager.Instance.PlaySFX(AudioManager.SFXType.Hunger);
+            
+            // Only play hunger sound when transitioning from not-low-hunger to low-hunger
+            if (!_hasPlayedHungerSoundForCurrentState)
+            {
+                AudioManager.Instance.PlaySFX(AudioManager.SFXType.Hunger);
+                _hasPlayedHungerSoundForCurrentState = true;
+            }
         }
         else
         {
             SetLowHungerColor(false);
             SetCriticalHungerVignette(false);
+            
+            // Reset the flag when hunger recovers above threshold
+            _hasPlayedHungerSoundForCurrentState = false;
         }
     }
 

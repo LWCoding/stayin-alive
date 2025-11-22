@@ -84,7 +84,6 @@ public class AudioManager : Singleton<AudioManager>
     private MusicType currentMusicType = MusicType.Menu;
     private Coroutine currentSeasonSFXFade;
     private SFXType currentSeasonSFXType = SFXType.None;
-    private bool _isHungerSoundPlaying = false;
 
     [Header("Startup Settings")]
     [SerializeField] private bool autoplayMusicOnStart = false;
@@ -234,38 +233,8 @@ public class AudioManager : Singleton<AudioManager>
             return;
         }
 
-        // Check if hunger sound is already playing
-        if (type == SFXType.Hunger && _isHungerSoundPlaying)
-        {
-            return;
-        }
-
         float finalVolume = (volume >= 0f) ? Mathf.Clamp01(volume) : entry.volume;
         sfxSource.PlayOneShot(entry.clip, finalVolume);
-        
-        // Track hunger sound playback
-        if (type == SFXType.Hunger)
-        {
-            _isHungerSoundPlaying = true;
-            StartCoroutine(ResetHungerSoundFlag(entry.clip.length));
-        }
-    }
-    
-    /// <summary>
-    /// Checks if a hunger sound is currently playing.
-    /// </summary>
-    public bool IsHungerSoundPlaying()
-    {
-        return _isHungerSoundPlaying;
-    }
-    
-    /// <summary>
-    /// Coroutine to reset the hunger sound flag after the clip duration.
-    /// </summary>
-    private IEnumerator ResetHungerSoundFlag(float duration)
-    {
-        yield return new WaitForSeconds(duration);
-        _isHungerSoundPlaying = false;
     }
 
     public void PlaySFX(AudioClip clip, float volume = 1f)
