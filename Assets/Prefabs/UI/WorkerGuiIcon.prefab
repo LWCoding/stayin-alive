@@ -148,6 +148,7 @@ GameObject:
   - component: {fileID: 7250221709186363577}
   - component: {fileID: 4476753950361481666}
   - component: {fileID: 1264188349810161186}
+  - component: {fileID: 4932943189704643309}
   m_Layer: 5
   m_Name: WorkerGuiIcon
   m_TagString: Untagged
@@ -307,3 +308,16 @@ MonoBehaviour:
           m_StringArgument: 
           m_BoolArgument: 0
         m_CallState: 2
+--- !u!114 &4932943189704643309
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7195815849245479350}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7bfc692e142f6774a8dd3680d8136365, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  onlyPlayWhenInteractable: 1

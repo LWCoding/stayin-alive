@@ -117,6 +117,9 @@ public class TimeManager : Singleton<TimeManager>
 		UpdateSeasonImage();
 		UpdateSeasonText();
 		UpdatePostProcessingColors();
+		
+		// Play initial Spring season SFX
+		PlaySeasonChangeSFX(Season.Spring);
 
 		OnTurnAdvanced?.Invoke(_playerTurnCount);
 	}
@@ -169,6 +172,9 @@ public class TimeManager : Singleton<TimeManager>
 			UpdateSeasonImage();
 			UpdateSeasonText();
 			UpdatePostProcessingColors();
+			
+			// Play season change SFX
+			PlaySeasonChangeSFX(newSeason);
 		}
 
 		// Update progress bar to show progress through current season
@@ -381,6 +387,44 @@ public class TimeManager : Singleton<TimeManager>
 	/// Returns the current season.
 	/// </summary>
 	public Season CurrentSeason => _currentSeason;
+
+	/// <summary>
+	/// Plays the appropriate season SFX when a season changes.
+	/// The previous season SFX will fade out before the new one plays.
+	/// </summary>
+	private void PlaySeasonChangeSFX(Season season)
+	{
+		if (AudioManager.Instance == null)
+		{
+			return;
+		}
+
+		AudioManager.SFXType seasonSFX = GetSeasonSFXType(season);
+		if (seasonSFX != AudioManager.SFXType.None)
+		{
+			AudioManager.Instance.PlaySeasonSFX(seasonSFX);
+		}
+	}
+
+	/// <summary>
+	/// Converts a TimeManager Season to the corresponding AudioManager SFXType.
+	/// </summary>
+	private AudioManager.SFXType GetSeasonSFXType(Season season)
+	{
+		switch (season)
+		{
+			case Season.Spring:
+				return AudioManager.SFXType.Spring;
+			case Season.Summer:
+				return AudioManager.SFXType.Summer;
+			case Season.Fall:
+				return AudioManager.SFXType.Fall;
+			case Season.Winter:
+				return AudioManager.SFXType.Winter;
+			default:
+				return AudioManager.SFXType.None;
+		}
+	}
 }
 
 
