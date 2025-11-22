@@ -186,7 +186,8 @@ MonoBehaviour:
   _spriteRenderer: {fileID: 4365863011055333245}
   _unoccupiedSprite: {fileID: 21300000, guid: 9bae0cbfcfb9c394d806bc8e73ce3d07, type: 3}
   _occupiedSprite: {fileID: 21300000, guid: c1d6ac7e5ef3bc445806a7e746689193, type: 3}
-  _playerInDenObject: {fileID: 4757720460919386697}
+  _occupancyIndicator: {fileID: 5624819735414355554}
+  _eToManageObject: {fileID: 3961178406118661933}
   denCamera: {fileID: 9195386478035425565}
 --- !u!1 &3060845698283818253
 GameObject:
@@ -614,6 +615,11 @@ PrefabInstance:
 --- !u!4 &5277092526718604675 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 612489783654934166, guid: 80edd5b5a5223694aba4058948437c9b, type: 3}
+  m_PrefabInstance: {fileID: 4736660388708397845}
+  m_PrefabAsset: {fileID: 0}
+--- !u!1 &5624819735414355554 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 1131705570841724279, guid: 80edd5b5a5223694aba4058948437c9b, type: 3}
   m_PrefabInstance: {fileID: 4736660388708397845}
   m_PrefabAsset: {fileID: 0}
 --- !u!1001 &8891964192255059325

@@ -379,6 +379,12 @@ public class Animal : MonoBehaviour
             return;
         }
 
+        // Check if in tutorial and hunger is disabled
+        if (TutorialManager.Instance != null && !TutorialManager.Instance.IsHungerEnabled)
+        {
+            return;
+        }
+
         _currentHunger -= amount;
         if (_currentHunger <= 0)
         {
