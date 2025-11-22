@@ -313,6 +313,19 @@ public class ProceduralLevelLoader : MonoBehaviour
     }
 
     /// <summary>
+    /// Checks if a position is already occupied by any item.
+    /// </summary>
+    private bool IsPositionOccupiedByItem(Vector2Int pos, LevelData levelData)
+    {
+        foreach (var (itemName, x, y) in levelData.Items)
+        {
+            if (x == pos.x && y == pos.y)
+                return true;
+        }
+        return false;
+    }
+
+    /// <summary>
     /// Generates spawn positions for animals, dens, and items.
     /// </summary>
     private void GenerateSpawnPositions(LevelData levelData)
@@ -547,7 +560,8 @@ public class ProceduralLevelLoader : MonoBehaviour
 			List<Vector2Int> grassPositionsForSticks = new List<Vector2Int>();
 			foreach (Vector2Int pos in spawnPositions)
 			{
-				if (IsPositionOccupiedByInteractable(pos, levelData))
+				// Skip if position is already occupied by an interactable or another item
+				if (IsPositionOccupiedByInteractable(pos, levelData) || IsPositionOccupiedByItem(pos, levelData))
 					continue;
 
 				TileType tileType = TileType.Empty;
@@ -560,6 +574,7 @@ public class ProceduralLevelLoader : MonoBehaviour
 					}
 				}
 
+				// Only spawn sticks on grass tiles (not water, not obstacles, not empty)
 				if (tileType == TileType.Grass)
 				{
 					grassPositionsForSticks.Add(pos);
