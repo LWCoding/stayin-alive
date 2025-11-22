@@ -129,7 +129,6 @@ public class CutsceneManager : MonoBehaviour
     private Coroutine _typingCoroutine = null;
     private Coroutine _typingAudioCoroutine = null;
     private Coroutine _animationWaitCoroutine = null;
-    private Coroutine _ratJumpCoroutine = null;
     private bool _isTyping = false;
     private string _currentFullText = "";
     private DialogueAnimation _currentAnimation = DialogueAnimation.None;
