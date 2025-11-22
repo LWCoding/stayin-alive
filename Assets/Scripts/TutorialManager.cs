@@ -24,6 +24,8 @@ public class TutorialManager : Singleton<TutorialManager>
     [SerializeField] private GameObject _denUIExplanationUI;
     [Tooltip("UI object that explains the den teleport feature")]
     [SerializeField] private GameObject _denUITeleportExplanationUI;
+    [Tooltip("UI object prompting player to teleport back to original den")]
+    [SerializeField] private GameObject _teleportBackExplanationUI;
     [Tooltip("UI object that explains breeding mechanics")]
     [SerializeField] private GameObject _breedExplanationUI;
     [Tooltip("UI object that explains den inventory management")]
@@ -58,6 +60,8 @@ public class TutorialManager : Singleton<TutorialManager>
     private bool _rabbitsAndDensExplanationShown = false;
     private bool _denUIExplanationShown = false;
     private bool _denUITeleportExplanationShown = false;
+    private bool _teleportBackExplanationShown = false;
+    private int _playerTeleportCount = 0;
     private bool _breedExplanationShown = false;
     private bool _denInventoryExplanationShown = false;
     private bool _workersExplanationShown = false;
@@ -79,6 +83,7 @@ public class TutorialManager : Singleton<TutorialManager>
         {
             return (_denUIExplanationUI != null && _denUIExplanationUI.activeSelf) ||
                    (_denUITeleportExplanationUI != null && _denUITeleportExplanationUI.activeSelf) ||
+                   (_teleportBackExplanationUI != null && _teleportBackExplanationUI.activeSelf) ||
                    (_denInventoryExplanationUI != null && _denInventoryExplanationUI.activeSelf) ||
                    (_breedExplanationUI != null && _breedExplanationUI.activeSelf) ||
                    (_workersExplanationUI != null && _workersExplanationUI.activeSelf);
@@ -150,6 +155,12 @@ public class TutorialManager : Singleton<TutorialManager>
         if (_denUITeleportExplanationUI != null)
         {
             _denUITeleportExplanationUI.SetActive(false);
+        }
+        
+        // Hide teleport back explanation at start
+        if (_teleportBackExplanationUI != null)
+        {
+            _teleportBackExplanationUI.SetActive(false);
         }
         
         // Hide breed explanation at start
@@ -380,10 +391,26 @@ public class TutorialManager : Singleton<TutorialManager>
     
     private void OnPlayerTeleported()
     {
-        // Close teleport explanation when player actually teleports
-        if (_denUITeleportExplanationShown && _denUITeleportExplanationUI != null && _denUITeleportExplanationUI.activeSelf)
+        // Increment teleport counter
+        _playerTeleportCount++;
+        
+        // First teleport: Close initial teleport explanation and show teleport back blocker
+        if (_playerTeleportCount == 1 && _denUITeleportExplanationShown && _denUITeleportExplanationUI != null && _denUITeleportExplanationUI.activeSelf)
         {
             _denUITeleportExplanationUI.SetActive(false);
+            
+            // Show teleport back explanation
+            if (!_teleportBackExplanationShown && _teleportBackExplanationUI != null)
+            {
+                _teleportBackExplanationShown = true;
+                _teleportBackExplanationUI.SetActive(true);
+                // Time stays paused - den panel is still open
+            }
+        }
+        // Second teleport: Close teleport back blocker and show den inventory tutorial
+        else if (_playerTeleportCount == 2 && _teleportBackExplanationShown && _teleportBackExplanationUI != null && _teleportBackExplanationUI.activeSelf)
+        {
+            _teleportBackExplanationUI.SetActive(false);
             
             // Show den inventory tutorial
             if (!_denInventoryExplanationShown && _denInventoryExplanationUI != null)
@@ -545,6 +572,7 @@ public class TutorialManager : Singleton<TutorialManager>
         }
         
         // Note: Den UI teleport explanation closes automatically when player teleports (see OnPlayerTeleported)
+        // Note: Teleport back explanation closes automatically when player teleports a second time (see OnPlayerTeleported)
         // Note: Den inventory explanation closes automatically when player deposits items (see OnItemsDeposited)
         // Note: Breed explanation transitions automatically when player creates a worker (see OnWorkerCreated)
         // Note: Workers explanation closes automatically when player assigns a worker (see OnWorkerAssigned)
