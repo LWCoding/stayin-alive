@@ -232,6 +232,12 @@ public class ControllableAnimal : Animal
             return;
         }
 
+        // Block movement if dying from starvation (death animation is playing)
+        if (IsDyingFromStarvation)
+        {
+            return;
+        }
+
         // Block movement if the den admin panel is open
         if (DenSystemManager.Instance != null && DenSystemManager.Instance.PanelOpen)
         {
