@@ -1289,8 +1289,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 035606061360caf439f8703e503af46f, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _levelWidth: 40
-  _levelHeight: 40
+  _levelWidth: 50
+  _levelHeight: 50
   _terrainNoiseScale: 0.1
   _obstacleNoiseScale: 0.15
   _waterThreshold: 0.25
@@ -1301,17 +1301,17 @@ MonoBehaviour:
   _controllableAnimalName: KangarooRat
   _controllableAnimalCount: 4
   _predatorPatchCount: 3
-  _predatorsPerPatch: 2
+  _predatorsPerPatch: 3
   _predatorPatchRadius: 2
   _predatorNames:
   - Coyote
   - Hawk
-  _rabbitSpawnerCount: 3
-  _wormSpawnerCount: 1
+  _rabbitSpawnerCount: 4
+  _wormSpawnerCount: 2
   _foodItemName: Worm
-  _foodItemCount: 3
+  _foodItemCount: 5
   _bushCount: 8
-  _grassCount: 16
+  _grassCount: 24
   _stickItemName: Sticks
   _stickCount: 5
 --- !u!1 &476097330
