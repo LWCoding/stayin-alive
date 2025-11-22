@@ -41,6 +41,7 @@ public class DenInventoryPanelGuiController : MonoBehaviour {
       DenMenuInventorySlotGui newSlot = Instantiate(inventorySlotPrefab, inventoryBar).GetComponent<DenMenuInventorySlotGui>();
       newSlot.Setup(invItem.ItemName);
       inventorySlots.Add(newSlot);
+      Destroy(invItem.gameObject);
     }
   }
 }

@@ -298,6 +298,8 @@ public class ItemManager : Singleton<ItemManager>
       // Create a temporary instance to call OnUse
       GameObject tempItemObj = Instantiate(prefab);
       Item item = tempItemObj.GetComponent<Item>();
+      // Just beyond the clipping plane of camera!
+      tempItemObj.transform.position += new Vector3(0, 0, 1001);
       return item;
     }
     

@@ -161,6 +161,7 @@ public class DenSystemManager : Singleton<DenSystemManager> {
 
   public void AddItemToDenInventory(Item item) {
     if (item is FoodItem) {
+      logHolder.SpawnLog(LogEntryGuiController.DenLogType.ADD_FOOD);
       foodItemsInDen.Add(item);
       AddFoodToDen(1);
     }
@@ -200,7 +201,13 @@ public class DenSystemManager : Singleton<DenSystemManager> {
     }
 
     storedDenFood -= amount;
-    foodItemsInDen.RemoveRange(0, amount);
+    for (int i = 0; i < foodItemsInDen.Count; i++) {
+      Item item_to_destroy = foodItemsInDen[0];
+      foodItemsInDen.RemoveRange(0,1);
+      Destroy(item_to_destroy.gameObject);
+    }
+    // foodItemsInDen.RemoveRange(0, amount);
+    
     DenAdminMenu.UpdateGui();
     return true;
   }
@@ -224,6 +231,7 @@ public class DenSystemManager : Singleton<DenSystemManager> {
     
     // If it is, remove the ItemObject from the Den System food item list
     foodItemsInDen.Remove(itemToTransfer);
+    Destroy(itemToTransfer.gameObject);
     storedDenFood--;
     DenAdminMenu.UpdateGui();
     return true;
@@ -248,6 +256,7 @@ public class DenSystemManager : Singleton<DenSystemManager> {
     
     // If it is, remove the ItemObject from the Den System food item list
     otherItemsInDen.Remove(itemToTransfer);
+    Destroy(itemToTransfer.gameObject);
     DenAdminMenu.UpdateGui();
     return true;
   }
@@ -256,12 +265,12 @@ public class DenSystemManager : Singleton<DenSystemManager> {
   public bool TransferItemToPlayer(Item itemToTransfer) {
     bool ret;
     if (itemToTransfer is FoodItem) {
-      int foodIndex = foodItemsInDen.FindIndex(item => item.ItemName == itemToTransfer.ItemName);
+      int foodIndex = foodItemsInDen.FindIndex(item => item == itemToTransfer);
       ret = TransferFoodItemToPlayerByIndex(foodIndex);
       DenAdminMenu.UpdateGui();
       return ret;
     } 
-    int otherIndex = otherItemsInDen.FindIndex(item => item.ItemName == itemToTransfer.ItemName);
+    int otherIndex = otherItemsInDen.FindIndex(item => item == itemToTransfer);
     ret = TransferOtherItemToPlayerByIndex(otherIndex);
     DenAdminMenu.UpdateGui();
     return ret;
@@ -434,6 +443,13 @@ public class DenSystemManager : Singleton<DenSystemManager> {
       RemoveUnassignedWorker(animal);
       Debug.Log($"Unassigned worker '{animal.name}' died and was removed from unassigned list.");
     }
+
+    if (animal.IsDyingFromStarvation) {
+      logHolder.SpawnLog(LogEntryGuiController.DenLogType.WORKER_STARVE);
+    }
+    else {
+      logHolder.SpawnLog(LogEntryGuiController.DenLogType.WORKER_EATEN);
+    }
     
     // Remove from the worker tracking dictionary
     workersToDens.Remove(animal);
@@ -554,6 +570,11 @@ public class DenSystemManager : Singleton<DenSystemManager> {
   [SerializeField]
   private DenAdminMenuGuiController denAdminMenu;
   public DenAdminMenuGuiController DenAdminMenu => denAdminMenu;
+  
+  [SerializeField]
+  private LogHolderGuiController logHolder;
+  
+  public LogHolderGuiController LogHolder => logHolder;
   
   public void RegisterDenAdministrator(DenAdministrator administrator) {
     currentDenAdministrator = administrator;

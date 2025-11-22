@@ -444,7 +444,7 @@ public class KangRatWorker : WorkerAnimal
 		{
 			IncreaseHunger(hungerRestored);
 		}
-
+    DenSystemManager.Instance.LogHolder.SpawnLog(LogEntryGuiController.DenLogType.TAKE_FOOD);
 		Debug.Log($"KangRatWorker '{name}' consumed stored den food. Hunger restored by {hungerRestored}. Current hunger: {CurrentHunger}. Remaining den food: {DenSystemManager.Instance.FoodInDen}");
 		return true;
 	}
