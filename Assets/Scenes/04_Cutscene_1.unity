@@ -2701,6 +2701,8 @@ MonoBehaviour:
   _grassObject: {fileID: 1105819260}
   _hawkObject: {fileID: 1215290133}
   _coyoteObject: {fileID: 1090868097}
+  _bonesObject: {fileID: 0}
+  _crowdObject: {fileID: 0}
   _objectFadeDuration: 0.5
   _stickDialogueIndex: 6
   _denDialogueIndex: 6
@@ -2708,6 +2710,11 @@ MonoBehaviour:
   _grassDialogueIndex: 7
   _hawkDialogueIndex: 8
   _coyoteDialogueIndex: 8
+  _bonesDialogueIndex: -1
+  _crowdDialogueIndex: -1
+  _hideCutscene1Objects: 0
+  _hideCutscene2Objects: 1
+  _hideCutscene3Objects: 1
 --- !u!82 &1834225421
 AudioSource:
   m_ObjectHideFlags: 0

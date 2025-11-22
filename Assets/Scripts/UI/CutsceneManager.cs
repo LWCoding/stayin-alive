@@ -13,6 +13,7 @@ public enum DialogueAnimation
     FadeRatGod = 1,
     JumpCloser = 2,
     GodTalk = 3,
+    Fall = 4,
 }
 
 /// <summary>
@@ -89,6 +90,10 @@ public class CutsceneManager : MonoBehaviour
     [SerializeField] private GameObject _hawkObject;
     [Tooltip("UI GameObject that represents the coyote.")]
     [SerializeField] private GameObject _coyoteObject;
+    [Tooltip("UI GameObject that represents the bones.")]
+    [SerializeField] private GameObject _bonesObject;
+    [Tooltip("UI GameObject that represents the crowd.")]
+    [SerializeField] private GameObject _crowdObject;
 
     [Header("Object Fade Settings")]
     [Tooltip("Duration (in seconds) for UI objects to fade in.")]
@@ -107,6 +112,18 @@ public class CutsceneManager : MonoBehaviour
     [SerializeField] private int _hawkDialogueIndex = -1;
     [Tooltip("Dialogue index at which the coyote UI object should fade in.")]
     [SerializeField] private int _coyoteDialogueIndex = -1;
+    [Tooltip("Dialogue index at which the bones UI object should fade in.")]
+    [SerializeField] private int _bonesDialogueIndex = -1;
+    [Tooltip("Dialogue index at which the crowd UI object should fade in.")]
+    [SerializeField] private int _crowdDialogueIndex = -1;
+    
+    [Header("Cutscene Visibility Controls")]
+    [Tooltip("If checked, objects for cutscene 1 (stick, den, worm, grass, hawk, coyote) will not appear. Uncheck to show them.")]
+    [SerializeField] private bool _hideCutscene1Objects = false;
+    [Tooltip("If checked, the crowd object will not appear. Uncheck to show it.")]
+    [SerializeField] private bool _hideCutscene2Objects = false;
+    [Tooltip("If checked, the bones object will not appear. Uncheck to show it.")]
+    [SerializeField] private bool _hideCutscene3Objects = false;
     
     private int _currentDialogueIndex = 0;
     private Coroutine _typingCoroutine = null;
@@ -508,34 +525,56 @@ public class CutsceneManager : MonoBehaviour
     /// </summary>
     private void HandleObjectReveals(int dialogueIndex)
     {
-        if (dialogueIndex == _stickDialogueIndex)
+        // Cutscene 1 objects (stick, den, worm, grass, hawk, coyote) - only appear if cutscene1 is unchecked (false)
+        if (!_hideCutscene1Objects)
         {
-            FadeInGameObject(_stickObject);
+            if (dialogueIndex == _stickDialogueIndex)
+            {
+                FadeInGameObject(_stickObject);
+            }
+
+            if (dialogueIndex == _denDialogueIndex)
+            {
+                FadeInGameObject(_denObject);
+            }
+
+            if (dialogueIndex == _wormDialogueIndex)
+            {
+                FadeInGameObject(_wormObject);
+            }
+
+            if (dialogueIndex == _grassDialogueIndex)
+            {
+                FadeInGameObject(_grassObject);
+            }
+
+            if (dialogueIndex == _hawkDialogueIndex)
+            {
+                FadeInGameObject(_hawkObject);
+            }
+
+            if (dialogueIndex == _coyoteDialogueIndex)
+            {
+                FadeInGameObject(_coyoteObject);
+            }
         }
 
-        if (dialogueIndex == _denDialogueIndex)
+        // Cutscene 2 object (crowd) - only appears if cutscene2 is unchecked (false)
+        if (!_hideCutscene2Objects)
         {
-            FadeInGameObject(_denObject);
+            if (dialogueIndex == _crowdDialogueIndex)
+            {
+                FadeInGameObject(_crowdObject);
+            }
         }
 
-        if (dialogueIndex == _wormDialogueIndex)
+        // Cutscene 3 object (bones) - only appears if cutscene3 is unchecked (false)
+        if (!_hideCutscene3Objects)
         {
-            FadeInGameObject(_wormObject);
-        }
-
-        if (dialogueIndex == _grassDialogueIndex)
-        {
-            FadeInGameObject(_grassObject);
-        }
-
-        if (dialogueIndex == _hawkDialogueIndex)
-        {
-            FadeInGameObject(_hawkObject);
-        }
-
-        if (dialogueIndex == _coyoteDialogueIndex)
-        {
-            FadeInGameObject(_coyoteObject);
+            if (dialogueIndex == _bonesDialogueIndex)
+            {
+                FadeInGameObject(_bonesObject);
+            }
         }
     }
 
