@@ -24,8 +24,12 @@ public class TutorialManager : Singleton<TutorialManager>
     [SerializeField] private GameObject _denUIExplanationUI;
     [Tooltip("UI object that explains the den teleport feature")]
     [SerializeField] private GameObject _denUITeleportExplanationUI;
+    [Tooltip("UI object that explains den inventory management")]
+    [SerializeField] private GameObject _denInventoryExplanationUI;
     
     [Header("Tutorial Triggers")]
+    [Tooltip("Player cannot move past this X value until they pick up grass")]
+    [SerializeField] private float _grassPickupBlockerXThreshold = 3f;
     [Tooltip("Player X position threshold for showing hunger explanation")]
     [SerializeField] private float _hungerExplanationXThreshold = 5f;
     [Tooltip("Player X position threshold for showing sticks explanation")]
@@ -42,10 +46,27 @@ public class TutorialManager : Singleton<TutorialManager>
     private bool _rabbitsAndDensExplanationShown = false;
     private bool _denUIExplanationShown = false;
     private bool _denUITeleportExplanationShown = false;
+    private bool _denInventoryExplanationShown = false;
     private bool _hasEatenFood = false;
+    private bool _hasPickedUpGrass = false;
     
     public bool IsDenManagementUnlocked => _denManagementUnlocked;
     public bool IsHungerEnabled => _hungerEnabled;
+    
+    /// <summary>
+    /// Checks if the player can move to a specific position based on tutorial constraints.
+    /// Returns false if the position would exceed the grass blocker threshold without having grass.
+    /// </summary>
+    public bool CanPlayerMoveTo(Vector2Int targetPosition)
+    {
+        // Block movement past X threshold if player hasn't picked up grass yet
+        if (!_hasPickedUpGrass && targetPosition.x > _grassPickupBlockerXThreshold)
+        {
+            return false;
+        }
+        
+        return true;
+    }
     
     protected override void Awake()
     {
@@ -92,6 +113,12 @@ public class TutorialManager : Singleton<TutorialManager>
         {
             _denUITeleportExplanationUI.SetActive(false);
         }
+        
+        // Hide den inventory explanation at start
+        if (_denInventoryExplanationUI != null)
+        {
+            _denInventoryExplanationUI.SetActive(false);
+        }
     }
     
     private void Start()
@@ -136,6 +163,7 @@ public class TutorialManager : Singleton<TutorialManager>
         {
             DenSystemManager.Instance.OnPanelOpened += OnDenPanelOpened;
             DenSystemManager.Instance.OnPlayerTeleported += OnPlayerTeleported;
+            DenSystemManager.Instance.OnItemsDeposited += OnItemsDeposited;
         }
     }
     
@@ -176,6 +204,7 @@ public class TutorialManager : Singleton<TutorialManager>
         {
             DenSystemManager.Instance.OnPanelOpened -= OnDenPanelOpened;
             DenSystemManager.Instance.OnPlayerTeleported -= OnPlayerTeleported;
+            DenSystemManager.Instance.OnItemsDeposited -= OnItemsDeposited;
         }
     }
     
@@ -225,6 +254,12 @@ public class TutorialManager : Singleton<TutorialManager>
     
     private void OnItemAddedToInventory(string itemName)
     {
+        // Track if player picked up grass
+        if (itemName == "Grass")
+        {
+            _hasPickedUpGrass = true;
+        }
+        
         // Show inventory explanation on first item pickup
         if (!_inventoryExplanationShown && _inventoryExplanationUI != null)
         {
@@ -261,6 +296,40 @@ public class TutorialManager : Singleton<TutorialManager>
         if (_denUITeleportExplanationShown && _denUITeleportExplanationUI != null && _denUITeleportExplanationUI.activeSelf)
         {
             _denUITeleportExplanationUI.SetActive(false);
+            
+            // Show den inventory tutorial
+            if (!_denInventoryExplanationShown && _denInventoryExplanationUI != null)
+            {
+                _denInventoryExplanationShown = true;
+                _denInventoryExplanationUI.SetActive(true);
+                // Time stays paused - den panel is still open
+                
+                // Give player starting items for den management
+                if (InventoryManager.Instance != null)
+                {
+                    InventoryManager.Instance.AddItem("Sticks");
+                    InventoryManager.Instance.AddItem("Grass");
+                }
+                
+                // Refresh den UI to show new items by closing and reopening the panel
+                if (DenSystemManager.Instance != null)
+                {
+                    DenSystemManager.Instance.ClosePanel();
+                    DenSystemManager.Instance.OpenPanel();
+                }
+            }
+        }
+    }
+    
+    /// <summary>
+    /// Called when the player deposits items to a den.
+    /// </summary>
+    private void OnItemsDeposited()
+    {
+        // Close den inventory explanation when player deposits items
+        if (_denInventoryExplanationShown && _denInventoryExplanationUI != null && _denInventoryExplanationUI.activeSelf)
+        {
+            _denInventoryExplanationUI.SetActive(false);
             // Time stays paused - den panel is still open
         }
     }
@@ -325,7 +394,8 @@ public class TutorialManager : Singleton<TutorialManager>
         }
         
         // Note: Den UI teleport explanation closes automatically when player teleports (see OnPlayerTeleported)
-        // So we don't need a manual close handler for it here
+        // Note: Den inventory explanation closes automatically when player deposits items (see OnItemsDeposited)
+        // So we don't need manual close handlers for them here
     }
     
     /// <summary>

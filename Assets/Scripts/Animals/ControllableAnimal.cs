@@ -305,6 +305,12 @@ public class ControllableAnimal : Animal
         {
             return;
         }
+        
+        // Check tutorial constraints on movement
+        if (TutorialManager.Instance != null && !TutorialManager.Instance.CanPlayerMoveTo(targetPos))
+        {
+            return;
+        }
 
         // Check if the target position is water and if this animal can go on water
         TileType tileType = EnvironmentManager.Instance.GetTileType(targetPos);

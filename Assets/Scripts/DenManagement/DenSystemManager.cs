@@ -17,6 +17,11 @@ public class DenSystemManager : Singleton<DenSystemManager> {
   public event Action OnPlayerTeleported;
   
   /// <summary>
+  /// Event fired when the player deposits items to a den.
+  /// </summary>
+  public event Action OnItemsDeposited;
+  
+  /// <summary>
   /// Notifies subscribers that the player has teleported between dens.
   /// Called from DenAdministrator when teleport occurs.
   /// </summary>
@@ -303,6 +308,7 @@ public class DenSystemManager : Singleton<DenSystemManager> {
   public void DepositAllPlayerItemsToDen() {
     if (CurrentAdminDen != null) {
       CurrentAdminDen.ProcessFoodDelivery(CurrentDenAdministrator.Animal);
+      OnItemsDeposited?.Invoke();
     }
   }
   
