@@ -2500,24 +2500,6 @@ MonoBehaviour:
   _criticalHungerVignetteIntensity: 0.55
   _criticalHungerVignetteColor: {r: 1, g: 0, b: 0, a: 1}
   _defaultVignetteColor: {r: 0, g: 0, b: 0, a: 1}
---- !u!1 &768739512 stripped
-GameObject:
-  m_CorrespondingSourceObject: {fileID: 1691404795883446995, guid: 41066fd52d5460c409bed4831559a961, type: 3}
-  m_PrefabInstance: {fileID: 6346775614612829706}
-  m_PrefabAsset: {fileID: 0}
---- !u!114 &768739517
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 768739512}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 7bfc692e142f6774a8dd3680d8136365, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  onlyPlayWhenInteractable: 1
 --- !u!224 &850705209 stripped
 RectTransform:
   m_CorrespondingSourceObject: {fileID: 3218765409383957039, guid: 41066fd52d5460c409bed4831559a961, type: 3}
@@ -2998,10 +2980,10 @@ MonoBehaviour:
     volume: 0.54
   - type: 3
     clip: {fileID: 8300000, guid: ea941c90f88c2384c96e3b495f2ebd2d, type: 3}
-    volume: 0.549
+    volume: 0.523
   - type: 4
     clip: {fileID: 8300000, guid: ad3c6c1b702db78459c6c158c396ff3e, type: 3}
-    volume: 0.535
+    volume: 0.574
   - type: 5
     clip: {fileID: 8300000, guid: 8865ed139d8d0434f9da8349cf23897f, type: 3}
     volume: 0.48
@@ -3010,7 +2992,7 @@ MonoBehaviour:
     volume: 0.484
   - type: 7
     clip: {fileID: 8300000, guid: 55a40a526baf5354e9d107fd1a205da0, type: 3}
-    volume: 0.341
+    volume: 0.299
   - type: 8
     clip: {fileID: 8300000, guid: 831680ef02463ee4d816be10d9434f27, type: 3}
     volume: 0.484
@@ -3019,13 +3001,13 @@ MonoBehaviour:
     volume: 0.484
   - type: 10
     clip: {fileID: 8300000, guid: a9d9b705c950c904fb65995f1d158f23, type: 3}
-    volume: 0.484
+    volume: 0.276
   - type: 11
     clip: {fileID: 8300000, guid: 7541aef766d3501489a77e80751c93b5, type: 3}
-    volume: 0.484
+    volume: 0.397
   - type: 12
     clip: {fileID: 8300000, guid: 5c80caa667b4e3043bb81120f8b1c6a8, type: 3}
-    volume: 0.528
+    volume: 0.504
   - type: 13
     clip: {fileID: 8300000, guid: 8256e1c90c3417e4ea12a8d8da123c21, type: 3}
     volume: 0.484
@@ -6645,9 +6627,6 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: 9153967480973954839, guid: 41066fd52d5460c409bed4831559a961, type: 3}
       insertIndex: -1
       addedObject: {fileID: 118986080}
-    - targetCorrespondingSourceObject: {fileID: 1691404795883446995, guid: 41066fd52d5460c409bed4831559a961, type: 3}
-      insertIndex: -1
-      addedObject: {fileID: 768739517}
   m_SourcePrefab: {fileID: 100100000, guid: 41066fd52d5460c409bed4831559a961, type: 3}
 --- !u!1660057539 &9223372036854775807
 SceneRoots:
