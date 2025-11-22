@@ -87,6 +87,10 @@ public class DenAdministrator : MonoBehaviour {
         }
       }
       else {
+        // Don't allow closing panel if tutorial UI is active
+        if (TutorialManager.Instance != null && TutorialManager.Instance.IsDenUITutorialActive) {
+          return;
+        }
         DenSystemManager.Instance.ClosePanel();
       }
     }

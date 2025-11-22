@@ -101,6 +101,24 @@ public class Den : Interactable, IHideable
     }
     
     /// <summary>
+    /// Removes null or destroyed animal references from the tracking list.
+    /// Called to ensure the den's occupancy state is accurate.
+    /// </summary>
+    private void CleanupDestroyedAnimals()
+    {
+        for (int i = _animalsInDen.Count - 1; i >= 0; i--)
+        {
+            Animal animal = _animalsInDen[i];
+            
+            // Check if the animal reference is null (Unity sets this when GameObject is destroyed)
+            if (animal == null)
+            {
+                _animalsInDen.RemoveAt(i);
+            }
+        }
+    }
+
+    /// <summary>
     /// Checks if an animal is currently in this den.
     /// </summary>
     public bool IsAnimalInDen(Animal animal)
@@ -109,6 +127,7 @@ public class Den : Interactable, IHideable
     }
 
     public int NumberAnimalsInDen() {
+      CleanupDestroyedAnimals();
       return _animalsInDen.Count;
     }
 
@@ -128,6 +147,9 @@ public class Den : Interactable, IHideable
         if (animal == null) {
             return;
         }
+        
+        // Clean up any destroyed animals before adding new one
+        CleanupDestroyedAnimals();
         
         // Allow entry if animal is controllable OR if this den is the animal's home
         bool canEnter = animal.IsControllable || ReferenceEquals(animal.HomeHideable, this);
@@ -207,6 +229,9 @@ public class Den : Interactable, IHideable
     /// </summary>
     public void OnAnimalLeave(Animal animal)
     {
+        // Clean up any destroyed animals before processing this leave
+        CleanupDestroyedAnimals();
+        
         if (_animalsInDen.Remove(animal))
         {
             Debug.Log($"Animal '{animal.name}' left den at ({_gridPosition.x}, {_gridPosition.y})");
@@ -236,8 +261,16 @@ public class Den : Interactable, IHideable
     /// </summary>
     private IEnumerator PassiveTimeProgression()
     {
-        while (HasControllableAnimalInside())
+        while (true)
         {
+            // Clean up destroyed animals before checking occupancy
+            CleanupDestroyedAnimals();
+            
+            if (!HasControllableAnimalInside())
+            {
+                break;
+            }
+            
             yield return new WaitForSeconds(Globals.DenTimeProgressionDelay);
             
             // Only progress time if TimeManager exists and is not paused
@@ -283,6 +316,9 @@ public class Den : Interactable, IHideable
     /// </summary>
     public void UpdateDenVisualState()
     {
+        // Clean up any destroyed/null animal references first
+        CleanupDestroyedAnimals();
+        
         bool hasAnimals = _animalsInDen.Count > 0;
         bool hasPlayer = HasControllableAnimalInside();
         

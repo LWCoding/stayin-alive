@@ -274,6 +274,7 @@ public class HawkDen : PredatorDen
 
 	/// <summary>
 	/// Gets all valid walkable positions within the spawn radius (between min and max).
+	/// Excludes water tiles to prevent sticks from spawning in water.
 	/// </summary>
 	private List<Vector2Int> GetValidWalkablePositionsInArea()
 	{
@@ -303,6 +304,12 @@ public class HawkDen : PredatorDen
 
 				// Check if position is walkable
 				if (!EnvironmentManager.Instance.IsWalkable(candidatePos))
+				{
+					continue;
+				}
+
+				TileType tileType = EnvironmentManager.Instance.GetTileType(candidatePos);
+				if (tileType != TileType.Grass)
 				{
 					continue;
 				}
