@@ -143,16 +143,30 @@ public class CutsceneManager : MonoBehaviour
             _ratAnimator.enabled = false;
         }
         
-        // Start displaying the first dialogue if available
+        // Ensure dialogue text starts with a space (to take up vertical space)
+        if (_dialogueText != null)
+        {
+            _dialogueText.text = " ";
+        }
+        
+        // Start the coroutine to wait before starting dialogue
         if (_dialogueEntries.Length > 0)
         {
-            ShowDialogueUI();
-            StartDialogue();
+            StartCoroutine(DelayedStartDialogue());
         }
-        else if (_dialogueText != null)
-        {
-            _dialogueText.text = "";
-        }
+    }
+    
+    /// <summary>
+    /// Coroutine that waits 1 second before starting dialogue.
+    /// </summary>
+    private IEnumerator DelayedStartDialogue()
+    {
+        // Wait 1 second
+        yield return new WaitForSeconds(1f);
+        
+        // Now start the dialogue
+        ShowDialogueUI();
+        StartDialogue();
     }
 
     private void Update()

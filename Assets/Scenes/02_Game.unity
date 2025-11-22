@@ -636,6 +636,54 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   onlyPlayWhenInteractable: 1
+--- !u!1 &137970210
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 137970211}
+  - component: {fileID: 137970212}
+  m_Layer: 0
+  m_Name: ParticleManager
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &137970211
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 137970210}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 631379535}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &137970212
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 137970210}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e16a36e2c40ed844fae2486b20532528, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  fadeTextPrefab: {fileID: 1318133717439653167, guid: 4cb15682f777a4542aa68bf535de5385, type: 3}
+  targetCanvas: {fileID: 0}
+  defaultFadeTextDuration: 2
+  defaultFadeTextMovementDistance: 100
 --- !u!1 &191479699
 GameObject:
   m_ObjectHideFlags: 0
@@ -2055,6 +2103,7 @@ Transform:
   - {fileID: 2474872}
   - {fileID: 1341673608}
   - {fileID: 1200174883}
+  - {fileID: 137970211}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &645288403

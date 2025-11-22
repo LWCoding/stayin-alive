@@ -57,7 +57,16 @@ public class WorkerIconGuiController : MonoBehaviour, IPointerEnterHandler, IPoi
 
   public void TransferWorker() {
     if (arrowText.text == unassignedDenText) {
-      DenSystemManager.Instance.AssignWorker(animal, DenSystemManager.Instance.CurrentAdminDen.GetDenInfo().denId);
+      bool success = DenSystemManager.Instance.AssignWorker(animal, DenSystemManager.Instance.CurrentAdminDen.GetDenInfo().denId);
+      if (!success) {
+        // Spawn FadeText message if assignment failed (likely due to not enough space)
+        if (ParticleManager.Instance != null) {
+          RectTransform workerIconRect = GetComponent<RectTransform>();
+          if (workerIconRect != null) {
+            ParticleManager.Instance.SpawnFadeTextAtRectTransform("Not enough space in den", workerIconRect);
+          }
+        }
+      }
       InitializeWorkerIcon(animal);
     }
 

@@ -86,6 +86,7 @@ public class Animal : MonoBehaviour
     public int CurrentHunger => _currentHunger;
     public int MaxHunger => _maxHunger;
     public float HungerRatio => _maxHunger > 0 ? (float)_currentHunger / _maxHunger : 0f;
+    public bool IsDyingFromStarvation => _isDyingFromStarvation;
     public IHideable CurrentHideable => _currentHideable;
     public IHideable HomeHideable => _homeHideable;
 
