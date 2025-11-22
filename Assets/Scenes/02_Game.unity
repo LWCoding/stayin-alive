@@ -618,6 +618,24 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &118986074 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 9153967480973954839, guid: 41066fd52d5460c409bed4831559a961, type: 3}
+  m_PrefabInstance: {fileID: 6346775614612829706}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &118986080
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 118986074}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7bfc692e142f6774a8dd3680d8136365, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  onlyPlayWhenInteractable: 1
 --- !u!1 &191479699
 GameObject:
   m_ObjectHideFlags: 0
@@ -2482,6 +2500,24 @@ MonoBehaviour:
   _criticalHungerVignetteIntensity: 0.55
   _criticalHungerVignetteColor: {r: 1, g: 0, b: 0, a: 1}
   _defaultVignetteColor: {r: 0, g: 0, b: 0, a: 1}
+--- !u!1 &768739512 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 1691404795883446995, guid: 41066fd52d5460c409bed4831559a961, type: 3}
+  m_PrefabInstance: {fileID: 6346775614612829706}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &768739517
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 768739512}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7bfc692e142f6774a8dd3680d8136365, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  onlyPlayWhenInteractable: 1
 --- !u!224 &850705209 stripped
 RectTransform:
   m_CorrespondingSourceObject: {fileID: 3218765409383957039, guid: 41066fd52d5460c409bed4831559a961, type: 3}
@@ -2952,6 +2988,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   sfxSource: {fileID: 876931889}
   musicSource: {fileID: 876931888}
+  seasonSFXSource: {fileID: 0}
   sfxList:
   - type: 1
     clip: {fileID: 8300000, guid: 0ee8f56cabdfac443a0e1560d39a57bd, type: 3}
@@ -2971,6 +3008,36 @@ MonoBehaviour:
   - type: 6
     clip: {fileID: 8300000, guid: 1829db40df8fde1478918d723fab7253, type: 3}
     volume: 0.484
+  - type: 7
+    clip: {fileID: 8300000, guid: 55a40a526baf5354e9d107fd1a205da0, type: 3}
+    volume: 0.341
+  - type: 8
+    clip: {fileID: 8300000, guid: 831680ef02463ee4d816be10d9434f27, type: 3}
+    volume: 0.484
+  - type: 9
+    clip: {fileID: 8300000, guid: 1aabae97a1382ad4cb27459f8af56063, type: 3}
+    volume: 0.484
+  - type: 10
+    clip: {fileID: 8300000, guid: a9d9b705c950c904fb65995f1d158f23, type: 3}
+    volume: 0.484
+  - type: 11
+    clip: {fileID: 8300000, guid: 7541aef766d3501489a77e80751c93b5, type: 3}
+    volume: 0.484
+  - type: 12
+    clip: {fileID: 8300000, guid: 5c80caa667b4e3043bb81120f8b1c6a8, type: 3}
+    volume: 0.528
+  - type: 13
+    clip: {fileID: 8300000, guid: 8256e1c90c3417e4ea12a8d8da123c21, type: 3}
+    volume: 0.484
+  - type: 14
+    clip: {fileID: 8300000, guid: 5cc1e3224e6314b479e80106b4d0fd2b, type: 3}
+    volume: 0.484
+  - type: 15
+    clip: {fileID: 8300000, guid: 32d5cac2dae329d44b7c5cebae300f7e, type: 3}
+    volume: 0.484
+  - type: 16
+    clip: {fileID: 8300000, guid: dd6c9b52f17d0704885a9b2876c83b50, type: 3}
+    volume: 0.56
   musicList:
   - type: 2
     clip: {fileID: 8300000, guid: 92dcdf444428fc2409aadf95ef4aa9a0, type: 3}
@@ -6574,7 +6641,13 @@ PrefabInstance:
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
-    m_AddedComponents: []
+    m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: 9153967480973954839, guid: 41066fd52d5460c409bed4831559a961, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 118986080}
+    - targetCorrespondingSourceObject: {fileID: 1691404795883446995, guid: 41066fd52d5460c409bed4831559a961, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 768739517}
   m_SourcePrefab: {fileID: 100100000, guid: 41066fd52d5460c409bed4831559a961, type: 3}
 --- !u!1660057539 &9223372036854775807
 SceneRoots:

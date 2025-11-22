@@ -532,6 +532,12 @@ public class InventoryManager : Singleton<InventoryManager>
             return;
         }
         
+        // Play FullInventory sound effect
+        if (AudioManager.Instance != null)
+        {
+            AudioManager.Instance.PlaySFX(AudioManager.SFXType.FullInventory);
+        }
+        
         // Stop any existing shake coroutine
         if (_shakeCoroutine != null)
         {

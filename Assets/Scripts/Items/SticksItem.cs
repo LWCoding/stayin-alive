@@ -116,6 +116,7 @@ public class SticksItem : Item
         newDen.OnAnimalEnter(user);
         
         Debug.Log($"SticksItem: Successfully placed den at ({denPosition.x}, {denPosition.y}).");
+        AudioManager.Instance.PlaySFX(AudioManager.SFXType.Dig);
         return true; // Item is consumed
     }
     

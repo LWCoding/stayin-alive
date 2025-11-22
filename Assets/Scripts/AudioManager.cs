@@ -17,6 +17,16 @@ public class AudioManager : Singleton<AudioManager>
         Dig = 4,
         KangDeath = 5, 
         BunnyDeath = 6,
+        Eat = 7, 
+        UI = 8, 
+        Hunger = 9,
+        Spring = 10, 
+        Summer = 11, 
+        Fall = 12, 
+        Winter = 13,
+        FullInventory = 14, 
+        Planting = 15,  
+        Hover = 16,
     }
 
     public enum MusicType
@@ -56,6 +66,8 @@ public class AudioManager : Singleton<AudioManager>
     [Header("Audio Sources")]
     public AudioSource sfxSource;
     public AudioSource musicSource;
+    [Tooltip("Optional dedicated AudioSource for season SFX that need fade-out functionality. If not assigned, will use sfxSource without fade.")]
+    public AudioSource seasonSFXSource;
 
     [Header("Audio Lists")]
     public List<AudioEntrySFX> sfxList = new();
@@ -70,6 +82,8 @@ public class AudioManager : Singleton<AudioManager>
 
     private Coroutine currentMusicFade;
     private MusicType currentMusicType = MusicType.Menu;
+    private Coroutine currentSeasonSFXFade;
+    private SFXType currentSeasonSFXType = SFXType.None;
 
     [Header("Startup Settings")]
     [SerializeField] private bool autoplayMusicOnStart = false;
@@ -114,7 +128,7 @@ public class AudioManager : Singleton<AudioManager>
     // 🎵 MUSIC COMMANDS
     // ======================
 
-    public void PlayMusic(MusicType type, float volume = -1f, float fadeTime = 1f)
+    public void PlayMusic(MusicType type, float volume = -1f, float fadeTime = 0.5f)
     {
         if (!musicDict.TryGetValue(type, out var entry))
         {
@@ -243,5 +257,127 @@ public class AudioManager : Singleton<AudioManager>
     {
         StopMusic();
         StopSFX();
+        StopSeasonSFX();
+    }
+
+    /// <summary>
+    /// Plays a season SFX with fade-out support. If a season SFX is already playing, it will fade out before playing the new one.
+    /// </summary>
+    public void PlaySeasonSFX(SFXType type, float volume = -1f, float fadeTime = 0.5f)
+    {
+        // Check if this is a valid season SFX type
+        if (type != SFXType.Spring && type != SFXType.Summer && type != SFXType.Fall && type != SFXType.Winter)
+        {
+            Debug.LogWarning($"AudioManager: {type} is not a season SFX type. Use PlaySFX instead.");
+            PlaySFX(type, volume);
+            return;
+        }
+
+        if (!sfxDict.TryGetValue(type, out var entry))
+        {
+            Debug.LogWarning($"AudioManager: No SFX entry found for {type}");
+            return;
+        }
+
+        // Use dedicated season source if available, otherwise fall back to regular sfxSource
+        AudioSource sourceToUse = seasonSFXSource != null ? seasonSFXSource : sfxSource;
+        
+        if (sourceToUse == null)
+        {
+            Debug.LogWarning("AudioManager: No audio source available for season SFX.");
+            return;
+        }
+
+        // Don't restart if the same season SFX is already playing
+        if (sourceToUse.isPlaying && currentSeasonSFXType == type && sourceToUse.clip == entry.clip)
+        {
+            return;
+        }
+
+        currentSeasonSFXType = type;
+        float targetVolume = (volume >= 0f) ? Mathf.Clamp01(volume) : entry.volume;
+
+        // Stop any existing fade coroutine
+        if (currentSeasonSFXFade != null)
+        {
+            StopCoroutine(currentSeasonSFXFade);
+        }
+
+        currentSeasonSFXFade = StartCoroutine(FadeToNewSeasonSFX(entry.clip, targetVolume, fadeTime, sourceToUse));
+    }
+
+    private IEnumerator FadeToNewSeasonSFX(AudioClip newClip, float targetVolume, float fadeTime, AudioSource source)
+    {
+        // Fade out old season SFX if playing
+        if (source.isPlaying && source.clip != null)
+        {
+            float startVol = source.volume;
+            float t = 0f;
+
+            while (t < fadeTime)
+            {
+                t += Time.deltaTime;
+                source.volume = Mathf.Lerp(startVol, 0f, t / fadeTime);
+                yield return null;
+            }
+
+            source.Stop();
+        }
+
+        // Assign new season SFX
+        source.clip = newClip;
+        source.volume = 0f;
+        source.loop = false; // Season SFX typically don't loop
+        source.Play();
+
+        // Fade in new season SFX
+        float tIn = 0f;
+        while (tIn < fadeTime && source.isPlaying)
+        {
+            tIn += Time.deltaTime;
+            source.volume = Mathf.Lerp(0f, targetVolume, tIn / fadeTime);
+            yield return null;
+        }
+
+        source.volume = targetVolume;
+        currentSeasonSFXFade = null;
+    }
+
+    /// <summary>
+    /// Stops the currently playing season SFX with a fade-out.
+    /// </summary>
+    public void StopSeasonSFX(float fadeTime = 0.5f)
+    {
+        AudioSource sourceToUse = seasonSFXSource != null ? seasonSFXSource : sfxSource;
+        
+        if (sourceToUse == null || !sourceToUse.isPlaying)
+        {
+            currentSeasonSFXType = SFXType.None;
+            return;
+        }
+
+        if (currentSeasonSFXFade != null)
+        {
+            StopCoroutine(currentSeasonSFXFade);
+        }
+
+        currentSeasonSFXFade = StartCoroutine(FadeOutSeasonSFX(fadeTime, sourceToUse));
+    }
+
+    private IEnumerator FadeOutSeasonSFX(float fadeTime, AudioSource source)
+    {
+        float startVol = source.volume;
+        float t = 0f;
+
+        while (t < fadeTime && source.isPlaying)
+        {
+            t += Time.deltaTime;
+            source.volume = Mathf.Lerp(startVol, 0f, t / fadeTime);
+            yield return null;
+        }
+
+        source.Stop();
+        currentSeasonSFXFade = null;
+        currentSeasonSFXType = SFXType.None;
     }
 }

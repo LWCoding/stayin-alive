@@ -46,6 +46,7 @@ public class GrassSeedItem : Item
         newGrass.HarvestForAnimal();
         
         Debug.Log($"GrassSeedItem: Successfully planted half-grown grass at ({plantPosition.x}, {plantPosition.y}).");
+        AudioManager.Instance.PlaySFX(AudioManager.SFXType.Planting);
         return true; // Item is consumed
     }
     

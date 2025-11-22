@@ -26,6 +26,7 @@ public class FoodItem : Item
         
         // Restore the configured amount of hunger
         user.IncreaseHunger(_hungerRestored);
+        AudioManager.Instance.PlaySFX(AudioManager.SFXType.Eat);
         
         Debug.Log($"FoodItem: Restored {_hungerRestored} hunger for {user.name}. Current hunger: {user.CurrentHunger}/{user.MaxHunger}.");
         return true; // Item is consumed
