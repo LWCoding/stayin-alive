@@ -361,6 +361,9 @@ public class RabbitSpawner : Interactable, IHideable
 				spawned.SetHunger(rabbitPrey.HungerThreshold + Random.Range(HUNGER_RANDOM_MIN, HUNGER_RANDOM_MAX + 1));
 			}
 
+			// Spawn heart particles above the spawner to indicate breeding/spawning
+			SpawnHeartParticles();
+
 			return spawned;
 		}
 
@@ -815,6 +818,37 @@ public class RabbitSpawner : Interactable, IHideable
 		if (_attachedRabbitCount < 0)
 		{
 			_attachedRabbitCount = 0;
+		}
+	}
+
+	/// <summary>
+	/// Spawns heart particles above the rabbit spawner to indicate breeding/spawning.
+	/// Each particle spawns with random X and Y position offsets for visual variety.
+	/// </summary>
+	private void SpawnHeartParticles()
+	{
+		if (ParticleEffectManager.Instance == null)
+		{
+			return;
+		}
+
+		// Calculate base particle position slightly above the spawner
+		Vector3 basePosition = transform.position;
+		basePosition.y += 0.5f;
+
+		// Spawn heart particles (2-4 hearts) with random position offsets
+		int heartCount = Random.Range(2, 5);
+		const float randomOffsetRange = 0.7f; // Random offset range in world units
+		
+		for (int i = 0; i < heartCount; i++)
+		{
+			// Add random X and Y offsets to each particle
+			float randomX = Random.Range(-randomOffsetRange, randomOffsetRange);
+			float randomY = Random.Range(-randomOffsetRange * 0.5f, randomOffsetRange * 0.5f); // Less vertical spread
+			Vector3 randomPosition = basePosition + new Vector3(randomX, randomY, 0f);
+			
+			// Spawn each particle individually with its random position
+			ParticleEffectManager.Instance.SpawnParticleEffect("Heart", randomPosition, 1);
 		}
 	}
 }

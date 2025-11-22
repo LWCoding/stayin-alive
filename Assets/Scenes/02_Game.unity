@@ -4794,6 +4794,13 @@ MonoBehaviour:
       sprite: {fileID: 21300000, guid: 359f81ff3b5e75045bb9f5a5037e822d, type: 3}
       direction: {x: 0, y: -1}
       fadeDelay: 0.1
+      scale: 1
+  - name: Heart
+    data:
+      sprite: {fileID: 21300000, guid: 5475e8d6e441f5f4e8ba3c3a914783c8, type: 3}
+      direction: {x: 0, y: 2}
+      fadeDelay: 0.3
+      scale: 0.05
   _initialPoolSize: 20
   _maxPoolSize: 100
   _sprayAngle: 45

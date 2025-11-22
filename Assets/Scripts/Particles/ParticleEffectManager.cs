@@ -142,7 +142,8 @@ public class ParticleEffectManager : Singleton<ParticleEffectManager>
             // Initialize and activate particle
             particle.transform.position = position;
             particle.gameObject.SetActive(true);
-            particle.Initialize(effectData.sprite, velocity, effectData.fadeDelay);
+            float scale = effectData.scale > 0.01f ? effectData.scale : 1f; // Use scale from data, default to 1 if not set
+            particle.Initialize(effectData.sprite, velocity, effectData.fadeDelay, scale);
             _activeParticleCount++;
         }
     }

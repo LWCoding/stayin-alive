@@ -10,12 +10,13 @@ public class Particle : MonoBehaviour
     private Vector2 _velocity;
     private float _fadeDelay;
     private float _lifetime;
+    private float _scale;
     private Coroutine _fadeCoroutine;
 
     /// <summary>
-    /// Initializes the particle with sprite, velocity, and fade delay.
+    /// Initializes the particle with sprite, velocity, fade delay, and scale.
     /// </summary>
-    public void Initialize(Sprite sprite, Vector2 velocity, float fadeDelay)
+    public void Initialize(Sprite sprite, Vector2 velocity, float fadeDelay, float scale = 1f)
     {
         // Get or add SpriteRenderer
         if (_spriteRenderer == null)
@@ -35,7 +36,11 @@ public class Particle : MonoBehaviour
         // Store parameters
         _velocity = velocity;
         _fadeDelay = fadeDelay;
+        _scale = scale;
         _lifetime = 0f;
+
+        // Apply scale to transform
+        transform.localScale = Vector3.one * scale;
 
         // Start fade coroutine
         if (_fadeCoroutine != null)
@@ -101,6 +106,9 @@ public class Particle : MonoBehaviour
             StopCoroutine(_fadeCoroutine);
             _fadeCoroutine = null;
         }
+        
+        // Reset scale when returning to pool
+        transform.localScale = Vector3.one;
     }
 }
 

@@ -16,5 +16,9 @@ public struct ParticleEffectData
     [Tooltip("Time in seconds before the particle starts fading out")]
     [Min(0f)]
     public float fadeDelay;
+    
+    [Tooltip("Scale multiplier for the particle size (1.0 = normal size, 0.5 = half size, 2.0 = double size)")]
+    [Min(0.01f)]
+    public float scale;
 }
 
