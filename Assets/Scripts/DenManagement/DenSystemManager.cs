@@ -77,7 +77,7 @@ public class DenSystemManager : Singleton<DenSystemManager> {
 
   private int _densBuiltWithSticks;
   public int DensBuiltWithSticks => ConstructDenInfos().Count - 1;
-
+ 
   [HideInInspector]
   public int UNASSIGNED_DEN_ID = -1;
   

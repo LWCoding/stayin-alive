@@ -30,6 +30,8 @@ public class TutorialManager : Singleton<TutorialManager>
     [SerializeField] private GameObject _denInventoryExplanationUI;
     [Tooltip("UI object that explains assigned and unassigned workers")]
     [SerializeField] private GameObject _workersExplanationUI;
+    [Tooltip("UI object that explains the game goal and win condition")]
+    [SerializeField] private GameObject _goalExplanationUI;
     
     [Header("Tutorial Triggers")]
     [Tooltip("Player cannot move past this X value until they pick up grass")]
@@ -42,6 +44,8 @@ public class TutorialManager : Singleton<TutorialManager>
     [SerializeField] private float _sticksExplanationXThreshold = 10f;
     [Tooltip("Player X position threshold for showing rabbits and dens explanation")]
     [SerializeField] private float _rabbitsAndDensExplanationXThreshold = 15f;
+    [Tooltip("Player Y position threshold for showing goal explanation")]
+    [SerializeField] private float _goalExplanationYThreshold = 10f;
 
     private TutorialLevelLoader _tutorialLevelLoader;
     private bool _denManagementUnlocked = false;
@@ -55,6 +59,7 @@ public class TutorialManager : Singleton<TutorialManager>
     private bool _breedExplanationShown = false;
     private bool _denInventoryExplanationShown = false;
     private bool _workersExplanationShown = false;
+    private bool _goalExplanationShown = false;
     private bool _hasEatenFood = false;
     private bool _hasPickedUpGrass = false;
     private bool _hasEnteredDen = false;
@@ -160,6 +165,12 @@ public class TutorialManager : Singleton<TutorialManager>
         if (_workersExplanationUI != null)
         {
             _workersExplanationUI.SetActive(false);
+        }
+        
+        // Hide goal explanation at start
+        if (_goalExplanationUI != null)
+        {
+            _goalExplanationUI.SetActive(false);
         }
     }
     
@@ -284,6 +295,17 @@ public class TutorialManager : Singleton<TutorialManager>
             _rabbitsAndDensExplanationShown = true;
             TimeManager.Instance?.Pause();
         }
+        
+        // Show goal explanation when player moves beyond Y threshold
+        if (!_goalExplanationShown && _goalExplanationUI != null && player.GridPosition.y >= _goalExplanationYThreshold)
+        {
+            // Show MVP container
+            ShowMVPContainer();
+            
+            _goalExplanationUI.SetActive(true);
+            _goalExplanationShown = true;
+            TimeManager.Instance?.Pause();
+        }
     }
     
     private void OnPlayerFoodConsumed(int amount)
@@ -317,9 +339,8 @@ public class TutorialManager : Singleton<TutorialManager>
     
     private void OnDenBuiltByPlayer(Den den)
     {
-        // Unlock den management when player builds their second den
+        // Unlock den management when player builds their first den
         // This will show the "E to Manage" prompts
-        // Use DenSystemManager's cached count of dens built by player (not including pre-placed dens)
         if (DenSystemManager.Instance != null)
         {
             int densBuilt = DenSystemManager.Instance.DensBuiltWithSticks;
@@ -472,6 +493,14 @@ public class TutorialManager : Singleton<TutorialManager>
         if (_rabbitsAndDensExplanationShown && _rabbitsAndDensExplanationUI != null && _rabbitsAndDensExplanationUI.activeSelf)
         {
             _rabbitsAndDensExplanationUI.SetActive(false);
+            TimeManager.Instance?.Resume();
+            return;
+        }
+        
+        // Close goal explanation if shown
+        if (_goalExplanationShown && _goalExplanationUI != null && _goalExplanationUI.activeSelf)
+        {
+            _goalExplanationUI.SetActive(false);
             TimeManager.Instance?.Resume();
             return;
         }
