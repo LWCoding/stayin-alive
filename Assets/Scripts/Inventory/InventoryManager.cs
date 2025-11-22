@@ -114,6 +114,12 @@ public class InventoryManager : Singleton<InventoryManager>
     
     private void Update()
     {
+        // Don't process inventory input if the Den Admin Menu is open
+        if (DenSystemManager.Instance != null && DenSystemManager.Instance.PanelOpen)
+        {
+            return;
+        }
+        
         // Handle keyboard input for slot selection and item usage (keys 1-9)
         for (int i = 0; i < 9; i++)
         {
@@ -314,6 +320,12 @@ public class InventoryManager : Singleton<InventoryManager>
     /// </summary>
     public void SelectSlot(int index)
     {
+        // Don't allow selection if the Den Admin Menu is open
+        if (DenSystemManager.Instance != null && DenSystemManager.Instance.PanelOpen)
+        {
+            return;
+        }
+        
         // Validate index
         if (index < 0 || index >= _inventorySlots.Count)
         {
@@ -355,6 +367,12 @@ public class InventoryManager : Singleton<InventoryManager>
     /// </summary>
     public void UseItemInSlot(int slotIndex)
     {
+        // Don't allow item usage if the Den Admin Menu is open
+        if (DenSystemManager.Instance != null && DenSystemManager.Instance.PanelOpen)
+        {
+            return;
+        }
+        
         if (slotIndex < 0 || slotIndex >= _inventorySlots.Count)
         {
             Debug.LogWarning($"InventoryManager: Cannot use item in slot {slotIndex} - index out of range.");
