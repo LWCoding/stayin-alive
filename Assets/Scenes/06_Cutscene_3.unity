@@ -2216,6 +2216,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   sfxSource: {fileID: 1634364218}
   musicSource: {fileID: 1634364217}
+  seasonSFXSource: {fileID: 0}
   sfxList:
   - type: 1
     clip: {fileID: 8300000, guid: 0ee8f56cabdfac443a0e1560d39a57bd, type: 3}
@@ -2743,6 +2744,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _dialogueEntries:
+  - animation: 0
+    text: Why...?
   - animation: 1
     text: You have failed us.
   - animation: 3
@@ -2782,7 +2785,7 @@ MonoBehaviour:
   _grassDialogueIndex: -1
   _hawkDialogueIndex: -1
   _coyoteDialogueIndex: -1
-  _bonesDialogueIndex: 2
+  _bonesDialogueIndex: 3
   _crowdDialogueIndex: -1
   _hideCutscene1Objects: 1
   _hideCutscene2Objects: 1

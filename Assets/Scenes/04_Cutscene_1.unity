@@ -1630,7 +1630,7 @@ Animator:
   m_Controller: {fileID: 9100000, guid: f1f9942e693f37a4182dd82e920280fa, type: 2}
   m_CullingMode: 0
   m_UpdateMode: 0
-  m_ApplyRootMotion: 0
+  m_ApplyRootMotion: 1
   m_LinearVelocityBlending: 0
   m_StabilizeFeet: 0
   m_WarningMessage: 
@@ -2126,6 +2126,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   sfxSource: {fileID: 1634364218}
   musicSource: {fileID: 1634364217}
+  seasonSFXSource: {fileID: 0}
   sfxList:
   - type: 1
     clip: {fileID: 8300000, guid: 0ee8f56cabdfac443a0e1560d39a57bd, type: 3}
@@ -2701,8 +2702,8 @@ MonoBehaviour:
   _grassObject: {fileID: 1105819260}
   _hawkObject: {fileID: 1215290133}
   _coyoteObject: {fileID: 1090868097}
-  _bonesObject: {fileID: 0}
-  _crowdObject: {fileID: 0}
+  _bonesObject: {fileID: 1090868097}
+  _crowdObject: {fileID: 1090868097}
   _objectFadeDuration: 0.5
   _stickDialogueIndex: 6
   _denDialogueIndex: 6

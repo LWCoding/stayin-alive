@@ -141,9 +141,6 @@ public class CutsceneManager : MonoBehaviour
         if (_animator != null)
         {
             _animator.enabled = false;
-        }
-        if (_ratAnimator != null)
-        {
             _ratAnimator.enabled = false;
         }
         
@@ -190,7 +187,7 @@ public class CutsceneManager : MonoBehaviour
     {
         _currentDialogueIndex = 0;
         ShowDialogueUI();
-        DisplayDialogue(_currentDialogueIndex);
+        DisplayDialogue(_currentDialogueIndex, triggerAnimation: false);
     }
 
     /// <summary>
@@ -218,7 +215,9 @@ public class CutsceneManager : MonoBehaviour
     /// <summary>
     /// Displays the dialogue at the specified index with typing effect.
     /// </summary>
-    private void DisplayDialogue(int index)
+    /// <param name="index">The dialogue index to display.</param>
+    /// <param name="triggerAnimation">Whether to trigger animations associated with this dialogue entry.</param>
+    private void DisplayDialogue(int index, bool triggerAnimation = true)
     {
         if (index < 0 || index >= _dialogueEntries.Length || _dialogueText == null)
         {
@@ -231,8 +230,8 @@ public class CutsceneManager : MonoBehaviour
 
         HandleObjectReveals(index);
         
-        // Trigger animation if one is specified
-        if (entry.animation != DialogueAnimation.None)
+        // Trigger animation (always plays talking animation while typing)
+        if (triggerAnimation)
         {
             TriggerAnimation(entry.animation);
         }
@@ -248,79 +247,49 @@ public class CutsceneManager : MonoBehaviour
     }
 
     /// <summary>
-    /// Triggers the specified animation by playing the corresponding animation clip on the Animator.
-    /// The animation clip name must match the DialogueAnimation enum value.
-    /// JumpCloser animation is played on the rat animator instead of the main animator.
+    /// Triggers animations: always plays talking animation while typing, JumpCloser on rat animator if specified,
+    /// or the specified animation otherwise.
     /// </summary>
     private void TriggerAnimation(DialogueAnimation animation)
     {
-        if (animation == DialogueAnimation.None)
+        // Enable main animator if needed
+        if (_animator != null && !_animator.enabled)
         {
-            return;
+            _animator.enabled = true;
         }
 
-        // Stop any existing animation wait coroutine
-        if (_animationWaitCoroutine != null)
-        {
-            StopCoroutine(_animationWaitCoroutine);
-            _animationWaitCoroutine = null;
-        }
-
-        // Convert enum to string to match animation clip name
-        string animationName = animation.ToString();
-        
-        // JumpCloser is played on the rat animator, and GodTalk is played on the main animator
         if (animation == DialogueAnimation.JumpCloser)
         {
             // Play JumpCloser on rat animator
             if (_ratAnimator != null)
             {
-                if (_ratJumpCoroutine != null)
-                {
-                    StopCoroutine(_ratJumpCoroutine);
-                    _ratJumpCoroutine = null;
-                }
-
-                // Enable rat animator if it was disabled
                 if (!_ratAnimator.enabled)
                 {
                     _ratAnimator.enabled = true;
                 }
-                
-                // Play the JumpCloser animation on the rat animator
-                _ratAnimator.Play(animationName);
-                _ratJumpCoroutine = StartCoroutine(WaitForRatJumpToFinish());
+                _ratAnimator.Play("JumpCloser");
             }
             
-            // Also play GodTalk on the main animator
+            // Also play talking animation on main animator
             if (_animator != null)
             {
-                // Enable animator if it was disabled
-                if (!_animator.enabled)
-                {
-                    _animator.enabled = true;
-                }
-                
-                // Play GodTalk animation on the main animator
                 _animator.Play("GodTalk");
+            }
+        }
+        else if (animation != DialogueAnimation.None)
+        {
+            // Play the specified animation on main animator
+            if (_animator != null)
+            {
+                _animator.Play(animation.ToString());
             }
         }
         else
         {
-            // All other animations are played on the main animator
+            // Play talking animation
             if (_animator != null)
             {
-                // Enable animator if it was disabled
-                if (!_animator.enabled)
-                {
-                    _animator.enabled = true;
-                }
-                
-                // Play the animation clip by name
-                _animator.Play(animationName);
-                
-                // Note: GodTalk animation should be set to loop in Unity's Animator Controller
-                // It will loop until typing finishes, at which point StopAnimation() is called
+                _animator.Play("GodTalk");
             }
         }
     }
@@ -345,11 +314,8 @@ public class CutsceneManager : MonoBehaviour
         _typingCoroutine = null;
         StopTypingAudioLoop();
         
-        // Stop GodTalk animation when typing is complete (for both GodTalk and JumpCloser)
-        if (_currentAnimation == DialogueAnimation.GodTalk || _currentAnimation == DialogueAnimation.JumpCloser)
-        {
-            StopAnimation();
-        }
+        // Stop talking animation when typing is complete
+        StopAnimation();
     }
 
     /// <summary>
@@ -371,11 +337,8 @@ public class CutsceneManager : MonoBehaviour
         _isTyping = false;
         StopTypingAudioLoop();
         
-        // Stop GodTalk animation when typing is skipped (for both GodTalk and JumpCloser)
-        if (_currentAnimation == DialogueAnimation.GodTalk || _currentAnimation == DialogueAnimation.JumpCloser)
-        {
-            StopAnimation();
-        }
+        // Stop talking animation when typing is skipped
+        StopAnimation();
     }
 
     /// <summary>
@@ -483,41 +446,6 @@ public class CutsceneManager : MonoBehaviour
         {
             Debug.LogWarning("CutsceneManager: Scene switcher reference not assigned.");
         }
-    }
-
-    /// <summary>
-    /// Waits for the rat JumpCloser animation to finish, then disables the rat animator.
-    /// </summary>
-    private IEnumerator WaitForRatJumpToFinish()
-    {
-        if (_ratAnimator == null)
-        {
-            yield break;
-        }
-
-        // Ensure we start from the current frame.
-        yield return null;
-
-        AnimatorStateInfo stateInfo = _ratAnimator.GetCurrentAnimatorStateInfo(0);
-        while (_ratAnimator.enabled && stateInfo.IsName("JumpCloser") && stateInfo.normalizedTime < 1f)
-        {
-            yield return null;
-            if (_ratAnimator != null && _ratAnimator.enabled)
-            {
-                stateInfo = _ratAnimator.GetCurrentAnimatorStateInfo(0);
-            }
-            else
-            {
-                break;
-            }
-        }
-
-        if (_ratAnimator != null && _ratAnimator.enabled)
-        {
-            _ratAnimator.enabled = false;
-        }
-
-        _ratJumpCoroutine = null;
     }
 
     /// <summary>
@@ -630,33 +558,30 @@ public class CutsceneManager : MonoBehaviour
     }
 
     /// <summary>
-    /// Stops the current animation by disabling the animator.
+    /// Stops the talking animation (GodTalk) and transitions to Idle animation.
     /// </summary>
     private void StopAnimation()
     {
-        // Stop the animation wait coroutine if it's running
+        // Stop any animation-related coroutines
         if (_animationWaitCoroutine != null)
         {
             StopCoroutine(_animationWaitCoroutine);
             _animationWaitCoroutine = null;
         }
         
-        // If GodTalk or JumpCloser animation was playing, change sprite immediately
-        // (JumpCloser also plays GodTalk on the main animator)
-        if (_currentAnimation == DialogueAnimation.GodTalk || _currentAnimation == DialogueAnimation.JumpCloser)
+        // Transition from GodTalk to Idle animation
+        if (_animator != null && _animator.enabled)
         {
-            if (_ratGodImage != null && _defaultRatGodSprite != null)
+            // Check if GodTalk is currently playing on layer 0
+            AnimatorStateInfo stateInfo = _animator.GetCurrentAnimatorStateInfo(0);
+            if (stateInfo.IsName("GodTalk"))
             {
-                _ratGodImage.sprite = _defaultRatGodSprite;
+                // Transition to Idle animation
+                _animator.Play("Idle");
             }
         }
         
-        if (_animator != null && _animator.enabled)
-        {
-            _animator.enabled = false;
-        }
-        
-        // Allow the rat JumpCloser animation to finish naturally (it will disable itself when done).
+        // Don't disable rat animator - let JumpCloser and other animations finish
     }
 }
 

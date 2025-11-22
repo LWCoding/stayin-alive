@@ -346,7 +346,7 @@ public class AudioManager : Singleton<AudioManager>
     /// <summary>
     /// Stops the currently playing season SFX with a fade-out.
     /// </summary>
-    public void StopSeasonSFX(float fadeTime = 0.5f)
+    public void StopSeasonSFX(float fadeTime = 0.7f)
     {
         AudioSource sourceToUse = seasonSFXSource != null ? seasonSFXSource : sfxSource;
         

@@ -192,6 +192,7 @@ public class UIManager : Singleton<UIManager>
         {
             SetLowHungerColor(true);
             SetCriticalHungerVignette(true);
+            AudioManager.Instance.PlaySFX(AudioManager.SFXType.Hunger);
         }
         else
         {
@@ -224,9 +225,6 @@ public class UIManager : Singleton<UIManager>
             return;
         }
         
-        // Play hunger sound only when transitioning INTO critical hunger (not when leaving critical state)
-        bool becomingCritical = isCritical && !_isVignetteCritical;
-        
         // Set vignette intensity and color based on critical hunger state
         _isVignetteCritical = isCritical;
         _vignette.intensity.overrideState = true;
@@ -235,12 +233,6 @@ public class UIManager : Singleton<UIManager>
         // Set vignette color to critical color when critical, restore default otherwise
         _vignette.color.overrideState = true;
         _vignette.color.value = isCritical ? _criticalHungerVignetteColor : _defaultVignetteColor;
-        
-        // Play sound only when hunger becomes critical
-        if (becomingCritical && AudioManager.Instance != null)
-        {
-            AudioManager.Instance.PlaySFX(AudioManager.SFXType.Hunger);
-        }
     }
     
     /// <summary>
