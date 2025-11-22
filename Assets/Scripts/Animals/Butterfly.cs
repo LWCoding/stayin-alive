@@ -44,13 +44,18 @@ public class Butterfly : MonoBehaviour
 
     private void Start()
     {
-        // Initialize movement bounds if not set
+        // Initialize movement bounds if not set (excluding outer borders which are rocks)
         if (_movementBounds.size == Vector3.zero && EnvironmentManager.Instance != null)
         {
             Vector2Int gridSize = EnvironmentManager.Instance.GetGridSize();
-            Vector3 center = EnvironmentManager.Instance.GridToWorldPosition(new Vector2Int(gridSize.x / 2, gridSize.y / 2));
-            Vector3 size = EnvironmentManager.Instance.GridToWorldPosition(new Vector2Int(gridSize.x, gridSize.y)) - 
-                          EnvironmentManager.Instance.GridToWorldPosition(Vector2Int.zero);
+            
+            // Exclude outer borders (1 cell from each edge)
+            // Convert border positions to world space
+            Vector3 minBorder = EnvironmentManager.Instance.GridToWorldPosition(new Vector2Int(1, 1));
+            Vector3 maxBorder = EnvironmentManager.Instance.GridToWorldPosition(new Vector2Int(gridSize.x - 2, gridSize.y - 2));
+            
+            Vector3 center = (minBorder + maxBorder) * 0.5f;
+            Vector3 size = maxBorder - minBorder;
             _movementBounds = new Bounds(center, size);
         }
 
@@ -72,7 +77,7 @@ public class Butterfly : MonoBehaviour
     }
 
     /// <summary>
-    /// Chooses a new random target position within movement bounds.
+    /// Chooses a new random target position within movement bounds, avoiding outer borders.
     /// </summary>
     private void ChooseNewTarget()
     {
@@ -82,11 +87,29 @@ public class Butterfly : MonoBehaviour
         
         Vector3 newTarget = transform.position + new Vector3(randomDirection.x, randomDirection.y, 0) * moveDistance;
         
-        // Clamp to movement bounds if they're set
+        // Clamp to movement bounds if they're set (bounds already exclude borders)
         if (_movementBounds.size != Vector3.zero)
         {
             newTarget.x = Mathf.Clamp(newTarget.x, _movementBounds.min.x, _movementBounds.max.x);
             newTarget.y = Mathf.Clamp(newTarget.y, _movementBounds.min.y, _movementBounds.max.y);
+        }
+        
+        // Ensure target is not on the border by checking grid position
+        if (EnvironmentManager.Instance != null)
+        {
+            Vector2Int gridPos = EnvironmentManager.Instance.WorldToGridPosition(newTarget);
+            Vector2Int gridSize = EnvironmentManager.Instance.GetGridSize();
+            
+            // If on border, push inward
+            if (gridPos.x <= 0 || gridPos.x >= gridSize.x - 1 || gridPos.y <= 0 || gridPos.y >= gridSize.y - 1)
+            {
+                // Clamp grid position to be at least 1 cell from each edge
+                gridPos.x = Mathf.Clamp(gridPos.x, 1, gridSize.x - 2);
+                gridPos.y = Mathf.Clamp(gridPos.y, 1, gridSize.y - 2);
+                
+                // Convert back to world position
+                newTarget = EnvironmentManager.Instance.GridToWorldPosition(gridPos);
+            }
         }
         
         _targetPosition = newTarget;
