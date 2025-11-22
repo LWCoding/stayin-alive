@@ -161,7 +161,6 @@ public class DenSystemManager : Singleton<DenSystemManager> {
 
   public void AddItemToDenInventory(Item item) {
     if (item is FoodItem) {
-      logHolder.SpawnLog(LogEntryGuiController.DenLogType.ADD_FOOD);
       foodItemsInDen.Add(item);
       AddFoodToDen(1);
     }

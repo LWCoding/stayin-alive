@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using TMPro;
@@ -12,7 +13,7 @@ public class LogEntryGuiController : MonoBehaviour {
     WORKER_EATEN
   }
 
-  private static readonly string addFoodLog = "deposited 1 food in the den";
+  private static readonly string addFoodLog = "deposited {0} food in the den";
   private static readonly string takeFoodLog = "ate 1 food from the den";
   private static readonly string workerStarveLog = "died of starvation";
   private static readonly string workerEatenLog = "was eaten";
@@ -65,6 +66,12 @@ public class LogEntryGuiController : MonoBehaviour {
   
   public void Setup(DenLogType logType) {
     logText.text =  GetLogString(logType);
+    logText.color = GetLogColor(logType);
+    StartCoroutine(WaitThenKillSelf());
+  }
+  
+  public void Setup(DenLogType logType, int num) {
+    logText.text =  string.Format(GetLogString(logType), num);
     logText.color = GetLogColor(logType);
     StartCoroutine(WaitThenKillSelf());
   }

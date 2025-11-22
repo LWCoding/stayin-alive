@@ -17,4 +17,10 @@ public class LogHolderGuiController : MonoBehaviour {
     LogEntryGuiController logEntryGuiController = logEntryObj.GetComponent<LogEntryGuiController>();
     logEntryGuiController.Setup(logType);
   }
+  
+  public void SpawnLog(LogEntryGuiController.DenLogType logType, int num) {
+    GameObject logEntryObj = Instantiate(logEntryPrefab, logHolder.transform);
+    LogEntryGuiController logEntryGuiController = logEntryObj.GetComponent<LogEntryGuiController>();
+    logEntryGuiController.Setup(logType, num);
+  }
 }
