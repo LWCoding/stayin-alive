@@ -317,11 +317,17 @@ public class TutorialManager : Singleton<TutorialManager>
     
     private void OnDenBuiltByPlayer(Den den)
     {
-        // Unlock den management when player builds their first den
+        // Unlock den management when player builds their second den
         // This will show the "E to Manage" prompts
-        if (!_denManagementUnlocked)
+        // Use DenSystemManager's cached count of dens built by player (not including pre-placed dens)
+        if (DenSystemManager.Instance != null)
         {
-            UnlockDenManagement();
+            int densBuilt = DenSystemManager.Instance.DensBuiltWithSticks;
+            
+            if (!_denManagementUnlocked && densBuilt >= 1)
+            {
+                UnlockDenManagement();
+            }
         }
     }
     
@@ -498,11 +504,13 @@ public class TutorialManager : Singleton<TutorialManager>
     public void UnlockDenManagement()
     {
         _denManagementUnlocked = true;
+        Debug.Log("TutorialManager: Den management unlocked! Refreshing all den visuals.");
         
         // Refresh all dens to show the E to Manage objects
         if (InteractableManager.Instance != null)
         {
             List<Den> allDens = InteractableManager.Instance.Dens;
+            Debug.Log($"TutorialManager: Found {allDens.Count} dens to refresh.");
             foreach (Den den in allDens)
             {
                 den?.UpdateDenVisualState();
