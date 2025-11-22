@@ -7,11 +7,8 @@ using UnityEngine.SceneManagement;
 /// </summary>
 public class TitleManager : MonoBehaviour
 {
-    /// <summary>
-    /// Static variable to track if the player has been prompted with the tutorial popup in this session.
-    /// </summary>
-    private static bool _hasBeenPromptedWithPopup = false;
-    
+    public static bool ShouldShowTutorialPopup = true;
+                
     [Header("Animation Settings")]
     [Tooltip("The Animator component that will play the 'Start' animation.")]
     [SerializeField] private Animator _animator;
@@ -54,11 +51,10 @@ public class TitleManager : MonoBehaviour
     /// </summary>
     public void Play()
     {
-        // Check if player has been prompted with popup before
-        if (!_hasBeenPromptedWithPopup)
+        if (ShouldShowTutorialPopup)
         {
             // Show popup and immediately mark as prompted
-            _hasBeenPromptedWithPopup = true;
+            ShouldShowTutorialPopup = false;
             if (_tutorialPopup != null)
             {
                 _tutorialPopup.SetActive(true);

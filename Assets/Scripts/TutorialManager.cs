@@ -114,6 +114,7 @@ public class TutorialManager : Singleton<TutorialManager>
     protected override void Awake()
     {
         base.Awake();
+        TitleManager.ShouldShowTutorialPopup = false;
         
         // Hide MVP container at start of tutorial
         if (_mvpContainerTransform != null)
