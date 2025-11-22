@@ -115,7 +115,8 @@ public class DenAdministrator : MonoBehaviour {
   }
   
   public void PurchaseWorker() {
-    if (DenSystemManager.Instance.FoodInDen < DenSystemManager.Instance.workerPrice) {
+    int currentWorkerPrice = DenSystemManager.Instance.GetCurrentWorkerPrice();
+    if (DenSystemManager.Instance.FoodInDen < currentWorkerPrice) {
       Debug.Log("Not Enough Food To Make Worker");
       return;
     }
@@ -123,7 +124,7 @@ public class DenAdministrator : MonoBehaviour {
     DenSystemManager.Instance.CreateWorker();
     
     // Worst case if something is out of sync, error will be in player's favor
-    DenSystemManager.Instance.SpendFoodFromDen(DenSystemManager.Instance.workerPrice);
+    DenSystemManager.Instance.SpendFoodFromDen(currentWorkerPrice);
   }
 
   public void DenTeleport(int DenId) {

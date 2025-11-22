@@ -1765,8 +1765,7 @@ MonoBehaviour:
   denMapIconPrefab: {fileID: 7717331066908236159, guid: 3d98814afb0f04a999bef30e4adb713b, type: 3}
   workerIconPrefab: {fileID: 7195815849245479350, guid: d080119eb3e87480cb0c0d7fb8e2b9b5, type: 3}
   purchaseWorkerButton: {fileID: 8436048771557516975}
-  purchaseWorkerButtonText: 'Click to Breed\n<size=20>(Cost: 1 Food)</size>'
-  denFullButtonText: Den Full\n<size=20>(Build More Dens!)</size>
+  purchaseWorkerButtonText: 'Click to Breed\n<size=24>(Cost: {0} Food)</size>'
 --- !u!225 &367407907774321981
 CanvasGroup:
   m_ObjectHideFlags: 0
@@ -3405,7 +3404,7 @@ MonoBehaviour:
       m_Calls: []
   m_text: 'Click to Breed
 
-    <size=20>(Cost: 1 Food)</size>'
+    <size=24>(Cost: 1 Food)</size>'
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 80af2cc7cd196b3488b78ec5f6d8a3b8, type: 2}
   m_sharedMaterial: {fileID: 3129977671062793659, guid: 80af2cc7cd196b3488b78ec5f6d8a3b8, type: 2}

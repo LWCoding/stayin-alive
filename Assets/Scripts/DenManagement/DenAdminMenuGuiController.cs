@@ -54,10 +54,6 @@ public class DenAdminMenuGuiController : MonoBehaviour {
   [SerializeField]
   [Tooltip("Text displayed on the purchase worker button when den is not full")]
   private string purchaseWorkerButtonText;
-  
-  [SerializeField]
-  [Tooltip("Text displayed on the purchase worker button when den is at maximum capacity")]
-  private string denFullButtonText;
 
   private List<DenSystemManager.DenInformation> mapDenInfo;
 
@@ -156,13 +152,18 @@ public class DenAdminMenuGuiController : MonoBehaviour {
       return;
     }
     
+    // Get the current dynamic worker price
+    int currentWorkerPrice = DenSystemManager.Instance.GetCurrentWorkerPrice();
+    
+    // Update button text with dynamic cost using {0} placeholder
     TextMeshProUGUI buttonText = purchaseWorkerButton.GetComponentInChildren<TextMeshProUGUI>();
     if (buttonText != null) {
-      buttonText.text = purchaseWorkerButtonText.Replace("\\n", "\n");
+      string formattedText = purchaseWorkerButtonText.Replace("\\n", "\n").Replace("{0}", currentWorkerPrice.ToString());
+      buttonText.text = formattedText;
     }
     
     // Only check if player can afford - allow breeding even if den is full (workers go to unassigned pool)
-    bool canAfford = DenSystemManager.Instance.FoodInDen >= DenSystemManager.Instance.workerPrice;
+    bool canAfford = DenSystemManager.Instance.FoodInDen >= currentWorkerPrice;
     purchaseWorkerButton.interactable = canAfford;
   }
 }
