@@ -22,6 +22,16 @@ public class DenSystemManager : Singleton<DenSystemManager> {
   public event Action OnItemsDeposited;
   
   /// <summary>
+  /// Event fired when a worker is created (purchased/bred).
+  /// </summary>
+  public event Action OnWorkerCreated;
+  
+  /// <summary>
+  /// Event fired when a worker is assigned to a den.
+  /// </summary>
+  public event Action OnWorkerAssigned;
+  
+  /// <summary>
   /// Notifies subscribers that the player has teleported between dens.
   /// Called from DenAdministrator when teleport occurs.
   /// </summary>
@@ -300,6 +310,9 @@ public class DenSystemManager : Singleton<DenSystemManager> {
     AddUnassignedWorker(newWorkerAnimal);
     IncrementMvpPopulation();
     
+    // Notify that a worker was created
+    OnWorkerCreated?.Invoke();
+    
     return true;
   }
 
@@ -352,6 +365,9 @@ public class DenSystemManager : Singleton<DenSystemManager> {
     workersToDens[animal] = denId;
     
     Debug.Log($"Worker '{animal.name}' assigned to den at ({targetDen.GridPosition.x}, {targetDen.GridPosition.y})");
+
+    // Notify that a worker was assigned
+    OnWorkerAssigned?.Invoke();
 
     return true;
   }

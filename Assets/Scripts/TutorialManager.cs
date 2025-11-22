@@ -24,12 +24,18 @@ public class TutorialManager : Singleton<TutorialManager>
     [SerializeField] private GameObject _denUIExplanationUI;
     [Tooltip("UI object that explains the den teleport feature")]
     [SerializeField] private GameObject _denUITeleportExplanationUI;
+    [Tooltip("UI object that explains breeding mechanics")]
+    [SerializeField] private GameObject _breedExplanationUI;
     [Tooltip("UI object that explains den inventory management")]
     [SerializeField] private GameObject _denInventoryExplanationUI;
+    [Tooltip("UI object that explains assigned and unassigned workers")]
+    [SerializeField] private GameObject _workersExplanationUI;
     
     [Header("Tutorial Triggers")]
     [Tooltip("Player cannot move past this X value until they pick up grass")]
     [SerializeField] private float _grassPickupBlockerXThreshold = 3f;
+    [Tooltip("Player cannot move past this X value until they build and enter a den")]
+    [SerializeField] private float _denEntryBlockerXThreshold = 8f;
     [Tooltip("Player X position threshold for showing hunger explanation")]
     [SerializeField] private float _hungerExplanationXThreshold = 5f;
     [Tooltip("Player X position threshold for showing sticks explanation")]
@@ -46,21 +52,45 @@ public class TutorialManager : Singleton<TutorialManager>
     private bool _rabbitsAndDensExplanationShown = false;
     private bool _denUIExplanationShown = false;
     private bool _denUITeleportExplanationShown = false;
+    private bool _breedExplanationShown = false;
     private bool _denInventoryExplanationShown = false;
+    private bool _workersExplanationShown = false;
     private bool _hasEatenFood = false;
     private bool _hasPickedUpGrass = false;
+    private bool _hasEnteredDen = false;
     
     public bool IsDenManagementUnlocked => _denManagementUnlocked;
     public bool IsHungerEnabled => _hungerEnabled;
     
     /// <summary>
+    /// Returns true if any den UI tutorial blocker is currently active.
+    /// </summary>
+    public bool IsDenUITutorialActive
+    {
+        get
+        {
+            return (_denUIExplanationUI != null && _denUIExplanationUI.activeSelf) ||
+                   (_denUITeleportExplanationUI != null && _denUITeleportExplanationUI.activeSelf) ||
+                   (_denInventoryExplanationUI != null && _denInventoryExplanationUI.activeSelf) ||
+                   (_breedExplanationUI != null && _breedExplanationUI.activeSelf) ||
+                   (_workersExplanationUI != null && _workersExplanationUI.activeSelf);
+        }
+    }
+    
+    /// <summary>
     /// Checks if the player can move to a specific position based on tutorial constraints.
-    /// Returns false if the position would exceed the grass blocker threshold without having grass.
+    /// Returns false if the position would exceed the thresholds without meeting the conditions.
     /// </summary>
     public bool CanPlayerMoveTo(Vector2Int targetPosition)
     {
         // Block movement past X threshold if player hasn't picked up grass yet
         if (!_hasPickedUpGrass && targetPosition.x > _grassPickupBlockerXThreshold)
+        {
+            return false;
+        }
+        
+        // Block movement past X threshold if player hasn't entered a den yet
+        if (!_hasEnteredDen && targetPosition.x > _denEntryBlockerXThreshold)
         {
             return false;
         }
@@ -114,10 +144,22 @@ public class TutorialManager : Singleton<TutorialManager>
             _denUITeleportExplanationUI.SetActive(false);
         }
         
+        // Hide breed explanation at start
+        if (_breedExplanationUI != null)
+        {
+            _breedExplanationUI.SetActive(false);
+        }
+        
         // Hide den inventory explanation at start
         if (_denInventoryExplanationUI != null)
         {
             _denInventoryExplanationUI.SetActive(false);
+        }
+        
+        // Hide workers explanation at start
+        if (_workersExplanationUI != null)
+        {
+            _workersExplanationUI.SetActive(false);
         }
     }
     
@@ -164,6 +206,8 @@ public class TutorialManager : Singleton<TutorialManager>
             DenSystemManager.Instance.OnPanelOpened += OnDenPanelOpened;
             DenSystemManager.Instance.OnPlayerTeleported += OnPlayerTeleported;
             DenSystemManager.Instance.OnItemsDeposited += OnItemsDeposited;
+            DenSystemManager.Instance.OnWorkerCreated += OnWorkerCreated;
+            DenSystemManager.Instance.OnWorkerAssigned += OnWorkerAssigned;
         }
     }
     
@@ -205,6 +249,8 @@ public class TutorialManager : Singleton<TutorialManager>
             DenSystemManager.Instance.OnPanelOpened -= OnDenPanelOpened;
             DenSystemManager.Instance.OnPlayerTeleported -= OnPlayerTeleported;
             DenSystemManager.Instance.OnItemsDeposited -= OnItemsDeposited;
+            DenSystemManager.Instance.OnWorkerCreated -= OnWorkerCreated;
+            DenSystemManager.Instance.OnWorkerAssigned -= OnWorkerAssigned;
         }
     }
     
@@ -281,6 +327,12 @@ public class TutorialManager : Singleton<TutorialManager>
     
     private void OnDenPanelOpened()
     {
+        // Mark that player has entered a den (for movement blocker)
+        if (!_hasEnteredDen)
+        {
+            _hasEnteredDen = true;
+        }
+        
         // Show den UI explanation the first time player opens the den management panel
         if (!_denUIExplanationShown && _denUIExplanationUI != null)
         {
@@ -330,7 +382,47 @@ public class TutorialManager : Singleton<TutorialManager>
         if (_denInventoryExplanationShown && _denInventoryExplanationUI != null && _denInventoryExplanationUI.activeSelf)
         {
             _denInventoryExplanationUI.SetActive(false);
-            // Time stays paused - den panel is still open
+            
+            // Show breed explanation tutorial
+            if (!_breedExplanationShown && _breedExplanationUI != null)
+            {
+                _breedExplanationShown = true;
+                _breedExplanationUI.SetActive(true);
+                // Time stays paused - den panel is still open
+            }
+        }
+    }
+    
+    /// <summary>
+    /// Called when a worker is created/purchased (breeding).
+    /// </summary>
+    private void OnWorkerCreated()
+    {
+        // Close breed explanation when player creates a worker
+        if (_breedExplanationShown && _breedExplanationUI != null && _breedExplanationUI.activeSelf)
+        {
+            _breedExplanationUI.SetActive(false);
+            
+            // Show workers explanation next
+            if (!_workersExplanationShown && _workersExplanationUI != null)
+            {
+                _workersExplanationShown = true;
+                _workersExplanationUI.SetActive(true);
+                // Time stays paused - den panel is still open
+            }
+        }
+    }
+    
+    /// <summary>
+    /// Called when a worker is assigned to a den.
+    /// </summary>
+    private void OnWorkerAssigned()
+    {
+        // Close workers explanation when player assigns a worker
+        if (_workersExplanationShown && _workersExplanationUI != null && _workersExplanationUI.activeSelf)
+        {
+            _workersExplanationUI.SetActive(false);
+            // Time stays paused - den panel is still open, tutorial complete
         }
     }
     
@@ -395,7 +487,9 @@ public class TutorialManager : Singleton<TutorialManager>
         
         // Note: Den UI teleport explanation closes automatically when player teleports (see OnPlayerTeleported)
         // Note: Den inventory explanation closes automatically when player deposits items (see OnItemsDeposited)
-        // So we don't need manual close handlers for them here
+        // Note: Breed explanation transitions automatically when player creates a worker (see OnWorkerCreated)
+        // Note: Workers explanation closes automatically when player assigns a worker (see OnWorkerAssigned)
+        // So we don't need manual close handlers for these here
     }
     
     /// <summary>
