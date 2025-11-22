@@ -32,20 +32,22 @@ public class TutorialManager : Singleton<TutorialManager>
     [SerializeField] private GameObject _workersExplanationUI;
     [Tooltip("UI object that explains the game goal and win condition")]
     [SerializeField] private GameObject _goalExplanationUI;
+    [Tooltip("Final tutorial blocker shown after goal explanation")]
+    [SerializeField] private GameObject _endBlockerUI;
     
     [Header("Tutorial Triggers")]
     [Tooltip("Player cannot move past this X value until they pick up grass")]
-    [SerializeField] private float _grassPickupBlockerXThreshold = 3f;
+    [SerializeField] private float _grassPickupBlockerXThreshold;
     [Tooltip("Player cannot move past this X value until they build and enter a den")]
-    [SerializeField] private float _denEntryBlockerXThreshold = 8f;
+    [SerializeField] private float _denEntryBlockerXThreshold;
     [Tooltip("Player X position threshold for showing hunger explanation")]
-    [SerializeField] private float _hungerExplanationXThreshold = 5f;
+    [SerializeField] private float _hungerExplanationXThreshold;
     [Tooltip("Player X position threshold for showing sticks explanation")]
-    [SerializeField] private float _sticksExplanationXThreshold = 10f;
+    [SerializeField] private float _sticksExplanationXThreshold;
     [Tooltip("Player X position threshold for showing rabbits and dens explanation")]
-    [SerializeField] private float _rabbitsAndDensExplanationXThreshold = 15f;
+    [SerializeField] private float _rabbitsAndDensExplanationXThreshold;
     [Tooltip("Player Y position threshold for showing goal explanation")]
-    [SerializeField] private float _goalExplanationYThreshold = 10f;
+    [SerializeField] private float _goalExplanationYThreshold;
 
     private TutorialLevelLoader _tutorialLevelLoader;
     private bool _denManagementUnlocked = false;
@@ -60,6 +62,7 @@ public class TutorialManager : Singleton<TutorialManager>
     private bool _denInventoryExplanationShown = false;
     private bool _workersExplanationShown = false;
     private bool _goalExplanationShown = false;
+    private bool _endBlockerShown = false;
     private bool _hasEatenFood = false;
     private bool _hasPickedUpGrass = false;
     private bool _hasEnteredDen = false;
@@ -171,6 +174,12 @@ public class TutorialManager : Singleton<TutorialManager>
         if (_goalExplanationUI != null)
         {
             _goalExplanationUI.SetActive(false);
+        }
+        
+        // Hide end blocker at start
+        if (_endBlockerUI != null)
+        {
+            _endBlockerUI.SetActive(false);
         }
     }
     
@@ -497,10 +506,25 @@ public class TutorialManager : Singleton<TutorialManager>
             return;
         }
         
-        // Close goal explanation if shown
+        // Transition from goal explanation to end blocker
         if (_goalExplanationShown && _goalExplanationUI != null && _goalExplanationUI.activeSelf)
         {
             _goalExplanationUI.SetActive(false);
+            
+            // Show end blocker next
+            if (!_endBlockerShown && _endBlockerUI != null)
+            {
+                _endBlockerUI.SetActive(true);
+                _endBlockerShown = true;
+                // Time stays paused
+            }
+            return;
+        }
+        
+        // Close end blocker - final tutorial blocker
+        if (_endBlockerShown && _endBlockerUI != null && _endBlockerUI.activeSelf)
+        {
+            _endBlockerUI.SetActive(false);
             TimeManager.Instance?.Resume();
             return;
         }
