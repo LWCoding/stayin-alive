@@ -156,16 +156,13 @@ public class DenAdminMenuGuiController : MonoBehaviour {
       return;
     }
     
-    Den currentDen = DenSystemManager.Instance.CurrentAdminDen;
-    bool denIsFull = currentDen != null && currentDen.IsFull();
-    
     TextMeshProUGUI buttonText = purchaseWorkerButton.GetComponentInChildren<TextMeshProUGUI>();
     if (buttonText != null) {
-      string displayText = denIsFull ? denFullButtonText : purchaseWorkerButtonText;
-      buttonText.text = displayText.Replace("\\n", "\n");
+      buttonText.text = purchaseWorkerButtonText.Replace("\\n", "\n");
     }
     
+    // Only check if player can afford - allow breeding even if den is full (workers go to unassigned pool)
     bool canAfford = DenSystemManager.Instance.FoodInDen >= DenSystemManager.Instance.workerPrice;
-    purchaseWorkerButton.interactable = canAfford && !denIsFull;
+    purchaseWorkerButton.interactable = canAfford;
   }
 }
