@@ -25,6 +25,12 @@ public class TutorialLevelLoader : MonoBehaviour
     [Header("Tile Placements")]
     [Tooltip("Custom tile placements (will override default tile type at these positions)")]
     [SerializeField] private List<TilePlacement> _tilePlacements = new List<TilePlacement>();
+    
+    [Header("Rock Patch")]
+    [Tooltip("Start point for rock patch rectangle (set x to -1 to disable)")]
+    [SerializeField] private Vector2Int _rockPatchStart = new Vector2Int(-1, 5);
+    [Tooltip("End point for rock patch rectangle")]
+    [SerializeField] private Vector2Int _rockPatchEnd = new Vector2Int(-1, 5);
 
     [System.Serializable]
     public class TilePlacement
@@ -301,6 +307,38 @@ public class TutorialLevelLoader : MonoBehaviour
             {
                 Debug.LogWarning($"TutorialLevelLoader: Invalid tile placement at ({placement.x}, {placement.y}). Skipping.");
             }
+        }
+        
+        // Apply rock patch between two points (if enabled)
+        if (_rockPatchStart.x >= 0 && _rockPatchEnd.x >= 0)
+        {
+            int startX = Mathf.Min(_rockPatchStart.x, _rockPatchEnd.x);
+            int endX = Mathf.Max(_rockPatchStart.x, _rockPatchEnd.x);
+            int startY = Mathf.Min(_rockPatchStart.y, _rockPatchEnd.y);
+            int endY = Mathf.Max(_rockPatchStart.y, _rockPatchEnd.y);
+            
+            int rockCount = 0;
+            for (int y = startY; y <= endY; y++)
+            {
+                for (int x = startX; x <= endX; x++)
+                {
+                    if (IsValidGridPosition(x, y))
+                    {
+                        // Find and update the tile at this position to Obstacle
+                        for (int i = 0; i < levelData.Tiles.Count; i++)
+                        {
+                            var (tileX, tileY, _) = levelData.Tiles[i];
+                            if (tileX == x && tileY == y)
+                            {
+                                levelData.Tiles[i] = (x, y, TileType.Obstacle);
+                                rockCount++;
+                                break;
+                            }
+                        }
+                    }
+                }
+            }
+            Debug.Log($"TutorialLevelLoader: Created rock patch from ({startX}, {startY}) to ({endX}, {endY}) with {rockCount} tiles");
         }
 
         // Initialize lists

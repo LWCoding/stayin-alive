@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -9,6 +10,10 @@ using TMPro;
 /// </summary>
 public class InventoryManager : Singleton<InventoryManager>
 {
+    /// <summary>
+    /// Event fired when an item is successfully added to inventory.
+    /// </summary>
+    public event Action<string> OnItemAdded;
     
     [Header("UI References")]
     [SerializeField] [Tooltip("Transform container where inventory slots will be instantiated")]
@@ -215,6 +220,9 @@ public class InventoryManager : Singleton<InventoryManager>
                 if (slot.SetItem(itemName, itemSprite))
                 {
                     Debug.Log($"InventoryManager: Added item '{itemName}' to inventory. ({CurrentItemCount}/{Globals.MaxInventorySize})");
+                    
+                    // Fire event for item added
+                    OnItemAdded?.Invoke(itemName);
                     
                     // If the item was added to the currently selected slot, update the usage description
                     if (i == _selectedSlotIndex)
@@ -555,8 +563,8 @@ public class InventoryManager : Singleton<InventoryManager>
         while (elapsed < _shakeDuration)
         {
             // Calculate random offset for shake
-            float offsetX = Random.Range(-_shakeIntensity, _shakeIntensity);
-            float offsetY = Random.Range(-_shakeIntensity, _shakeIntensity);
+            float offsetX = UnityEngine.Random.Range(-_shakeIntensity, _shakeIntensity);
+            float offsetY = UnityEngine.Random.Range(-_shakeIntensity, _shakeIntensity);
             
             // Apply shake offset
             _inventoryContainer.localPosition = _originalContainerPosition + new Vector3(offsetX, offsetY, 0f);

@@ -13,7 +13,8 @@ public class Den : Interactable, IHideable
     [SerializeField] private SpriteRenderer _spriteRenderer;
     [SerializeField] private Sprite _unoccupiedSprite;
     [SerializeField] private Sprite _occupiedSprite;
-    [SerializeField] private GameObject _playerInDenObject;
+    [SerializeField] private GameObject _occupancyIndicator;
+    [SerializeField] private GameObject _eToManageObject;
     
     [SerializeField]
     private Camera denCamera;
@@ -62,10 +63,15 @@ public class Den : Interactable, IHideable
             _spriteRenderer = GetComponent<SpriteRenderer>();
         }
         
-        // Hide the player in den object by default
-        if (_playerInDenObject != null)
+        // Hide the occupancy indicator and E to manage object by default
+        if (_occupancyIndicator != null)
         {
-            _playerInDenObject.SetActive(false);
+            _occupancyIndicator.SetActive(false);
+        }
+        
+        if (_eToManageObject != null)
+        {
+            _eToManageObject.SetActive(false);
         }
         
         renderTexture = new RenderTexture(720, 720, 16, RenderTextureFormat.ARGB32);
@@ -271,7 +277,11 @@ public class Den : Interactable, IHideable
         return animal.CurrentHideable is Den;
     }
     
-    private void UpdateDenVisualState()
+    /// <summary>
+    /// Updates the visual state of the den based on occupancy.
+    /// Public so it can be called from TutorialManager when unlocking den management.
+    /// </summary>
+    public void UpdateDenVisualState()
     {
         bool hasAnimals = _animalsInDen.Count > 0;
         bool hasPlayer = HasControllableAnimalInside();
@@ -289,10 +299,25 @@ public class Den : Interactable, IHideable
             _spriteRenderer.enabled = targetSprite != null || _spriteRenderer.sprite != null;
         }
         
-        // Update player in den object visibility - only show when player is in den
-        if (_playerInDenObject != null)
+        // Update occupancy indicator visibility - only show when player is in den
+        if (_occupancyIndicator != null)
         {
-            _playerInDenObject.SetActive(hasPlayer);
+            _occupancyIndicator.SetActive(hasPlayer);
+        }
+        
+        // Update E to manage object visibility - only show when player is in den
+        // AND if in tutorial mode, only show if den management is unlocked
+        if (_eToManageObject != null)
+        {
+            bool shouldShow = hasPlayer;
+            
+            // Check if we're in tutorial mode and if den management is unlocked
+            if (TutorialManager.Instance != null)
+            {
+                shouldShow = shouldShow && TutorialManager.Instance.IsDenManagementUnlocked;
+            }
+            
+            _eToManageObject.SetActive(shouldShow);
         }
     }
 
