@@ -1,0 +1,64 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!1 &5423194794002801552
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1689393000708386311}
+  - component: {fileID: 7937158108340115720}
+  m_Layer: 0
+  m_Name: ParticleEffectManager
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &1689393000708386311
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5423194794002801552}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &7937158108340115720
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5423194794002801552}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 8aa53b705395cf8409d1b88c486b65d9, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  _particleEffects:
+  - name: Blood
+    data:
+      sprite: {fileID: 21300000, guid: 359f81ff3b5e75045bb9f5a5037e822d, type: 3}
+      direction: {x: 0, y: -1}
+      fadeDelay: 0.1
+      scale: 1
+  - name: Heart
+    data:
+      sprite: {fileID: 21300000, guid: 5475e8d6e441f5f4e8ba3c3a914783c8, type: 3}
+      direction: {x: 0, y: 2}
+      fadeDelay: 0.3
+      scale: 0.05
+  _initialPoolSize: 20
+  _maxPoolSize: 100
+  _sprayAngle: 45
+  _speedRange: {x: 0.5, y: 1.5}
+  _particlePrefab: {fileID: 8458087074779683685, guid: 7d469b0eaed1a794e852a072c485cbe4, type: 3}

@@ -44,6 +44,9 @@ public class RabbitSpawner : Interactable, IHideable
 	// Track turns since last periodic spawn (only increments when rabbits are hiding)
 	private int _turnsSinceLastSpawn = 0;
 	
+	// Track turns since extinction (increments when _attachedRabbitCount is 0)
+	private int _turnsSinceExtinction = 0;
+	
 	// Reference to the SpriteRenderer component
 	private SpriteRenderer _spriteRenderer;
 	
@@ -193,19 +196,37 @@ public class RabbitSpawner : Interactable, IHideable
 		// Clean up null rabbits from hiding list
 		_hidingRabbits.RemoveAll(rabbit => rabbit == null);
 		
-		// Check if there are zero rabbits attached to this spawner - if so, spawn one to prevent extinction
+		// Check if there are zero rabbits attached to this spawner
 		if (_attachedRabbitCount == 0)
 		{
-			Debug.Log($"RabbitSpawner at ({_gridPosition.x}, {_gridPosition.y}): Zero rabbits detected, spawning new rabbit to prevent extinction.");
-			Animal spawnedAnimal = TrySpawnRabbitGroup(1); // Spawn a single rabbit
-			if (spawnedAnimal != null)
+			// Increment turns since extinction
+			_turnsSinceExtinction++;
+			
+			// Check if we've waited long enough to respawn
+			if (_turnsSinceExtinction >= Globals.RabbitRespawnDelayTurns)
 			{
-				// Add the spawned animal to hiding list
-				if (!_hidingRabbits.Contains(spawnedAnimal))
+				Debug.Log($"RabbitSpawner at ({_gridPosition.x}, {_gridPosition.y}): Respawn delay reached ({_turnsSinceExtinction} turns), spawning new rabbit to prevent extinction.");
+				Animal spawnedAnimal = TrySpawnRabbitGroup(1); // Spawn a single rabbit
+				if (spawnedAnimal != null)
 				{
-					OnAnimalEnter(spawnedAnimal);
+					// Add the spawned animal to hiding list
+					if (!_hidingRabbits.Contains(spawnedAnimal))
+					{
+						OnAnimalEnter(spawnedAnimal);
+					}
+					// Reset extinction counter since we spawned a new rabbit
+					_turnsSinceExtinction = 0;
 				}
 			}
+			else
+			{
+				Debug.Log($"RabbitSpawner at ({_gridPosition.x}, {_gridPosition.y}): Zero rabbits detected, waiting for respawn ({_turnsSinceExtinction}/{Globals.RabbitRespawnDelayTurns} turns).");
+			}
+		}
+		else
+		{
+			// Reset extinction counter if we have rabbits again
+			_turnsSinceExtinction = 0;
 		}
 		
 		// Periodic spawning: spawn new groups every PERIODIC_SPAWN_INTERVAL turns if there are rabbits hiding

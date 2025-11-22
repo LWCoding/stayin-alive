@@ -83,6 +83,12 @@ public class DenAdministrator : MonoBehaviour {
       // Only allow opening panel if player is inside a den
       if (!DenSystemManager.Instance.PanelOpen) {
         if (playerAnimal.CurrentDen != null) {
+          // In tutorial, require 1 den built (not counting starting den) before allowing panel to open
+          if (TutorialManager.Instance != null && DenSystemManager.Instance != null) {
+            if (DenSystemManager.Instance.DensBuiltWithSticks < 1) {
+              return;
+            }
+          }
           DenSystemManager.Instance.OpenPanel();
         }
       }

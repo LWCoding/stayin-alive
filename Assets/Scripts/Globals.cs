@@ -80,6 +80,11 @@ public static class Globals
 	/// </summary>
 	public static int DenFoodHungerRestoration = 50;
 
+	/// <summary>
+	/// Number of turns to wait before respawning rabbits at a spawner after extinction.
+	/// </summary>
+	public static int RabbitRespawnDelayTurns = 20;
+
   public static string GRASS_ITEM_NAME_FOR_WORKER_HARDCODE = "Grass";
 }
 
