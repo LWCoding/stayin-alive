@@ -6,6 +6,25 @@ using JetBrains.Annotations;
 using UnityEngine;
 
 public class DenSystemManager : Singleton<DenSystemManager> {
+  /// <summary>
+  /// Event fired when the den management panel is opened.
+  /// </summary>
+  public event Action OnPanelOpened;
+  
+  /// <summary>
+  /// Event fired when the player teleports between dens.
+  /// </summary>
+  public event Action OnPlayerTeleported;
+  
+  /// <summary>
+  /// Notifies subscribers that the player has teleported between dens.
+  /// Called from DenAdministrator when teleport occurs.
+  /// </summary>
+  public void NotifyPlayerTeleported()
+  {
+    OnPlayerTeleported?.Invoke();
+  }
+  
   public struct DenInformation {
     public int denId;
     public int denWorkerPop;
@@ -548,6 +567,9 @@ public class DenSystemManager : Singleton<DenSystemManager> {
     // DenAdminMenu.SetupCurrentDenRenderTexture();
     Debug.LogWarning(validTeleports);
     TimeManager.Instance.Pause();
+    
+    // Fire event for panel opened
+    OnPanelOpened?.Invoke();
   }
 
   public void ClosePanel() {

@@ -20,6 +20,10 @@ public class TutorialManager : Singleton<TutorialManager>
     [SerializeField] private GameObject _sticksExplanationUI;
     [Tooltip("UI object that explains rabbits and coyote dens")]
     [SerializeField] private GameObject _rabbitsAndDensExplanationUI;
+    [Tooltip("UI object that explains the den UI interface")]
+    [SerializeField] private GameObject _denUIExplanationUI;
+    [Tooltip("UI object that explains the den teleport feature")]
+    [SerializeField] private GameObject _denUITeleportExplanationUI;
     
     [Header("Tutorial Triggers")]
     [Tooltip("Player X position threshold for showing hunger explanation")]
@@ -36,6 +40,8 @@ public class TutorialManager : Singleton<TutorialManager>
     private bool _inventoryExplanationShown = false;
     private bool _sticksExplanationShown = false;
     private bool _rabbitsAndDensExplanationShown = false;
+    private bool _denUIExplanationShown = false;
+    private bool _denUITeleportExplanationShown = false;
     private bool _hasEatenFood = false;
     
     public bool IsDenManagementUnlocked => _denManagementUnlocked;
@@ -74,6 +80,18 @@ public class TutorialManager : Singleton<TutorialManager>
         {
             _rabbitsAndDensExplanationUI.SetActive(false);
         }
+        
+        // Hide den UI explanation at start
+        if (_denUIExplanationUI != null)
+        {
+            _denUIExplanationUI.SetActive(false);
+        }
+        
+        // Hide den UI teleport explanation at start
+        if (_denUITeleportExplanationUI != null)
+        {
+            _denUITeleportExplanationUI.SetActive(false);
+        }
     }
     
     private void Start()
@@ -106,6 +124,19 @@ public class TutorialManager : Singleton<TutorialManager>
         {
             InventoryManager.Instance.OnItemAdded += OnItemAddedToInventory;
         }
+        
+        // Subscribe to den built event
+        if (InteractableManager.Instance != null)
+        {
+            InteractableManager.Instance.OnDenBuiltByPlayer += OnDenBuiltByPlayer;
+        }
+        
+        // Subscribe to den panel opened event
+        if (DenSystemManager.Instance != null)
+        {
+            DenSystemManager.Instance.OnPanelOpened += OnDenPanelOpened;
+            DenSystemManager.Instance.OnPlayerTeleported += OnPlayerTeleported;
+        }
     }
     
     protected override void OnDestroy()
@@ -132,6 +163,19 @@ public class TutorialManager : Singleton<TutorialManager>
         if (InventoryManager.Instance != null)
         {
             InventoryManager.Instance.OnItemAdded -= OnItemAddedToInventory;
+        }
+        
+        // Unsubscribe from den built event
+        if (InteractableManager.Instance != null)
+        {
+            InteractableManager.Instance.OnDenBuiltByPlayer -= OnDenBuiltByPlayer;
+        }
+        
+        // Unsubscribe from den panel opened event
+        if (DenSystemManager.Instance != null)
+        {
+            DenSystemManager.Instance.OnPanelOpened -= OnDenPanelOpened;
+            DenSystemManager.Instance.OnPlayerTeleported -= OnPlayerTeleported;
         }
     }
     
@@ -186,7 +230,38 @@ public class TutorialManager : Singleton<TutorialManager>
         {
             _inventoryExplanationUI.SetActive(true);
             _inventoryExplanationShown = true;
-            TimeManager.Instance?.Pause(); // Pause game while showing explanation
+            TimeManager.Instance?.Pause();
+        }
+    }
+    
+    private void OnDenBuiltByPlayer(Den den)
+    {
+        // Unlock den management when player builds their first den
+        // This will show the "E to Manage" prompts
+        if (!_denManagementUnlocked)
+        {
+            UnlockDenManagement();
+        }
+    }
+    
+    private void OnDenPanelOpened()
+    {
+        // Show den UI explanation the first time player opens the den management panel
+        if (!_denUIExplanationShown && _denUIExplanationUI != null)
+        {
+            _denUIExplanationUI.SetActive(true);
+            _denUIExplanationShown = true;
+            // Note: Time is already paused by DenSystemManager.OpenPanel()
+        }
+    }
+    
+    private void OnPlayerTeleported()
+    {
+        // Close teleport explanation when player actually teleports
+        if (_denUITeleportExplanationShown && _denUITeleportExplanationUI != null && _denUITeleportExplanationUI.activeSelf)
+        {
+            _denUITeleportExplanationUI.SetActive(false);
+            // Time stays paused - den panel is still open
         }
     }
     
@@ -233,6 +308,24 @@ public class TutorialManager : Singleton<TutorialManager>
             TimeManager.Instance?.Resume();
             return;
         }
+        
+        // Transition from den UI explanation to teleport explanation
+        if (_denUIExplanationShown && _denUIExplanationUI != null && _denUIExplanationUI.activeSelf)
+        {
+            _denUIExplanationUI.SetActive(false);
+            
+            // Show teleport explanation next
+            if (!_denUITeleportExplanationShown && _denUITeleportExplanationUI != null)
+            {
+                _denUITeleportExplanationUI.SetActive(true);
+                _denUITeleportExplanationShown = true;
+            }
+            // Time stays paused - den panel is still open
+            return;
+        }
+        
+        // Note: Den UI teleport explanation closes automatically when player teleports (see OnPlayerTeleported)
+        // So we don't need a manual close handler for it here
     }
     
     /// <summary>

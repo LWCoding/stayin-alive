@@ -109,6 +109,9 @@ public class SticksItem : Item
         
         AdvanceCostProgression();
         
+        // Notify that a den was built by player
+        InteractableManager.Instance.NotifyDenBuiltByPlayer(newDen);
+        
         // Automatically enter the den after building it
         newDen.OnAnimalEnter(user);
         

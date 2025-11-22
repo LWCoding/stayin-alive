@@ -129,6 +129,9 @@ public class DenAdministrator : MonoBehaviour {
         DenSystemManager.Instance.ConstructValidDenTeleportInfos();
         DenSystemManager.Instance.DenAdminMenu.UpdateGui();
       }
+      
+      // Notify that player has teleported
+      DenSystemManager.Instance.NotifyPlayerTeleported();
     }
 
     return;

@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
@@ -8,6 +9,19 @@ using UnityEngine;
 /// </summary>
 public class InteractableManager : Singleton<InteractableManager>
 {
+    /// <summary>
+    /// Event fired when a den is built by the player (not during level load).
+    /// </summary>
+    public event Action<Den> OnDenBuiltByPlayer;
+    
+    /// <summary>
+    /// Notifies subscribers that a den was built by the player.
+    /// Called from SticksItem when player places a den.
+    /// </summary>
+    public void NotifyDenBuiltByPlayer(Den den)
+    {
+        OnDenBuiltByPlayer?.Invoke(den);
+    }
     [Header("Interactable Settings")]
     [SerializeField] private Transform _interactableParent;
     
@@ -732,11 +746,11 @@ public class InteractableManager : Singleton<InteractableManager>
 				continue;
 			}
 
-			// 80% chance to reduce grass level
-			if (Random.Range(0f, 1f) < 0.8f)
-			{
-				grass.ReduceLevelWithoutHarvest();
-			}
+		// 80% chance to reduce grass level
+		if (UnityEngine.Random.Range(0f, 1f) < 0.8f)
+		{
+			grass.ReduceLevelWithoutHarvest();
+		}
 		}
 	}
 }
