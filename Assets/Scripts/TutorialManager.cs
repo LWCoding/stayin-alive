@@ -18,12 +18,16 @@ public class TutorialManager : Singleton<TutorialManager>
     [SerializeField] private GameObject _inventoryExplanationUI;
     [Tooltip("UI object that explains the sticks item")]
     [SerializeField] private GameObject _sticksExplanationUI;
+    [Tooltip("UI object that explains rabbits and coyote dens")]
+    [SerializeField] private GameObject _rabbitsAndDensExplanationUI;
     
     [Header("Tutorial Triggers")]
     [Tooltip("Player X position threshold for showing hunger explanation")]
     [SerializeField] private float _hungerExplanationXThreshold = 5f;
     [Tooltip("Player X position threshold for showing sticks explanation")]
     [SerializeField] private float _sticksExplanationXThreshold = 10f;
+    [Tooltip("Player X position threshold for showing rabbits and dens explanation")]
+    [SerializeField] private float _rabbitsAndDensExplanationXThreshold = 15f;
 
     private TutorialLevelLoader _tutorialLevelLoader;
     private bool _denManagementUnlocked = false;
@@ -31,6 +35,7 @@ public class TutorialManager : Singleton<TutorialManager>
     private bool _hungerExplanationShown = false;
     private bool _inventoryExplanationShown = false;
     private bool _sticksExplanationShown = false;
+    private bool _rabbitsAndDensExplanationShown = false;
     private bool _hasEatenFood = false;
     
     public bool IsDenManagementUnlocked => _denManagementUnlocked;
@@ -62,6 +67,12 @@ public class TutorialManager : Singleton<TutorialManager>
         if (_sticksExplanationUI != null)
         {
             _sticksExplanationUI.SetActive(false);
+        }
+        
+        // Hide rabbits and dens explanation UI at start
+        if (_rabbitsAndDensExplanationUI != null)
+        {
+            _rabbitsAndDensExplanationUI.SetActive(false);
         }
     }
     
@@ -146,6 +157,14 @@ public class TutorialManager : Singleton<TutorialManager>
             _sticksExplanationShown = true;
             TimeManager.Instance?.Pause();
         }
+        
+        // Show rabbits and dens explanation when player moves beyond X threshold
+        if (!_rabbitsAndDensExplanationShown && _rabbitsAndDensExplanationUI != null && player.GridPosition.x >= _rabbitsAndDensExplanationXThreshold)
+        {
+            _rabbitsAndDensExplanationUI.SetActive(true);
+            _rabbitsAndDensExplanationShown = true;
+            TimeManager.Instance?.Pause();
+        }
     }
     
     private void OnPlayerFoodConsumed(int amount)
@@ -203,6 +222,14 @@ public class TutorialManager : Singleton<TutorialManager>
         if (_sticksExplanationShown && _sticksExplanationUI != null && _sticksExplanationUI.activeSelf)
         {
             _sticksExplanationUI.SetActive(false);
+            TimeManager.Instance?.Resume();
+            return;
+        }
+        
+        // Close rabbits and dens explanation if shown
+        if (_rabbitsAndDensExplanationShown && _rabbitsAndDensExplanationUI != null && _rabbitsAndDensExplanationUI.activeSelf)
+        {
+            _rabbitsAndDensExplanationUI.SetActive(false);
             TimeManager.Instance?.Resume();
             return;
         }
