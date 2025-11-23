@@ -82,12 +82,14 @@ public class DenAdminMenuGuiController : MonoBehaviour {
   }
 
   public void Show() {
+    transform.localPosition = Vector3.zero;
     visibilityController.alpha = 1;
     visibilityController.interactable = true;
     UpdateGui();
   }
 
   public void Hide() {
+    transform.localPosition = Vector3.one * 10000;
     visibilityController.alpha = 0;
     visibilityController.interactable = false;
   }
