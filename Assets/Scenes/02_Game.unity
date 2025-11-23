@@ -2540,6 +2540,9 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   _winScreen: {fileID: 480649642}
   _loseScreen: {fileID: 343417315}
+  _sceneTransitionDelay: 1.5
+  _winSceneName: 05_Cutscene_2
+  _loseSceneName: 06_Cutscene_3
 --- !u!1 &2116998990
 GameObject:
   m_ObjectHideFlags: 0
@@ -2692,6 +2695,10 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 1144474250}
     m_Modifications:
+    - target: {fileID: 1351239240659793598, guid: 18142a8288a9a4033a51e9219bb3def1, type: 3}
+      propertyPath: m_IsActive
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 2060170272590056824, guid: 18142a8288a9a4033a51e9219bb3def1, type: 3}
       propertyPath: m_AnchorMax.y
       value: 0
@@ -2732,24 +2739,12 @@ PrefabInstance:
       propertyPath: m_SizeDelta.x
       value: 0
       objectReference: {fileID: 0}
-    - target: {fileID: 3988238661145374236, guid: 18142a8288a9a4033a51e9219bb3def1, type: 3}
-      propertyPath: m_AnchorMax.x
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 3988238661145374236, guid: 18142a8288a9a4033a51e9219bb3def1, type: 3}
-      propertyPath: m_AnchorMax.y
-      value: 0
-      objectReference: {fileID: 0}
     - target: {fileID: 6393836561696901563, guid: 18142a8288a9a4033a51e9219bb3def1, type: 3}
       propertyPath: m_Name
       value: Canvas
       objectReference: {fileID: 0}
-    - target: {fileID: 7566312595525709662, guid: 18142a8288a9a4033a51e9219bb3def1, type: 3}
-      propertyPath: m_AnchoredPosition.y
-      value: -0.000011444092
-      objectReference: {fileID: 0}
-    - target: {fileID: 7760102077647790785, guid: 18142a8288a9a4033a51e9219bb3def1, type: 3}
-      propertyPath: m_SizeDelta.y
+    - target: {fileID: 7651025922902602317, guid: 18142a8288a9a4033a51e9219bb3def1, type: 3}
+      propertyPath: m_IsActive
       value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 7809885652072727491, guid: 18142a8288a9a4033a51e9219bb3def1, type: 3}
