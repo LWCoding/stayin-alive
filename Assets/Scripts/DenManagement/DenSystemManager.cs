@@ -76,7 +76,8 @@ public class DenSystemManager : Singleton<DenSystemManager> {
   [SerializeField] private int startingDenFood = 0;
 
   private int storedDenFood;
-  public int FoodInDen => storedDenFood;
+  // public int FoodInDen => storedDenFood;
+  public int FoodInDen => foodItemsInDen.Count;
   
   private Dictionary<int, DenInformation> validTeleports;
   

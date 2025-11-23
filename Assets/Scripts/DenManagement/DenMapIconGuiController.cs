@@ -1,9 +1,10 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.EventSystems;
 using UnityEngine.UI;
 
-public class DenMapIconGuiController : MonoBehaviour {
+public class DenMapIconGuiController : MonoBehaviour, IPointerEnterHandler, IPointerExitHandler {
   [SerializeField]
   private Image icon;
 
@@ -49,5 +50,13 @@ public class DenMapIconGuiController : MonoBehaviour {
 
   public void TeleportPlayerToDen() {
     DenSystemManager.Instance.CurrentDenAdministrator.DenTeleport(denInfo.denId);
+  }
+  
+  public void OnPointerEnter(PointerEventData pointerEventData) {
+    icon.color = Color.gray;
+  }
+
+  public void OnPointerExit(PointerEventData pointerEventData) {
+    icon.color = Color.white;
   }
 }
