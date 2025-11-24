@@ -201,12 +201,13 @@ public class DenSystemManager : Singleton<DenSystemManager> {
     }
 
     storedDenFood -= amount;
-    for (int i = 0; i < foodItemsInDen.Count; i++) {
+    // Remove and destroy only the requested amount of food items
+    int itemsToRemove = Mathf.Min(amount, foodItemsInDen.Count);
+    for (int i = 0; i < itemsToRemove; i++) {
       Item item_to_destroy = foodItemsInDen[0];
       foodItemsInDen.RemoveRange(0,1);
       Destroy(item_to_destroy.gameObject);
     }
-    // foodItemsInDen.RemoveRange(0, amount);
     
     DenAdminMenu.UpdateGui();
     return true;
