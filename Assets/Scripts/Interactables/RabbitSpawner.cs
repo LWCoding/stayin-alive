@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 
 /// <summary>
@@ -234,7 +235,8 @@ public class RabbitSpawner : Interactable, IHideable
 		}
 		
 		// Periodic spawning: spawn new groups every PERIODIC_SPAWN_INTERVAL turns if there are rabbits hiding
-		if (_hidingRabbits.Count > 0)
+		// Counter only ticks if at least one rabbit in the den has hunger above their threshold
+		if (_hidingRabbits.Any(rabbit => rabbit != null && rabbit is RabbitPrey rabbitPrey && rabbit.CurrentHunger >= rabbitPrey.HungerThreshold))
 		{
 			_turnsSinceLastSpawn++;
 			
@@ -255,7 +257,7 @@ public class RabbitSpawner : Interactable, IHideable
 				_turnsSinceLastSpawn = 0; // Reset counter
 			}
 		}
-		// If no rabbits hiding, counter doesn't tick (preserves value for when rabbits return)
+		// If no rabbits above threshold hiding, counter doesn't tick (preserves value for when rabbits return)
 	}
 
 	private void UpdateHidingRabbits()
