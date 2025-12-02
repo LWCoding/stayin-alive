@@ -65,25 +65,6 @@ public class InventoryManager : Singleton<InventoryManager>
         }
     }
     
-    /// <summary>
-    /// Whether the inventory is full.
-    /// </summary>
-    public bool IsFull => CurrentItemCount >= Globals.MaxInventorySize;
-    
-    /// <summary>
-    /// The currently selected slot index (0-8, or -1 if none selected).
-    /// </summary>
-    public int SelectedSlotIndex => _selectedSlotIndex;
-    
-    /// <summary>
-    /// The currently selected slot, or null if none selected.
-    /// </summary>
-    public InventorySlot SelectedSlot => (_selectedSlotIndex >= 0 && _selectedSlotIndex < _inventorySlots.Count) ? _inventorySlots[_selectedSlotIndex] : null;
-    
-    /// <summary>
-    /// The slot index currently being used (during item consumption). -1 when idle.
-    /// </summary>
-    public int ActiveUseSlotIndex => _activeUseSlotIndex;
     
     protected override void Awake()
     {
@@ -197,7 +178,7 @@ public class InventoryManager : Singleton<InventoryManager>
             return false;
         }
         
-        if (IsFull)
+        if (CurrentItemCount >= Globals.MaxInventorySize)
         {
             Debug.Log($"InventoryManager: Cannot add item '{item.ItemName}' - inventory is full ({CurrentItemCount}/{Globals.MaxInventorySize}).");
             
@@ -304,27 +285,6 @@ public class InventoryManager : Singleton<InventoryManager>
     }
     
     /// <summary>
-    /// Clears all items from the inventory slots.
-    /// Returns the number of items that were cleared.
-    /// </summary>
-    public int ClearAllItems()
-    {
-        int clearedCount = 0;
-        
-        foreach (InventorySlot slot in _inventorySlots)
-        {
-            if (!slot.IsEmpty)
-            {
-                slot.ClearSlot();
-                clearedCount++;
-            }
-        }
-        
-        Debug.Log($"InventoryManager: Cleared {clearedCount} items from inventory.");
-        return clearedCount;
-    }
-    
-    /// <summary>
     /// Transfers all items from inventory slots to another system (e.g., den inventory).
     /// Extracts items without destroying them so they can be moved to the destination.
     /// Returns the list of extracted items.
@@ -367,30 +327,9 @@ public class InventoryManager : Singleton<InventoryManager>
     }
     
     /// <summary>
-    /// Removes all instances of a specific item from the inventory.
-    /// Returns the number of items removed.
-    /// </summary>
-    public int RemoveAllItems(string itemName)
-    {
-        int removedCount = 0;
-        
-        foreach (InventorySlot slot in _inventorySlots)
-        {
-            Item item = slot.GetItem();
-            if (item != null && item.ItemName == itemName)
-            {
-                slot.ClearSlot();
-                removedCount++;
-            }
-        }
-        
-        return removedCount;
-    }
-    
-    /// <summary>
     /// Selects a slot by index (0-8). Deselects the previously selected slot.
     /// </summary>
-    public void SelectSlot(int index)
+    private void SelectSlot(int index)
     {
         // Don't allow selection if the Den Admin Menu is open
         if (DenSystemManager.Instance != null && DenSystemManager.Instance.PanelOpen)
@@ -437,7 +376,7 @@ public class InventoryManager : Singleton<InventoryManager>
     /// <summary>
     /// Uses the item in the specified slot. Calls the item's OnUse method if it implements IItem.
     /// </summary>
-    public void UseItemInSlot(int slotIndex)
+    private void UseItemInSlot(int slotIndex)
     {
         // Don't allow item usage if the Den Admin Menu is open
         if (DenSystemManager.Instance != null && DenSystemManager.Instance.PanelOpen)
@@ -503,43 +442,6 @@ public class InventoryManager : Singleton<InventoryManager>
         {
             Debug.LogWarning($"InventoryManager: Item '{item.ItemName}' could not be used.");
         }
-    }
-    
-    /// <summary>
-    /// Removes a specific number of items matching the provided name from the inventory.
-    /// Optionally skips a slot (e.g., the slot currently being used).
-    /// </summary>
-    public bool RemoveItems(string itemName, int count, int excludeSlotIndex = -1)
-    {
-        if (count <= 0)
-        {
-            return true;
-        }
-        
-        if (string.IsNullOrEmpty(itemName))
-        {
-            return false;
-        }
-        
-        int removed = 0;
-        
-        for (int i = 0; i < _inventorySlots.Count && removed < count; i++)
-        {
-            if (i == excludeSlotIndex)
-            {
-                continue;
-            }
-            
-            InventorySlot slot = _inventorySlots[i];
-            Item item = slot.GetItem();
-            if (item != null && item.ItemName == itemName)
-            {
-                slot.ClearSlot();
-                removed++;
-            }
-        }
-        
-        return removed >= count;
     }
     
     /// <summary>
@@ -686,7 +588,7 @@ public class InventoryManager : Singleton<InventoryManager>
         }
         
         // Get the selected slot
-        InventorySlot selectedSlot = SelectedSlot;
+        InventorySlot selectedSlot = (_selectedSlotIndex >= 0 && _selectedSlotIndex < _inventorySlots.Count) ? _inventorySlots[_selectedSlotIndex] : null;
         if (selectedSlot == null || selectedSlot.IsEmpty)
         {
             ClearUsageDescription();
@@ -740,20 +642,6 @@ public class InventoryManager : Singleton<InventoryManager>
         }
     }
 
-     /// <summary>
-    /// Returns a list of Item Objects representing the items in the player's inventory
-    /// </summary>
-    public List<Item> GetInventoryItems() { 
-       List<Item> items = new List<Item>();
-       foreach (InventorySlot slot in _inventorySlots) {
-         Item item = slot.GetItem();
-         if (item != null) {
-           items.Add(item);
-         }
-       }
-       return items;
-    }
-    
     /// <summary>
     /// Returns the list of inventory slots. Used for UI display purposes.
     /// </summary>
