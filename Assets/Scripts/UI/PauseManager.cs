@@ -36,7 +36,13 @@ public class PauseManager : MonoBehaviour
     private void PauseGame()
     {
         _isPaused = true;
-        Time.timeScale = 0f;
+        
+        // Pause TimeManager to prevent turn progression
+        if (TimeManager.Instance != null)
+        {
+            TimeManager.Instance.Pause();
+        }
+        
         if (pauseScreen != null)
         {
             pauseScreen.SetActive(true);
@@ -50,7 +56,14 @@ public class PauseManager : MonoBehaviour
     private void ResumeGame()
     {
         _isPaused = false;
-        Time.timeScale = 1f;
+        
+        // Resume TimeManager, but only if it's not waiting for first move
+        // (TimeManager handles its own first move pause state)
+        if (TimeManager.Instance != null && !TimeManager.Instance.IsWaitingForFirstMove)
+        {
+            TimeManager.Instance.Resume();
+        }
+        
         if (pauseScreen != null)
         {
             pauseScreen.SetActive(false);
@@ -65,7 +78,6 @@ public class PauseManager : MonoBehaviour
             return;
         }
 
-        Time.timeScale = 1f;
         if (ScreenWipe.Instance != null)
         {
             ScreenWipe.Instance.WipeToScene(titleSceneName);
@@ -79,9 +91,10 @@ public class PauseManager : MonoBehaviour
 
     private void OnDisable()
     {
-        if (_isPaused)
+        // Ensure TimeManager is resumed if we're disabled while paused
+        if (_isPaused && TimeManager.Instance != null && !TimeManager.Instance.IsWaitingForFirstMove)
         {
-            Time.timeScale = 1f;
+            TimeManager.Instance.Resume();
         }
     }
 }
