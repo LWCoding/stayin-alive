@@ -62,9 +62,6 @@ public class TutorialLevelLoader : MonoBehaviour
     [Tooltip("Number of rabbit spawners to spawn in procedural area")]
     [SerializeField] private int _proceduralRabbitSpawnerCount = 2;
     
-    [Tooltip("Number of worm spawners to spawn in procedural area")]
-    [SerializeField] private int _proceduralWormSpawnerCount = 2;
-    
     [Tooltip("Number of bushes to spawn in procedural area")]
     [SerializeField] private int _proceduralBushCount = 5;
     
@@ -168,10 +165,6 @@ public class TutorialLevelLoader : MonoBehaviour
     [Tooltip("Manually placed rabbit spawners")]
     [SerializeField] private List<Vector2Int> _rabbitSpawnerPositions = new List<Vector2Int>();
 
-    [Header("Worm Spawner Placements")]
-    [Tooltip("Manually placed worm spawners")]
-    [SerializeField] private List<Vector2Int> _wormSpawnerPositions = new List<Vector2Int>();
-
     [Header("Bush Placements")]
     [Tooltip("Manually placed bushes")]
     [SerializeField] private List<Vector2Int> _bushPositions = new List<Vector2Int>();
@@ -232,7 +225,6 @@ public class TutorialLevelLoader : MonoBehaviour
             InteractableManager.Instance.ClearAllInteractables();
             InteractableManager.Instance.SpawnDensFromLevelData(levelData.Dens);
             InteractableManager.Instance.SpawnRabbitSpawnersFromLevelData(levelData.RabbitSpawners);
-            InteractableManager.Instance.SpawnWormSpawnersFromLevelData(levelData.WormSpawners);
             InteractableManager.Instance.SpawnBushesFromLevelData(levelData.Bushes);
             InteractableManager.Instance.SpawnGrassesFromLevelData(levelData.Grasses);
         }
@@ -308,20 +300,19 @@ public class TutorialLevelLoader : MonoBehaviour
         SetupCameraFollow();
 
 		// Count interactables by type for debug log
-		int densCount = 0, rabbitSpawnersCount = 0, wormSpawnersCount = 0, predatorDensCount = 0, bushesCount = 0, grassesCount = 0;
+		int densCount = 0, rabbitSpawnersCount = 0, predatorDensCount = 0, bushesCount = 0, grassesCount = 0;
 		foreach (var interactable in levelData.Interactables)
 		{
 			switch (interactable.Type)
 			{
 				case InteractableType.Den: densCount++; break;
 				case InteractableType.RabbitSpawner: rabbitSpawnersCount++; break;
-				case InteractableType.WormSpawner: wormSpawnersCount++; break;
 				case InteractableType.PredatorDen: predatorDensCount++; break;
 				case InteractableType.Bush: bushesCount++; break;
 				case InteractableType.Grass: grassesCount++; break;
 			}
 		}
-		Debug.Log($"TutorialLevelLoader: Successfully loaded tutorial level with {levelData.Tiles.Count} tiles, {levelData.Animals.Count} animals, {levelData.Items.Count} items, {levelData.Interactables.Count} interactables ({densCount} dens, {rabbitSpawnersCount} rabbit spawners, {wormSpawnersCount} worm spawners, {predatorDensCount} predator dens, {bushesCount} bushes, {grassesCount} grasses)");
+		Debug.Log($"TutorialLevelLoader: Successfully loaded tutorial level with {levelData.Tiles.Count} tiles, {levelData.Animals.Count} animals, {levelData.Items.Count} items, {levelData.Interactables.Count} interactables ({densCount} dens, {rabbitSpawnersCount} rabbit spawners, {predatorDensCount} predator dens, {bushesCount} bushes, {grassesCount} grasses)");
     }
 
     /// <summary>
@@ -483,7 +474,6 @@ public class TutorialLevelLoader : MonoBehaviour
         levelData.Dens = new List<(int x, int y)>();
         levelData.RabbitSpawners = new List<(int x, int y)>();
         levelData.PredatorDens = new List<(int x, int y, string predatorType)>();
-        levelData.WormSpawners = new List<(int x, int y)>();
         levelData.Bushes = new List<(int x, int y)>();
         levelData.Grasses = new List<(int x, int y)>();
         
@@ -579,20 +569,6 @@ public class TutorialLevelLoader : MonoBehaviour
             else
             {
                 Debug.LogWarning($"TutorialLevelLoader: Invalid rabbit spawner position ({pos.x}, {pos.y}). Skipping.");
-            }
-        }
-
-        // Place worm spawners
-        foreach (var pos in _wormSpawnerPositions)
-        {
-            if (IsValidGridPosition(pos.x, pos.y))
-            {
-                levelData.WormSpawners.Add((pos.x, pos.y));
-                levelData.Interactables.Add(new InteractableData(InteractableType.WormSpawner, pos.x, pos.y));
-            }
-            else
-            {
-                Debug.LogWarning($"TutorialLevelLoader: Invalid worm spawner position ({pos.x}, {pos.y}). Skipping.");
             }
         }
 
@@ -725,28 +701,6 @@ public class TutorialLevelLoader : MonoBehaviour
                     levelData.RabbitSpawners.Add((pos.x, pos.y));
                     levelData.Interactables.Add(new InteractableData(InteractableType.RabbitSpawner, pos.x, pos.y));
                     proceduralPositions.RemoveAt(index);
-                    break;
-                }
-            }
-        }
-        
-        // Spawn worm spawners
-        List<Vector2Int> wormPositions = proceduralGrassPositions.Count > 0 ? new List<Vector2Int>(proceduralGrassPositions) : new List<Vector2Int>(proceduralPositions);
-        for (int i = 0; i < _proceduralWormSpawnerCount && wormPositions.Count > 0; i++)
-        {
-            int attempts = 0;
-            while (attempts < 100 && wormPositions.Count > 0)
-            {
-                int index = Random.Range(0, wormPositions.Count);
-                Vector2Int pos = wormPositions[index];
-                attempts++;
-                
-                if (!IsOccupied(pos))
-                {
-                    levelData.WormSpawners.Add((pos.x, pos.y));
-                    levelData.Interactables.Add(new InteractableData(InteractableType.WormSpawner, pos.x, pos.y));
-                    wormPositions.RemoveAt(index);
-                    proceduralPositions.Remove(pos);
                     break;
                 }
             }
