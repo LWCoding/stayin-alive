@@ -202,8 +202,8 @@ public class RabbitSpawner : Interactable, IHideable
 			// Increment turns since extinction
 			_turnsSinceExtinction++;
 			
-			// Check if we've waited long enough to respawn
-			if (_turnsSinceExtinction >= Globals.RabbitRespawnDelayTurns)
+			// Check if we've waited long enough to respawn and if it's a valid breeding season
+			if (_turnsSinceExtinction >= Globals.RabbitRespawnDelayTurns && IsValidBreedingSeason())
 			{
 				Debug.Log($"RabbitSpawner at ({_gridPosition.x}, {_gridPosition.y}): Respawn delay reached ({_turnsSinceExtinction} turns), spawning new rabbit to prevent extinction.");
 				Animal spawnedAnimal = TrySpawnRabbitGroup(1); // Spawn a single rabbit
@@ -217,6 +217,10 @@ public class RabbitSpawner : Interactable, IHideable
 					// Reset extinction counter since we spawned a new rabbit
 					_turnsSinceExtinction = 0;
 				}
+			}
+			else if (_turnsSinceExtinction >= Globals.RabbitRespawnDelayTurns && !IsValidBreedingSeason())
+			{
+				Debug.Log($"RabbitSpawner at ({_gridPosition.x}, {_gridPosition.y}): Respawn delay reached ({_turnsSinceExtinction} turns), but current season is not suitable for breeding. Waiting for Spring or Summer.");
 			}
 			else
 			{
@@ -386,74 +390,6 @@ public class RabbitSpawner : Interactable, IHideable
 			SpawnHeartParticles();
 
 			return spawned;
-		}
-
-		return null;
-	}
-
-	private bool TrySpawnRabbits(int amount)
-	{
-		if (AnimalManager.Instance == null)
-		{
-			Debug.LogWarning("RabbitSpawner: AnimalManager instance not found. Cannot spawn rabbits.");
-			return false;
-		}
-
-		if (EnvironmentManager.Instance == null)
-		{
-			Debug.LogWarning("RabbitSpawner: EnvironmentManager instance not found. Cannot spawn rabbits.");
-			return false;
-		}
-
-		if (!EnvironmentManager.Instance.IsValidPosition(_gridPosition) || !EnvironmentManager.Instance.IsWalkable(_gridPosition))
-		{
-			Debug.LogWarning($"RabbitSpawner: Grid position {_gridPosition} is not valid or walkable for spawning.");
-			return false;
-		}
-
-		Animal existingRabbit = FindRabbitAtGridPosition();
-
-		// Abort if another animal already occupies this tile
-		if (AnimalManager.Instance.HasOtherAnimalAtPosition(existingRabbit, _gridPosition))
-		{
-			return false;
-		}
-
-		if (existingRabbit != null)
-		{
-			existingRabbit.IncreaseAnimalCount(amount);
-			Debug.Log($"RabbitSpawner: Increased rabbit count by {amount} at ({_gridPosition.x}, {_gridPosition.y}).");
-			return true;
-		}
-
-		Animal spawned = AnimalManager.Instance.SpawnAnimal(_rabbitAnimalName, _gridPosition, amount);
-		if (spawned != null)
-		{
-			// Assign this spawner to the rabbit
-			// SetRabbitSpawner will automatically call OnRabbitAttached to track the rabbit
-			RabbitPrey rabbitPrey = spawned as RabbitPrey;
-			if (rabbitPrey != null)
-			{
-				rabbitPrey.SetRabbitSpawner(this);
-			}
-
-			Debug.Log($"RabbitSpawner: Spawned {amount} rabbits at ({_gridPosition.x}, {_gridPosition.y}).");
-			return true;
-		}
-
-		return false;
-	}
-
-	private Animal FindRabbitAtGridPosition()
-	{
-		var rabbits = AnimalManager.Instance.GetAnimalsByName(_rabbitAnimalName);
-		for (int i = 0; i < rabbits.Count; i++)
-		{
-			Animal rabbit = rabbits[i];
-			if (rabbit != null && rabbit.GridPosition == _gridPosition && !_hidingRabbits.Contains(rabbit))
-			{
-				return rabbit;
-			}
 		}
 
 		return null;
@@ -806,6 +742,20 @@ public class RabbitSpawner : Interactable, IHideable
 				_spriteRenderer.sprite = _unoccupiedSprite;
 			}
 		}
+	}
+
+	/// <summary>
+	/// Checks if the current season is Spring or Summer, which are valid breeding seasons for rabbits.
+	/// </summary>
+	private bool IsValidBreedingSeason()
+	{
+		if (TimeManager.Instance == null)
+		{
+			return false;
+		}
+
+		TimeManager.Season currentSeason = TimeManager.Instance.CurrentSeason;
+		return currentSeason == TimeManager.Season.Spring || currentSeason == TimeManager.Season.Summer;
 	}
 
 	/// <summary>
