@@ -57,14 +57,12 @@ public class DenSystemManager : Singleton<DenSystemManager> {
   
   /// <summary>
   /// Gets the current worker price based on the total number of workers.
-  /// Scales by 1 food for every 10 workers (1-10 workers = 1 food, 11-20 = 2 food, etc.)
+  /// Uses formula: floor(2 * sqrt(workers))
   /// </summary>
   public int GetCurrentWorkerPrice()
   {
     int totalWorkers = workersToDens != null ? workersToDens.Count : 0;
-    // Formula: floor(totalWorkers / 10) + 1
-    // 0-9 workers: cost = 1, 10-19: cost = 2, 20-29: cost = 3, etc.
-    return Mathf.FloorToInt(totalWorkers / 10) + 1;
+    return Mathf.FloorToInt(2 * Mathf.Sqrt(totalWorkers));
   }
   
   [Header("Worker Settings")]
