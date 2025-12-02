@@ -225,6 +225,7 @@ public class TutorialLevelLoader : MonoBehaviour
             InteractableManager.Instance.ClearAllInteractables();
             InteractableManager.Instance.SpawnDensFromLevelData(levelData.Dens);
             InteractableManager.Instance.SpawnRabbitSpawnersFromLevelData(levelData.RabbitSpawners);
+            InteractableManager.Instance.SpawnWormSpawnersFromLevelData(levelData.WormSpawners);
             InteractableManager.Instance.SpawnBushesFromLevelData(levelData.Bushes);
             InteractableManager.Instance.SpawnGrassesFromLevelData(levelData.Grasses);
         }
@@ -476,6 +477,10 @@ public class TutorialLevelLoader : MonoBehaviour
         levelData.PredatorDens = new List<(int x, int y, string predatorType)>();
         levelData.Bushes = new List<(int x, int y)>();
         levelData.Grasses = new List<(int x, int y)>();
+        levelData.WormSpawners = new List<(int x, int y)>();
+        
+        // Generate worm spawners near water tiles (before other spawns to avoid conflicts)
+        GenerateWormSpawnersNearWater(levelData);
         
         // Generate spawns in procedural area (after lists are initialized)
         if (_proceduralYThreshold >= 0)
@@ -626,6 +631,121 @@ public class TutorialLevelLoader : MonoBehaviour
 
         Debug.Log($"TutorialLevelLoader: Generated level with {levelData.Tiles.Count} tiles, size: {levelData.Width}x{levelData.Height}");
         return levelData;
+    }
+
+    /// <summary>
+    /// Generates worm spawners near water tiles that border non-water tiles.
+    /// </summary>
+    private void GenerateWormSpawnersNearWater(LevelData levelData)
+    {
+        List<Vector2Int> candidatePositions = new List<Vector2Int>();
+        
+        // Find all water tiles that border non-water tiles (Grass or Empty)
+        for (int y = 0; y < _levelHeight; y++)
+        {
+            for (int x = 0; x < _levelWidth; x++)
+            {
+                // Get tile type at this position
+                TileType currentTileType = TileType.Empty;
+                foreach (var (tx, ty, tt) in levelData.Tiles)
+                {
+                    if (tx == x && ty == y)
+                    {
+                        currentTileType = tt;
+                        break;
+                    }
+                }
+                
+                // Only consider water tiles
+                if (currentTileType != TileType.Water)
+                    continue;
+                
+                // Check if this water tile borders a non-water tile (Grass or Empty)
+                bool bordersNonWater = false;
+                Vector2Int[] neighbors = new Vector2Int[]
+                {
+                    new Vector2Int(x - 1, y), // Left
+                    new Vector2Int(x + 1, y), // Right
+                    new Vector2Int(x, y - 1), // Down
+                    new Vector2Int(x, y + 1)  // Up
+                };
+                
+                foreach (Vector2Int neighbor in neighbors)
+                {
+                    if (neighbor.x < 0 || neighbor.x >= _levelWidth || neighbor.y < 0 || neighbor.y >= _levelHeight)
+                        continue;
+                    
+                    // Get neighbor tile type
+                    TileType neighborType = TileType.Empty;
+                    foreach (var (tx, ty, tt) in levelData.Tiles)
+                    {
+                        if (tx == neighbor.x && ty == neighbor.y)
+                        {
+                            neighborType = tt;
+                            break;
+                        }
+                    }
+                    
+                    // Check if neighbor is a non-water, non-obstacle tile
+                    if (neighborType == TileType.Grass || neighborType == TileType.Empty)
+                    {
+                        bordersNonWater = true;
+                        break;
+                    }
+                }
+                
+                if (bordersNonWater)
+                {
+                    candidatePositions.Add(new Vector2Int(x, y));
+                }
+            }
+        }
+        
+        // Spawn worm spawners at candidate positions with chance and distance checks
+        List<Vector2Int> spawnedPositions = new List<Vector2Int>();
+        
+        foreach (Vector2Int candidatePos in candidatePositions)
+        {
+            // Check spawn chance
+            if (Random.Range(0f, 1f) > Globals.WormSpawnerSpawnChance)
+                continue;
+            
+            // Check minimum distance from other worm spawners
+            bool tooClose = false;
+            foreach (Vector2Int spawnedPos in spawnedPositions)
+            {
+                int distance = Mathf.Abs(candidatePos.x - spawnedPos.x) + Mathf.Abs(candidatePos.y - spawnedPos.y);
+                if (distance < Globals.WormSpawnerMinDistance)
+                {
+                    tooClose = true;
+                    break;
+                }
+            }
+            
+            if (tooClose)
+                continue;
+            
+            // Check if position is already occupied by an interactable
+            bool isOccupied = false;
+            foreach (var interactable in levelData.Interactables)
+            {
+                if (interactable.X == candidatePos.x && interactable.Y == candidatePos.y)
+                {
+                    isOccupied = true;
+                    break;
+                }
+            }
+            
+            if (isOccupied)
+                continue;
+            
+            // Spawn worm spawner at this position
+            levelData.WormSpawners.Add((candidatePos.x, candidatePos.y));
+            levelData.Interactables.Add(new InteractableData(InteractableType.WormSpawner, candidatePos.x, candidatePos.y));
+            spawnedPositions.Add(candidatePos);
+        }
+        
+        Debug.Log($"TutorialLevelLoader: Generated {spawnedPositions.Count} worm spawners near water tiles");
     }
 
     /// <summary>

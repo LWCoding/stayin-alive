@@ -85,6 +85,16 @@ public static class Globals
 	/// </summary>
 	public static int RabbitRespawnDelayTurns = 20;
 
+	/// <summary>
+	/// Chance (0.0 to 1.0) that a worm spawner will spawn at a water tile that borders a non-water tile.
+	/// </summary>
+	public static float WormSpawnerSpawnChance = 0.05f;
+
+	/// <summary>
+	/// Minimum distance in grid tiles between worm spawners. Prevents spawners from being too close together.
+	/// </summary>
+	public static int WormSpawnerMinDistance = 8;
+
   public static string GRASS_ITEM_NAME_FOR_WORKER_HARDCODE = "Grass";
 }
 
