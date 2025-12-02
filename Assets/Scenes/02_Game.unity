@@ -1218,7 +1218,7 @@ MonoBehaviour:
   _pointsTextMenu: {fileID: 1976682970}
   _pointsFormat: 'Total Food in Dens: {0}'
   _postProcessingVolume: {fileID: 443342604}
-  _criticalHungerVignetteIntensity: 0.55
+  _criticalHungerVignetteIntensity: 0.4
   _criticalHungerVignetteColor: {r: 1, g: 0, b: 0, a: 1}
   _defaultVignetteColor: {r: 0, g: 0, b: 0, a: 1}
 --- !u!114 &850705210 stripped
@@ -1461,15 +1461,6 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _itemParent: {fileID: 1972867176}
-  _itemPrefabs:
-  - itemName: Worm
-    prefab: {fileID: 4416297872513154777, guid: 7a38d1a2aea0ecd4583043449d91dc02, type: 3}
-  - itemName: Grass
-    prefab: {fileID: 8448244147295851740, guid: e84f021d7e9761a49bce026045791447, type: 3}
-  - itemName: Sticks
-    prefab: {fileID: 1319182490056406658, guid: ef2e7a42ef590ba4cba0c0786a88a599, type: 3}
-  - itemName: GrassSeeds
-    prefab: {fileID: 1186610232297760084, guid: 7d98f356ed2e146488f9b8d2302a3126, type: 3}
 --- !u!1 &1144474249
 GameObject:
   m_ObjectHideFlags: 0

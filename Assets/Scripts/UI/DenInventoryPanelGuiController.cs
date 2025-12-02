@@ -34,14 +34,21 @@ public class DenInventoryPanelGuiController : MonoBehaviour {
     } 
     inventorySlots.Clear();
 
-    List<Item> invItems = InventoryManager.Instance.GetInventoryItems().ToList();
-    invItems.Reverse();
+    // Get item names from inventory slots without destroying the items
+    // Items should only be destroyed when actually removed from inventory
+    List<string> itemNames = new List<string>();
+    foreach (InventorySlot slot in InventoryManager.Instance.GetInventorySlots()) {
+      Item item = slot.GetItem();
+      if (item != null && item.ItemName != null) {
+        itemNames.Add(item.ItemName);
+      }
+    }
+    itemNames.Reverse();
 
-    foreach (Item invItem in invItems) {
+    foreach (string itemName in itemNames) {
       DenMenuInventorySlotGui newSlot = Instantiate(inventorySlotPrefab, inventoryBar).GetComponent<DenMenuInventorySlotGui>();
-      newSlot.Setup(invItem.ItemName);
+      newSlot.Setup(itemName);
       inventorySlots.Add(newSlot);
-      Destroy(invItem.gameObject);
     }
   }
 }

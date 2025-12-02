@@ -199,12 +199,10 @@ public class Den : Interactable, IHideable
             
             if (itemCount > 0)
             {
-                // Clear all items from inventory
-                // int clearedCount = InventoryManager.Instance.ClearAllItems();
-
-                List<Item> inventoryItems = InventoryManager.Instance.GetInventoryItems();
-                Debug.LogWarning(inventoryItems.Count);
+                // Transfer all items from inventory to den
+                List<Item> inventoryItems = InventoryManager.Instance.TransferAllItems();
                 int inventoryItemsCount = inventoryItems.Count;
+                
                 // Add stored food to the den (+1 per item)
                 if (DenSystemManager.Instance != null)
                 {
@@ -212,8 +210,6 @@ public class Den : Interactable, IHideable
                     DenSystemManager.Instance.AddItemToDenInventory(inventoryItem);
                   }
                 }
-                
-                InventoryManager.Instance.ClearAllItems();
                 
                 Debug.Log($"Animal '{animal.name}' deposited {inventoryItemsCount} items at den. Added {inventoryItemsCount} points.");
             }

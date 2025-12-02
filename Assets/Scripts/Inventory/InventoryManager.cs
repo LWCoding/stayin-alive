@@ -187,19 +187,19 @@ public class InventoryManager : Singleton<InventoryManager>
     
     /// <summary>
     /// Attempts to add an item to the inventory. Returns true if successful, false if inventory is full.
-    /// The corresponding sprite is resolved automatically using the ItemManager.
+    /// Creates a persistent copy of the item for storage in the inventory.
     /// </summary>
-    public bool AddItem(string itemName)
+    public bool AddItem(Item item)
     {
-        if (string.IsNullOrEmpty(itemName))
+        if (item == null)
         {
-            Debug.LogWarning("InventoryManager: Cannot add item with null or empty name.");
+            Debug.LogWarning("InventoryManager: Cannot add null item.");
             return false;
         }
         
         if (IsFull)
         {
-            Debug.Log($"InventoryManager: Cannot add item '{itemName}' - inventory is full ({CurrentItemCount}/{Globals.MaxInventorySize}).");
+            Debug.Log($"InventoryManager: Cannot add item '{item.ItemName}' - inventory is full ({CurrentItemCount}/{Globals.MaxInventorySize}).");
             
             // Trigger shake animation
             ShakeInventory();
@@ -207,14 +207,20 @@ public class InventoryManager : Singleton<InventoryManager>
             return false;
         }
 
-        Sprite itemSprite = null;
-        if (ItemManager.Instance != null)
+        // Create a persistent copy of the item for the inventory
+        // Items in inventory should be inactive GameObjects that don't exist in the world
+        // Use ItemManager to create a storage item from the item's name
+        if (ItemManager.Instance == null)
         {
-            itemSprite = ItemManager.Instance.GetItemSprite(itemName);
+            Debug.LogWarning("InventoryManager: ItemManager instance not found. Cannot create inventory item.");
+            return false;
         }
-        else
+        
+        Item inventoryItem = ItemManager.Instance.CreateItemForStorage(item.ItemName);
+        if (inventoryItem == null)
         {
-            Debug.LogWarning("InventoryManager: ItemManager instance not found. Item will be added without a sprite.");
+            Debug.LogWarning($"InventoryManager: Failed to create inventory item '{item.ItemName}'.");
+            return false;
         }
         
         // Find the first empty slot
@@ -223,12 +229,12 @@ public class InventoryManager : Singleton<InventoryManager>
             InventorySlot slot = _inventorySlots[i];
             if (slot.IsEmpty)
             {
-                if (slot.SetItem(itemName, itemSprite))
+                if (slot.SetItem(inventoryItem))
                 {
-                    Debug.Log($"InventoryManager: Added item '{itemName}' to inventory. ({CurrentItemCount}/{Globals.MaxInventorySize})");
+                    Debug.Log($"InventoryManager: Added item '{item.ItemName}' to inventory. ({CurrentItemCount}/{Globals.MaxInventorySize})");
                     
                     // Fire event for item added
-                    OnItemAdded?.Invoke(itemName);
+                    OnItemAdded?.Invoke(item.ItemName);
                     
                     // If the item was added to the currently selected slot, update the usage description
                     if (i == _selectedSlotIndex)
@@ -243,7 +249,8 @@ public class InventoryManager : Singleton<InventoryManager>
                         _selectedSlotIndex < _inventorySlots.Count)
                     {
                         InventorySlot selectedSlot = _inventorySlots[_selectedSlotIndex];
-                        if (!selectedSlot.IsEmpty && selectedSlot.ItemName == itemName)
+                        Item selectedItem = selectedSlot.GetItem();
+                        if (selectedItem != null && selectedItem.ItemName == item.ItemName)
                         {
                             UpdateUsageDescription();
                         }
@@ -254,8 +261,46 @@ public class InventoryManager : Singleton<InventoryManager>
             }
         }
         
-        Debug.LogWarning($"InventoryManager: Failed to add item '{itemName}' - no empty slots found (this should not happen).");
+        Debug.LogWarning($"InventoryManager: Failed to add item '{item.ItemName}' - no empty slots found (this should not happen).");
         return false;
+    }
+    
+    /// <summary>
+    /// Attempts to add an item to the inventory by name. Creates a new Item instance from the prefab.
+    /// This is a convenience method for cases where only the item name is available.
+    /// </summary>
+    public bool AddItem(string itemName)
+    {
+        if (string.IsNullOrEmpty(itemName))
+        {
+            Debug.LogWarning("InventoryManager: Cannot add item with null or empty name.");
+            return false;
+        }
+        
+        if (ItemManager.Instance == null)
+        {
+            Debug.LogWarning("InventoryManager: ItemManager instance not found. Cannot create item from name.");
+            return false;
+        }
+        
+        // Create a new Item instance from the prefab for storage
+        Item item = ItemManager.Instance.CreateItemForStorage(itemName);
+        if (item == null)
+        {
+            Debug.LogWarning($"InventoryManager: Cannot create item '{itemName}' from prefab.");
+            return false;
+        }
+        
+        // Add the item (this will create an inventory copy)
+        bool added = AddItem(item);
+        
+        // Clean up the temporary item we created
+        if (item != null && item.gameObject != null)
+        {
+            Destroy(item.gameObject);
+        }
+        
+        return added;
     }
     
     /// <summary>
@@ -280,6 +325,31 @@ public class InventoryManager : Singleton<InventoryManager>
     }
     
     /// <summary>
+    /// Transfers all items from inventory slots to another system (e.g., den inventory).
+    /// Extracts items without destroying them so they can be moved to the destination.
+    /// Returns the list of extracted items.
+    /// </summary>
+    public List<Item> TransferAllItems()
+    {
+        List<Item> transferredItems = new List<Item>();
+        
+        foreach (InventorySlot slot in _inventorySlots)
+        {
+            if (!slot.IsEmpty)
+            {
+                Item item = slot.ExtractItem();
+                if (item != null)
+                {
+                    transferredItems.Add(item);
+                }
+            }
+        }
+        
+        Debug.Log($"InventoryManager: Transferred {transferredItems.Count} items from inventory.");
+        return transferredItems;
+    }
+    
+    /// <summary>
     /// Gets the count of a specific item in the inventory.
     /// </summary>
     public int GetItemCount(string itemName)
@@ -287,7 +357,8 @@ public class InventoryManager : Singleton<InventoryManager>
         int count = 0;
         foreach (InventorySlot slot in _inventorySlots)
         {
-            if (!slot.IsEmpty && slot.ItemName == itemName)
+            Item item = slot.GetItem();
+            if (item != null && item.ItemName == itemName)
             {
                 count++;
             }
@@ -305,7 +376,8 @@ public class InventoryManager : Singleton<InventoryManager>
         
         foreach (InventorySlot slot in _inventorySlots)
         {
-            if (!slot.IsEmpty && slot.ItemName == itemName)
+            Item item = slot.GetItem();
+            if (item != null && item.ItemName == itemName)
             {
                 slot.ClearSlot();
                 removedCount++;
@@ -386,7 +458,12 @@ public class InventoryManager : Singleton<InventoryManager>
             return;
         }
         
-        string itemName = slot.ItemName;
+        Item item = slot.GetItem();
+        if (item == null)
+        {
+            Debug.LogWarning($"InventoryManager: Cannot use item in slot {slotIndex} - item is null.");
+            return;
+        }
         
         // Get the ControllableAnimal (player) using cached reference
         ControllableAnimal player = null;
@@ -402,24 +479,17 @@ public class InventoryManager : Singleton<InventoryManager>
             return;
         }
         
-        // Use the item through ItemManager
+        // Use the item directly
         bool itemUsed = false;
         
-        if (ItemManager.Instance != null)
+        _activeUseSlotIndex = slotIndex;
+        try
         {
-            _activeUseSlotIndex = slotIndex;
-            try
-            {
-                itemUsed = ItemManager.Instance.UseItem(itemName, player);
-            }
-            finally
-            {
-                _activeUseSlotIndex = -1;
-            }
+            itemUsed = item.OnUse(player);
         }
-        else
+        finally
         {
-            Debug.LogWarning("InventoryManager: ItemManager instance not found! Cannot use item.");
+            _activeUseSlotIndex = -1;
         }
         
         // If item was successfully used, remove it from inventory
@@ -431,7 +501,7 @@ public class InventoryManager : Singleton<InventoryManager>
         }
         else
         {
-            Debug.LogWarning($"InventoryManager: Item '{itemName}' could not be used.");
+            Debug.LogWarning($"InventoryManager: Item '{item.ItemName}' could not be used.");
         }
     }
     
@@ -461,7 +531,8 @@ public class InventoryManager : Singleton<InventoryManager>
             }
             
             InventorySlot slot = _inventorySlots[i];
-            if (!slot.IsEmpty && slot.ItemName == itemName)
+            Item item = slot.GetItem();
+            if (item != null && item.ItemName == itemName)
             {
                 slot.ClearSlot();
                 removed++;
@@ -496,7 +567,8 @@ public class InventoryManager : Singleton<InventoryManager>
         if (_activeUseSlotIndex >= 0 && _activeUseSlotIndex < _inventorySlots.Count)
         {
             InventorySlot activeSlot = _inventorySlots[_activeUseSlotIndex];
-            if (!activeSlot.IsEmpty && activeSlot.ItemName == itemName)
+            Item activeItem = activeSlot.GetItem();
+            if (activeItem != null && activeItem.ItemName == itemName)
             {
                 activeSlot.ClearSlot();
                 consumed++;
@@ -512,7 +584,8 @@ public class InventoryManager : Singleton<InventoryManager>
             }
             
             InventorySlot slot = _inventorySlots[i];
-            if (!slot.IsEmpty && slot.ItemName == itemName)
+            Item item = slot.GetItem();
+            if (item != null && item.ItemName == itemName)
             {
                 slot.ClearSlot();
                 consumed++;
@@ -620,21 +693,30 @@ public class InventoryManager : Singleton<InventoryManager>
             return;
         }
         
-        string description = "";
+        // Get the Item object directly from the slot
+        Item item = selectedSlot.GetItem();
+        if (item == null)
+        {
+            ClearUsageDescription();
+            return;
+        }
+        
+        string description = item.UsageDescription ?? "";
         string insufficientDescription = "";
         bool isSticksItem = false;
         
-        if (ItemManager.Instance != null)
+        // Check if it's a SticksItem to get the insufficient description
+        if (item is SticksItem sticksItem)
         {
-            ItemUsageInfo usageInfo = ItemManager.Instance.GetItemUsageInfo(selectedSlot.ItemName);
-            description = usageInfo.Description;
-            insufficientDescription = usageInfo.InsufficientDescription;
-            isSticksItem = usageInfo.IsSticksItem;
+            isSticksItem = true;
+            insufficientDescription = sticksItem.InsufficientSticksDescription ?? "";
         }
         
         if (isSticksItem)
         {
-            int availableSticks = GetItemCount(selectedSlot.ItemName);
+            Item selectedItem = selectedSlot.GetItem();
+            string itemName = selectedItem != null ? selectedItem.ItemName : null;
+            int availableSticks = GetItemCount(itemName);
             int missing = SticksItem.GetStickDeficit(availableSticks);
             
             if (missing > 0 && !string.IsNullOrEmpty(insufficientDescription))
@@ -670,6 +752,14 @@ public class InventoryManager : Singleton<InventoryManager>
          }
        }
        return items;
+    }
+    
+    /// <summary>
+    /// Returns the list of inventory slots. Used for UI display purposes.
+    /// </summary>
+    public List<InventorySlot> GetInventorySlots()
+    {
+        return new List<InventorySlot>(_inventorySlots);
     }
 }
 

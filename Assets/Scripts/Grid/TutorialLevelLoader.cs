@@ -266,7 +266,25 @@ public class TutorialLevelLoader : MonoBehaviour
         // Spawn items using ItemManager
         if (ItemManager.Instance != null)
         {
-            ItemManager.Instance.SpawnItemsFromLevelData(levelData.Items);
+            // Clear all existing items first
+            ItemManager.Instance.ClearAllItems();
+            
+            // Spawn items from level data
+            if (levelData.Items != null)
+            {
+                foreach (var (itemName, x, y) in levelData.Items)
+                {
+                    Vector2Int gridPos = new Vector2Int(x, y);
+                    if (EnvironmentManager.Instance != null && EnvironmentManager.Instance.IsValidPosition(gridPos))
+                    {
+                        ItemManager.Instance.SpawnItem(itemName, gridPos);
+                    }
+                    else
+                    {
+                        Debug.LogWarning($"TutorialLevelLoader: Item '{itemName}' at ({x}, {y}) is out of bounds!");
+                    }
+                }
+            }
         }
         else
         {

@@ -220,8 +220,8 @@ public class DenSystemManager : Singleton<DenSystemManager> {
     // Get first item in food item list
     Item itemToTransfer = foodItemsInDen[index];
     
-    // Attempt to add item to the inventory
-    bool itemAdded = InventoryManager.Instance.AddItem(itemToTransfer.ItemName);
+    // Attempt to add item to the inventory (pass the Item object directly)
+    bool itemAdded = InventoryManager.Instance.AddItem(itemToTransfer);
     
     // If the item is not added successfully, no-op
     if (!itemAdded) {
@@ -245,8 +245,8 @@ public class DenSystemManager : Singleton<DenSystemManager> {
     // Get first item in food item list
     Item itemToTransfer = otherItemsInDen[index];
     
-    // Attempt to add item to the inventory
-    bool itemAdded = InventoryManager.Instance.AddItem(itemToTransfer.ItemName);
+    // Attempt to add item to the inventory (pass the Item object directly)
+    bool itemAdded = InventoryManager.Instance.AddItem(itemToTransfer);
     
     // If the item is not added successfully, no-op
     if (!itemAdded) {
@@ -283,7 +283,7 @@ public class DenSystemManager : Singleton<DenSystemManager> {
     foodItemsInDen.Clear();
     if (target > 0) {
       for (int i = 0; i < target; i++) {
-        AddItemToDenInventory(ItemManager.Instance.GetItemFromName(Globals.GRASS_ITEM_NAME_FOR_WORKER_HARDCODE));
+        AddItemToDenInventory(ItemManager.Instance.CreateItemForStorage(Globals.GRASS_ITEM_NAME_FOR_WORKER_HARDCODE));
       }
     }
     

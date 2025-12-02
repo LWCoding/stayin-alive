@@ -189,7 +189,8 @@ public abstract class Item : MonoBehaviour, IItem
         // Try to add item to inventory
         if (InventoryManager.Instance != null)
         {
-            bool added = InventoryManager.Instance.AddItem(_itemName);
+            // Pass the Item object itself - AddItem will create a persistent copy
+            bool added = InventoryManager.Instance.AddItem(this);
             
             if (added)
             {

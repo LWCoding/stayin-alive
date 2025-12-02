@@ -8,32 +8,21 @@ using TMPro;
 public class InventorySlot : MonoBehaviour
 {
     [Header("References")]
-    [SerializeField] [Tooltip("Image component that displays the item sprite. Should be a child GameObject named 'Item'.")]
+    [SerializeField] [Tooltip("Image component that displays the item sprite.")]
     private Image _itemImage;
     
-    [SerializeField] [Tooltip("GameObject that indicates this slot is selected. Should be a child GameObject named 'SelectedIndicator'.")]
+    [SerializeField] [Tooltip("GameObject that indicates this slot is selected.")]
     private GameObject _selectedIndicator;
     
     [SerializeField] [Tooltip("Text component that displays the slot number (1-9) for keyboard selection.")]
     private TextMeshProUGUI _slotNumberText;
     
-    private string _itemName = null;
+    private Item _item = null;
     private bool _isEmpty = true;
     private bool _isSelected = false;
-    
-    /// <summary>
-    /// Whether this slot is currently empty.
-    /// </summary>
+
+    public Item GetItem() => _item;
     public bool IsEmpty => _isEmpty;
-    
-    /// <summary>
-    /// The name of the item currently in this slot. Returns null if empty.
-    /// </summary>
-    public string ItemName => _itemName;
-    
-    /// <summary>
-    /// Whether this slot is currently selected.
-    /// </summary>
     public bool IsSelected => _isSelected;
     
     private void Awake()
@@ -41,20 +30,6 @@ public class InventorySlot : MonoBehaviour
         if (_itemImage == null)
         {
             Debug.LogError($"InventorySlot '{name}': Item Image not found. Please assign it in the Inspector or ensure there's an Image component in a child GameObject named 'Item'.");
-        }
-        
-        // Try to find SelectedIndicator if not assigned
-        if (_selectedIndicator == null)
-        {
-            Transform indicatorTransform = transform.Find("SelectedIndicator");
-            if (indicatorTransform != null)
-            {
-                _selectedIndicator = indicatorTransform.gameObject;
-            }
-            else
-            {
-                Debug.LogWarning($"InventorySlot '{name}': SelectedIndicator not found. Please assign it in the Inspector or ensure there's a child GameObject named 'SelectedIndicator'.");
-            }
         }
         
         // Initialize as empty and deselected
@@ -81,36 +56,42 @@ public class InventorySlot : MonoBehaviour
     /// <summary>
     /// Sets the item in this slot. Returns true if successful, false if slot is already occupied.
     /// </summary>
-    public bool SetItem(string itemName, Sprite itemSprite)
+    public bool SetItem(Item item)
     {
         if (!_isEmpty)
         {
-            Debug.LogWarning($"InventorySlot '{name}': Cannot set item '{itemName}' - slot is already occupied by '{_itemName}'.");
+            Debug.LogWarning($"InventorySlot '{name}': Cannot set item '{item?.ItemName}' - slot is already occupied by '{_item?.ItemName}'.");
             return false;
         }
         
-        if (string.IsNullOrEmpty(itemName))
+        if (item == null)
         {
-            Debug.LogWarning($"InventorySlot '{name}': Cannot set item with null or empty name.");
+            Debug.LogWarning($"InventorySlot '{name}': Cannot set null item.");
             return false;
         }
         
-        _itemName = itemName;
+        _item = item;
         _isEmpty = false;
         
         // Update the image
-        _itemImage.sprite = itemSprite;
+        _itemImage.sprite = item.InventorySprite;
         _itemImage.enabled = true;
 
         return true;
     }
     
     /// <summary>
-    /// Clears the slot, removing the item and hiding the image.
+    /// Clears the slot, destroying the item and hiding the image.
     /// </summary>
     public void ClearSlot()
     {
-        _itemName = null;
+        // Destroy the item GameObject if it exists
+        if (_item != null && _item.gameObject != null)
+        {
+            Destroy(_item.gameObject);
+        }
+        
+        _item = null;
         _isEmpty = true;
         
         if (_itemImage != null)
@@ -118,6 +99,26 @@ public class InventorySlot : MonoBehaviour
             _itemImage.sprite = null;
             _itemImage.enabled = false;
         }
+    }
+    
+    /// <summary>
+    /// Extracts the item from the slot without destroying it. Used when transferring items to another system (e.g., den inventory).
+    /// </summary>
+    /// <returns>The Item that was extracted, or null if slot was empty</returns>
+    public Item ExtractItem()
+    {
+        Item item = _item;
+        
+        _item = null;
+        _isEmpty = true;
+        
+        if (_itemImage != null)
+        {
+            _itemImage.sprite = null;
+            _itemImage.enabled = false;
+        }
+        
+        return item;
     }
     
     /// <summary>
@@ -131,10 +132,6 @@ public class InventorySlot : MonoBehaviour
         {
             _selectedIndicator.SetActive(selected);
         }
-    }
-
-    public Item GetItem() {
-      return ItemManager.Instance.GetItemFromName(_itemName);
     }
 }
 

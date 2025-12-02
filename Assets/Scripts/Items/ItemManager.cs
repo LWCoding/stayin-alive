@@ -4,25 +4,15 @@ using UnityEngine;
 /// <summary>
 /// Manages items in the game as prefabs, similar to InteractableManager.
 /// Handles spawning and tracking items from level data.
+/// Loads ItemData ScriptableObjects from Resources/Items/ folder.
 /// </summary>
 public class ItemManager : Singleton<ItemManager>
 {
     [Header("Item Settings")]
     [SerializeField] private Transform _itemParent;
     
-    [Header("Item Prefabs")]
-    [Tooltip("Dictionary mapping item names to their prefabs. Set in Inspector.")]
-    [SerializeField] private List<ItemPrefabEntry> _itemPrefabs = new List<ItemPrefabEntry>();
-    
-    [System.Serializable]
-    private class ItemPrefabEntry
-    {
-        public string itemName;
-        public GameObject prefab;
-    }
-    
-    // Dictionary for quick lookup
-    private Dictionary<string, GameObject> _itemPrefabLookup = new Dictionary<string, GameObject>();
+    // Dictionary mapping item names to their ItemData
+    private Dictionary<string, ItemData> _itemDataDictionary = new Dictionary<string, ItemData>();
     
     // Track all items in the scene
     private List<Item> _items = new List<Item>();
@@ -31,53 +21,82 @@ public class ItemManager : Singleton<ItemManager>
     {
         base.Awake();
 
-        // Build prefab lookup dictionary
-        BuildPrefabLookup();
+        // Load all ItemData from Resources/Items/ folder
+        LoadItemData();
     }
     
     /// <summary>
-    /// Builds the prefab lookup dictionary from the serialized list.
+    /// Loads all ItemData ScriptableObjects from the Resources/Items/ folder.
     /// </summary>
-    private void BuildPrefabLookup()
+    private void LoadItemData()
     {
-        _itemPrefabLookup.Clear();
+        ItemData[] itemDataArray = Resources.LoadAll<ItemData>("Items");
         
-        foreach (ItemPrefabEntry entry in _itemPrefabs)
+        if (itemDataArray == null || itemDataArray.Length == 0)
         {
-            if (string.IsNullOrEmpty(entry.itemName) || entry.prefab == null)
-            {
-                continue;
-            }
-            
-            if (_itemPrefabLookup.ContainsKey(entry.itemName))
-            {
-                Debug.LogWarning($"ItemManager: Duplicate item name '{entry.itemName}' found in prefab list. Keeping first occurrence.");
-                continue;
-            }
-            
-            _itemPrefabLookup[entry.itemName] = entry.prefab;
+            Debug.LogWarning("ItemManager: No ItemData found in Resources/Items/ folder! Please create ItemData ScriptableObjects and place them in Resources/Items/.");
+            return;
         }
-        
-        Debug.Log($"ItemManager: Built prefab lookup with {_itemPrefabLookup.Count} entries.");
+
+        _itemDataDictionary.Clear();
+
+        foreach (ItemData itemData in itemDataArray)
+        {
+            if (itemData == null)
+            {
+                continue;
+            }
+
+            if (string.IsNullOrEmpty(itemData.itemName))
+            {
+                Debug.LogWarning($"ItemManager: Found ItemData with null or empty name: {itemData.name}");
+                continue;
+            }
+
+            if (_itemDataDictionary.ContainsKey(itemData.itemName))
+            {
+                Debug.LogWarning($"ItemManager: Duplicate item name '{itemData.itemName}' found. Keeping first occurrence.");
+                continue;
+            }
+
+            _itemDataDictionary[itemData.itemName] = itemData;
+        }
+
+        Debug.Log($"ItemManager: Loaded {_itemDataDictionary.Count} item data entries from Resources/Items/");
+    }
+    
+    /// <summary>
+    /// Gets an ItemData by name. Returns null if not found.
+    /// </summary>
+    private ItemData GetItemData(string itemName)
+    {
+        if (_itemDataDictionary.TryGetValue(itemName, out ItemData data))
+        {
+            return data;
+        }
+
+        Debug.LogWarning($"ItemManager: Item data not found for name '{itemName}'");
+        return null;
     }
     
     /// <summary>
     /// Spawns an item at the specified grid position.
     /// </summary>
-    /// <param name="itemName">Name of the item to spawn (must match ItemDatabase and prefab entry)</param>
+    /// <param name="itemName">Name of the item to spawn (must match ItemData)</param>
     /// <param name="gridPosition">Grid position to spawn the item at</param>
-    /// <returns>The spawned Item component, or null if prefab is not found</returns>
+    /// <returns>The spawned Item component, or null if ItemData or prefab is not found</returns>
     public Item SpawnItem(string itemName, Vector2Int gridPosition)
     {
-        if (string.IsNullOrEmpty(itemName))
+        ItemData itemData = GetItemData(itemName);
+        if (itemData == null)
         {
-            Debug.LogError("ItemManager: Cannot spawn item with null or empty name.");
+            Debug.LogError($"ItemManager: Item data not found for '{itemName}'! Make sure the ItemData ScriptableObject exists in Resources/Items/ folder.");
             return null;
         }
-        
-        if (!_itemPrefabLookup.TryGetValue(itemName, out GameObject prefab))
+
+        if (itemData.prefab == null)
         {
-            Debug.LogError($"ItemManager: Prefab not found for item '{itemName}'. Please add it to the item prefabs list in the Inspector.");
+            Debug.LogError($"ItemManager: Prefab is not assigned for item '{itemName}'!");
             return null;
         }
         
@@ -94,7 +113,7 @@ public class ItemManager : Singleton<ItemManager>
         }
         
         // Instantiate the item prefab
-        GameObject itemObj = Instantiate(prefab, _itemParent);
+        GameObject itemObj = Instantiate(itemData.prefab, _itemParent);
         Item item = itemObj.GetComponent<Item>();
         
         if (item == null)
@@ -104,9 +123,8 @@ public class ItemManager : Singleton<ItemManager>
             return null;
         }
         
-        // Initialize the item with the item name to ensure it matches the lookup key
+        // Initialize the item with the item name
         item.Initialize(gridPosition, itemName);
-        
         _items.Add(item);
         
         Debug.Log($"ItemManager: Spawned item '{itemName}' at ({gridPosition.x}, {gridPosition.y})");
@@ -114,31 +132,6 @@ public class ItemManager : Singleton<ItemManager>
         return item;
     }
     
-    /// <summary>
-    /// Spawns multiple items from level data.
-    /// </summary>
-    public void SpawnItemsFromLevelData(List<(string itemName, int x, int y)> items)
-    {
-        ClearAllItems();
-        
-        if (items == null)
-        {
-            return;
-        }
-        
-        foreach (var (itemName, x, y) in items)
-        {
-            Vector2Int gridPos = new Vector2Int(x, y);
-            if (EnvironmentManager.Instance != null && EnvironmentManager.Instance.IsValidPosition(gridPos))
-            {
-                SpawnItem(itemName, gridPos);
-            }
-            else
-            {
-                Debug.LogWarning($"ItemManager: Item '{itemName}' at ({x}, {y}) is out of bounds!");
-            }
-        }
-    }
     
     /// <summary>
     /// Gets the item at the specified grid position, if any.
@@ -166,27 +159,6 @@ public class ItemManager : Singleton<ItemManager>
     }
     
     /// <summary>
-    /// Gets all items in the scene.
-    /// </summary>
-    public List<Item> GetAllItems()
-    {
-        // Filter out null references
-        List<Item> validItems = new List<Item>();
-        for (int i = _items.Count - 1; i >= 0; i--)
-        {
-            if (_items[i] == null)
-            {
-                _items.RemoveAt(i);
-            }
-            else
-            {
-                validItems.Add(_items[i]);
-            }
-        }
-        return validItems;
-    }
-    
-    /// <summary>
     /// Removes an item from the items list. Called when an item is destroyed.
     /// </summary>
     public void RemoveItem(Item item)
@@ -209,14 +181,15 @@ public class ItemManager : Singleton<ItemManager>
             return null;
         }
         
-        if (!_itemPrefabLookup.TryGetValue(itemName, out GameObject prefab))
+        ItemData itemData = GetItemData(itemName);
+        if (itemData == null || itemData.prefab == null)
         {
-            Debug.LogWarning($"ItemManager: Cannot get sprite for item '{itemName}' - prefab not found.");
+            Debug.LogWarning($"ItemManager: Cannot get sprite for item '{itemName}' - ItemData or prefab not found.");
             return null;
         }
         
         // Create a temporary instance to get the sprite
-        GameObject tempItemObj = Instantiate(prefab);
+        GameObject tempItemObj = Instantiate(itemData.prefab);
         Item item = tempItemObj.GetComponent<Item>();
         
         if (item == null)
@@ -235,111 +208,39 @@ public class ItemManager : Singleton<ItemManager>
     }
     
     /// <summary>
-    /// Gets usage-related metadata for an item by name, including optional conditional descriptions.
+    /// Creates an inactive Item instance for storage (inventory, den, etc.).
+    /// The item is created as an inactive GameObject that won't exist in the world.
     /// </summary>
-    public ItemUsageInfo GetItemUsageInfo(string itemName)
+    /// <param name="itemName">Name of the item to create</param>
+    /// <returns>The created Item, or null if ItemData or prefab is not found</returns>
+    public Item CreateItemForStorage(string itemName)
     {
-        ItemUsageInfo usageInfo = new ItemUsageInfo();
-        
         if (string.IsNullOrEmpty(itemName))
         {
-            return usageInfo;
+            return null;
         }
         
-        if (!_itemPrefabLookup.TryGetValue(itemName, out GameObject prefab))
+        ItemData itemData = GetItemData(itemName);
+        if (itemData == null || itemData.prefab == null)
         {
-            Debug.LogWarning($"ItemManager: Cannot get usage info for item '{itemName}' - prefab not found.");
-            return usageInfo;
+            Debug.LogWarning($"ItemManager: Cannot create item '{itemName}' - ItemData or prefab not found.");
+            return null;
         }
         
-        GameObject tempItemObj = Instantiate(prefab);
-        Item item = tempItemObj.GetComponent<Item>();
+        // Create an inactive instance for storage
+        GameObject itemObj = Instantiate(itemData.prefab);
+        itemObj.SetActive(false);
+        itemObj.transform.position = new Vector3(0, 0, 1000);
         
+        Item item = itemObj.GetComponent<Item>();
         if (item == null)
         {
             Debug.LogWarning($"ItemManager: Item prefab for '{itemName}' does not have an Item component!");
-            Destroy(tempItemObj);
-            return usageInfo;
+            Destroy(itemObj);
+            return null;
         }
         
-        usageInfo.Description = item.UsageDescription ?? "";
-        
-        if (item is SticksItem sticksItem)
-        {
-            usageInfo.IsSticksItem = true;
-            usageInfo.InsufficientDescription = sticksItem.InsufficientSticksDescription ?? "";
-        }
-        
-        Destroy(tempItemObj);
-        
-        return usageInfo;
-    }
-    
-    /// <summary>
-    /// Gets the usage description for an item by name. Provided for backward compatibility.
-    /// </summary>
-    public string GetItemUsageDescription(string itemName)
-    {
-        return GetItemUsageInfo(itemName).Description;
-    }
-
-    public Item GetItemFromName(string itemName) {
-      if (string.IsNullOrEmpty(itemName))
-      {
-        return null;
-      }
-        
-      if (!_itemPrefabLookup.TryGetValue(itemName, out GameObject prefab))
-      {
-        Debug.LogWarning($"ItemManager: Cannot use item '{itemName}' - prefab not found.");
-        return null;
-      }
-        
-      // Create a temporary instance to call OnUse
-      GameObject tempItemObj = Instantiate(prefab);
-      Item item = tempItemObj.GetComponent<Item>();
-      // Just beyond the clipping plane of camera!
-      tempItemObj.transform.position += new Vector3(0, 0, 1001);
-      return item;
-    }
-    
-    /// <summary>
-    /// Uses an item by name. Creates a temporary instance to call OnUse, then destroys it.
-    /// </summary>
-    /// <param name="itemName">Name of the item to use</param>
-    /// <param name="user">The ControllableAnimal using the item</param>
-    /// <returns>True if the item was successfully used, false otherwise</returns>
-    public bool UseItem(string itemName, ControllableAnimal user)
-    {
-        if (string.IsNullOrEmpty(itemName) || user == null)
-        {
-            return false;
-        }
-        
-        if (!_itemPrefabLookup.TryGetValue(itemName, out GameObject prefab))
-        {
-            Debug.LogWarning($"ItemManager: Cannot use item '{itemName}' - prefab not found.");
-            return false;
-        }
-        
-        // Create a temporary instance to call OnUse
-        GameObject tempItemObj = Instantiate(prefab);
-        Item item = tempItemObj.GetComponent<Item>();
-        
-        if (item == null)
-        {
-            Debug.LogWarning($"ItemManager: Item prefab for '{itemName}' does not have an Item component!");
-            Destroy(tempItemObj);
-            return false;
-        }
-        
-        // Call OnUse
-        bool wasUsed = item.OnUse(user);
-        
-        // Destroy the temporary instance
-        Destroy(tempItemObj);
-        
-        return wasUsed;
+        return item;
     }
     
     /// <summary>
@@ -357,14 +258,3 @@ public class ItemManager : Singleton<ItemManager>
         _items.Clear();
     }
 }
-
-/// <summary>
-/// Metadata describing how an item should present its usage information.
-/// </summary>
-public struct ItemUsageInfo
-{
-    public string Description;
-    public string InsufficientDescription;
-    public bool IsSticksItem;
-}
-

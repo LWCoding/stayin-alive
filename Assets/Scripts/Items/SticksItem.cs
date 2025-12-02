@@ -83,28 +83,28 @@ public class SticksItem : Item
             return false; // Item is not consumed
         }
         
-        // Ensure we have the interactable manager ready before consuming resources
+        // Ensure we have the interactable manager ready
         if (InteractableManager.Instance == null)
         {
             Debug.LogError("SticksItem: InteractableManager instance not found!");
             return false;
         }
         
-        // Consume the exact number of sticks required for this den build
-        bool sticksConsumed = InventoryManager.Instance.ConsumeItemsForActiveUse(ItemName, sticksRequired);
-        if (!sticksConsumed)
-        {
-            Debug.LogWarning("SticksItem: Failed to consume the required sticks for den placement.");
-            return false;
-        }
-        
-        // Spawn den at the player's position
+        // Try to spawn den first - only consume sticks if this succeeds
         Den newDen = InteractableManager.Instance.SpawnDen(denPosition);
         if (newDen == null)
         {
             Debug.LogWarning("SticksItem: Failed to spawn den at player position.");
-            RefundConsumedSticks(sticksRequired);
             return false; // Item is not consumed
+        }
+        
+        // Den was successfully spawned, now consume the sticks
+        bool sticksConsumed = InventoryManager.Instance.ConsumeItemsForActiveUse(ItemName, sticksRequired);
+        if (!sticksConsumed)
+        {
+            Debug.LogWarning("SticksItem: Failed to consume the required sticks after den was spawned. This should not happen.");
+            // Den was already spawned, so we can't easily undo it. This is an error state.
+            return false;
         }
         
         AdvanceCostProgression();
@@ -118,24 +118,6 @@ public class SticksItem : Item
         Debug.Log($"SticksItem: Successfully placed den at ({denPosition.x}, {denPosition.y}).");
         AudioManager.Instance.PlaySFX(AudioManager.SFXType.Dig);
         return true; // Item is consumed
-    }
-    
-    private void RefundConsumedSticks(int count)
-    {
-        if (InventoryManager.Instance == null || count <= 0)
-        {
-            return;
-        }
-        
-        for (int i = 0; i < count; i++)
-        {
-            bool added = InventoryManager.Instance.AddItem(ItemName);
-            if (!added)
-            {
-                Debug.LogWarning("SticksItem: Failed to refund sticks after a den placement error.");
-                break;
-            }
-        }
     }
     
     /// <summary>

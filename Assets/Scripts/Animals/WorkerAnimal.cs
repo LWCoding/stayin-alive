@@ -74,7 +74,7 @@ public class WorkerAnimal : PreyAnimal
         if (DenSystemManager.Instance != null)
         {
           for (int i = 0; i < totalFood; i++) {
-            DenSystemManager.Instance.AddItemToDenInventory(ItemManager.Instance.GetItemFromName(Globals.GRASS_ITEM_NAME_FOR_WORKER_HARDCODE));
+            DenSystemManager.Instance.AddItemToDenInventory(ItemManager.Instance.CreateItemForStorage(Globals.GRASS_ITEM_NAME_FOR_WORKER_HARDCODE));
           }
 
           if (this is KangRatWorker) {
