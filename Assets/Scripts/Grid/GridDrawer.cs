@@ -16,7 +16,6 @@ public class GridDrawer : MonoBehaviour
     }
 
     [Header("Tile References")]
-    [SerializeField] private TileBase _emptyTile;
     [SerializeField] private WeightedTile[] _waterTiles;
     [SerializeField] private WeightedTile[] _defaultTiles;
     [SerializeField] private WeightedTile[] _obstacleTiles;
@@ -129,6 +128,7 @@ public class GridDrawer : MonoBehaviour
     /// <summary>
     /// Gets the appropriate tile asset for a given tile type.
     /// Randomly selects from available tiles for water and grass types.
+    /// Empty tiles use the default (grass) tiles.
     /// </summary>
     private TileBase GetTileForType(TileType type)
     {
@@ -136,13 +136,12 @@ public class GridDrawer : MonoBehaviour
         {
             case TileType.Water:
                 return GetWeightedTile(_waterTiles);
-            case TileType.Grass:
-                return GetWeightedTile(_defaultTiles);
             case TileType.Obstacle:
                 return GetWeightedTile(_obstacleTiles);
+            case TileType.Grass:
             case TileType.Empty:
             default:
-                return _emptyTile;
+                return GetWeightedTile(_defaultTiles);
         }
     }
 
@@ -183,19 +182,19 @@ public class GridDrawer : MonoBehaviour
             return null;
         }
 
+        // Calculate total weight from valid tiles
         float totalWeight = 0f;
         foreach (var tile in tiles)
         {
             if (tile.Tile != null && tile.Weight > 0f)
             {
-                float weight = tile.Weight <= 0f ? 1f : tile.Weight;
-                totalWeight += weight;
+                totalWeight += tile.Weight;
             }
         }
 
+        // Fallback to uniform random if no valid weighted tiles
         if (totalWeight <= 0f)
         {
-            // fallback to uniform random among non-null entries
             var validTiles = System.Array.FindAll(tiles, t => t.Tile != null);
             if (validTiles.Length == 0)
             {
@@ -205,6 +204,7 @@ public class GridDrawer : MonoBehaviour
             return validTiles[Random.Range(0, validTiles.Length)].Tile;
         }
 
+        // Weighted random selection
         float pick = Random.Range(0f, totalWeight);
         float cumulative = 0f;
 
@@ -215,15 +215,14 @@ public class GridDrawer : MonoBehaviour
                 continue;
             }
 
-            float weight = tile.Weight <= 0f ? 1f : tile.Weight;
-            cumulative += weight;
+            cumulative += tile.Weight;
             if (pick <= cumulative)
             {
                 return tile.Tile;
             }
         }
 
-        // should not reach here, but return last valid tile as a safeguard
+        // Safeguard: return last valid tile if we somehow reach here
         for (int i = tiles.Length - 1; i >= 0; i--)
         {
             if (tiles[i].Tile != null)

@@ -168,7 +168,6 @@ GameObject:
   - component: {fileID: 8236278481239817906}
   - component: {fileID: 3853635146165357295}
   - component: {fileID: 7417101945670594349}
-  - component: {fileID: 7922207123559336132}
   m_Layer: 0
   m_Name: FogTilemap
   m_TagString: Untagged
@@ -278,27 +277,6 @@ TilemapRenderer:
   m_Mode: 0
   m_DetectChunkCullingBounds: 0
   m_MaskInteraction: 0
---- !u!114 &7922207123559336132
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1200088264693417912}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: e78947ac701e02c46b5cb4a7b61d0f38, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  _emptyTile: {fileID: 11400000, guid: 3d88d5ab1e68a2f4c8cca3487cb5a30c, type: 2}
-  _waterTiles:
-  - Tile: {fileID: 0}
-    Weight: 0
-  _defaultTiles: []
-  _obstacleTiles: []
-  _tilemap: {fileID: 0}
-  _updateOnGridChange: 1
-  _drawOnStart: 1
 --- !u!1 &3864597715073940245
 GameObject:
   m_ObjectHideFlags: 0
@@ -358,7 +336,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e78947ac701e02c46b5cb4a7b61d0f38, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _emptyTile: {fileID: 11400000, guid: 3d88d5ab1e68a2f4c8cca3487cb5a30c, type: 2}
   _waterTiles:
   - Tile: {fileID: 11400000, guid: d16b64193f8441342a2c1a526110bc14, type: 2}
     Weight: 1

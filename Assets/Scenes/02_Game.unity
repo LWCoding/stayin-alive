@@ -878,9 +878,9 @@ MonoBehaviour:
   _levelHeight: 50
   _terrainNoiseScale: 0.1
   _obstacleNoiseScale: 0.15
-  _waterThreshold: 0.25
+  _waterThreshold: 0.35
   _grassThreshold: 0.75
-  _obstacleThreshold: 0.85
+  _obstacleThreshold: 1
   _randomSeed: 0
   _addBorderWalls: 1
   _controllableAnimalName: KangarooRat
@@ -892,7 +892,6 @@ MonoBehaviour:
   - Coyote
   - Hawk
   _rabbitSpawnerCount: 4
-  _wormSpawnerCount: 2
   _foodItemName: Worm
   _foodItemCount: 5
   _bushCount: 8
@@ -2700,6 +2699,18 @@ PrefabInstance:
     - target: {fileID: 7041490755201557665, guid: 18142a8288a9a4033a51e9219bb3def1, type: 3}
       propertyPath: m_AnchoredPosition.y
       value: 100
+      objectReference: {fileID: 0}
+    - target: {fileID: 7115034585047935125, guid: 18142a8288a9a4033a51e9219bb3def1, type: 3}
+      propertyPath: m_AnchorMax.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7115034585047935125, guid: 18142a8288a9a4033a51e9219bb3def1, type: 3}
+      propertyPath: m_AnchorMax.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7115034585047935125, guid: 18142a8288a9a4033a51e9219bb3def1, type: 3}
+      propertyPath: m_SizeDelta.x
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 7566312595525709662, guid: 18142a8288a9a4033a51e9219bb3def1, type: 3}
       propertyPath: m_AnchoredPosition.y
