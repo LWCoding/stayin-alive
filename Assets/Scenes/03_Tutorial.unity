@@ -5997,8 +5997,7 @@ MonoBehaviour:
 
 
     Click
-    on a <color=#C28568>den</color> to travel to it! You spend <color="orange">food</color>
-    stored in your den to travel long distances.'
+    on a <color=#C28568>den</color> to travel to it at no cost! '
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 80af2cc7cd196b3488b78ec5f6d8a3b8, type: 2}
   m_sharedMaterial: {fileID: 3129977671062793659, guid: 80af2cc7cd196b3488b78ec5f6d8a3b8, type: 2}
@@ -9417,7 +9416,6 @@ MonoBehaviour:
   _obstacleThreshold: 0.85
   _perlinSeed: 0
   _proceduralRabbitSpawnerCount: 4
-  _proceduralWormSpawnerCount: 4
   _proceduralBushCount: 8
   _proceduralGrassCount: 24
   _proceduralStickCount: 6
@@ -9444,7 +9442,6 @@ MonoBehaviour:
   _rabbitPlacements: []
   _rabbitSpawnerPositions:
   - {x: 54, y: 3}
-  _wormSpawnerPositions: []
   _bushPositions:
   - {x: 49, y: 4}
   - {x: 50, y: 3}
