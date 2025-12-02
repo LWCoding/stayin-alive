@@ -5,7 +5,6 @@ using UnityEngine.Tilemaps;
 /// Handles drawing the grid state from EnvironmentManager onto a Unity Tilemap.
 /// This script reads the state from EnvironmentManager and updates the visual representation.
 /// </summary>
-[RequireComponent(typeof(Tilemap))]
 public class GridDrawer : MonoBehaviour
 {
     [System.Serializable]
@@ -19,19 +18,28 @@ public class GridDrawer : MonoBehaviour
     [Header("Tile References")]
     [SerializeField] private TileBase _emptyTile;
     [SerializeField] private WeightedTile[] _waterTiles;
-    [SerializeField] private WeightedTile[] _grassTiles;
+    [SerializeField] private WeightedTile[] _defaultTiles;
     [SerializeField] private WeightedTile[] _obstacleTiles;
 
     [Header("Settings")]
+    [SerializeField] private Tilemap _tilemap;
     [SerializeField] private bool _updateOnGridChange = true;
     [SerializeField] private bool _drawOnStart = true;
 
-    private Tilemap _tilemap;
     private EnvironmentManager _environmentManager;
 
     private void Awake()
     {
-        _tilemap = GetComponent<Tilemap>();
+        // If tilemap is not assigned, try to get it from the same GameObject as a fallback
+        if (_tilemap == null)
+        {
+            _tilemap = GetComponent<Tilemap>();
+        }
+
+        if (_tilemap == null)
+        {
+            Debug.LogError("GridDrawer: Tilemap is not assigned! Please assign a Tilemap in the inspector.");
+        }
     }
 
     private void Start()
@@ -129,7 +137,7 @@ public class GridDrawer : MonoBehaviour
             case TileType.Water:
                 return GetWeightedTile(_waterTiles);
             case TileType.Grass:
-                return GetWeightedTile(_grassTiles);
+                return GetWeightedTile(_defaultTiles);
             case TileType.Obstacle:
                 return GetWeightedTile(_obstacleTiles);
             case TileType.Empty:
