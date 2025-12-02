@@ -41,6 +41,9 @@ public class Grass : Interactable
 	[Tooltip("Random variance applied to the turns between spreads (0 = none, 0.25 = ±25%).")]
 	[SerializeField, Range(0f, 1f)] private float _spreadVariance = 0.25f;
 
+	private const float SEED_DROP_RATE_FULL = 0.15f;  // Chance to drop from full layer to growing layer
+	private const float SEED_DROP_RATE_GROWING = 0.3f;  // Chance to drop from growing layer to destroyed layer
+
 	private enum GrassState
 	{
 		Growing,  // Growing state (after first harvest)
@@ -427,16 +430,16 @@ public class Grass : Interactable
 					_turnsSinceLastSpawn = 0;
 					CalculateNextSpawnTime();
 					
-					// 25% chance to spawn a grass seed item
-					if (Random.Range(0f, 1f) < 0.25f)
+					// Chance to spawn a grass seed item
+					if (Random.Range(0f, 1f) < SEED_DROP_RATE_FULL)
 					{
 						SpawnGrassSeedItem();
 					}
 				}
 				else if (_currentState == GrassState.Growing)
 				{
-					// 50% chance to spawn a grass seed item before destroying
-					if (Random.Range(0f, 1f) < 0.5f)
+					// Chance to spawn a grass seed item before destroying
+					if (Random.Range(0f, 1f) < SEED_DROP_RATE_GROWING)
 					{
 						SpawnGrassSeedItem();
 					}
