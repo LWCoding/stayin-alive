@@ -14,7 +14,7 @@ public class Grass : Interactable
 	[SerializeField, Range(0f, 1f)] private float _turnsVariance = 0.25f;
 	[Tooltip("Food item prefab that defines the hunger restoration value for this grass.")]
 	[SerializeField] private FoodItem _foodItemPrefab;
-  public string ItemName => _foodItemPrefab.name;
+  	public string ItemName => _foodItemPrefab.name;
   
 	[Header("Visuals")]
 	[Tooltip("Sprite shown when grass is fully grown.")]
@@ -44,7 +44,7 @@ public class Grass : Interactable
 
 	public const float SEED_DROP_RATE_FULL = 0.15f;  // Chance to drop from full layer to growing layer
 	public const float SEED_DROP_RATE_GROWING = 0.3f;  // Chance to drop from growing layer to destroyed layer
-  public const string SEED_ITEM_NAME = "GrassSeeds";
+  	public const string SEED_ITEM_NAME = "GrassSeeds";
 
 	private enum GrassState
 	{
@@ -58,6 +58,20 @@ public class Grass : Interactable
 	private int _turnsUntilNextSpread;
 	private bool _initialized;
 	private GrassState _currentState;
+	private GrassState CurrentState
+	{
+		get => _currentState;
+		set
+		{
+			if (_currentState == value)
+			{
+				return;
+			}
+
+			_currentState = value;
+			UpdateSprite();
+		}
+	}
 	private bool _isPlayerOnTile;
 
 	/// <summary>
@@ -93,8 +107,7 @@ public class Grass : Interactable
 		if (_currentState == GrassState.Full)
 		{
 			// Change to growing state (animal has eaten it)
-			_currentState = GrassState.Growing;
-			UpdateSprite();
+			CurrentState = GrassState.Growing;
 			_turnsSinceLastSpawn = 0;
 			CalculateNextSpawnTime();
 		}
@@ -109,8 +122,7 @@ public class Grass : Interactable
 		if (_currentState == GrassState.Full)
 		{
 			// Change from full to growing (half)
-			_currentState = GrassState.Growing;
-			UpdateSprite();
+			CurrentState = GrassState.Growing;
 			_turnsSinceLastSpawn = 0;
 			CalculateNextSpawnTime();
 		}
@@ -190,13 +202,12 @@ public class Grass : Interactable
 		_gridPosition = gridPosition;
 		_turnsSinceLastSpawn = 0;
 		_turnsSinceLastSpread = 0;
-		_currentState = GrassState.Full;
+		CurrentState = GrassState.Full;
 		_initialized = true;
 
 		UpdateWorldPosition();
 		CalculateNextSpawnTime();
 		CalculateNextSpreadTime();
-		UpdateSprite();
 	}
 
 	private void SubscribeToTurnEvents()
@@ -235,7 +246,7 @@ public class Grass : Interactable
 
 		_turnsSinceLastSpawn = 0;
 		_turnsSinceLastSpread = 0;
-		_currentState = GrassState.Full;
+		CurrentState = GrassState.Full;
 		_initialized = true;
 	}
 
@@ -276,10 +287,9 @@ public class Grass : Interactable
 		{
 			_turnsSinceLastSpawn = 0;
 			_turnsSinceLastSpread = 0;
-			_currentState = GrassState.Full;
+			CurrentState = GrassState.Full;
 			CalculateNextSpawnTime();
 			CalculateNextSpreadTime();
-			UpdateSprite();
 			return;
 		}
 
@@ -372,8 +382,7 @@ public class Grass : Interactable
 			return false;
 		}
 
-		_currentState = GrassState.Full;
-		UpdateSprite();
+		CurrentState = GrassState.Full;
 		return true;
 	}
 
@@ -427,8 +436,7 @@ public class Grass : Interactable
 				if (_currentState == GrassState.Full)
 				{
 					// First harvest: change to growing state
-					_currentState = GrassState.Growing;
-					UpdateSprite();
+					CurrentState = GrassState.Growing;
 					_turnsSinceLastSpawn = 0;
 					CalculateNextSpawnTime();
 					

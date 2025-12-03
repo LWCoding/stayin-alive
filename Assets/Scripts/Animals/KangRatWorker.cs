@@ -135,43 +135,43 @@ public class KangRatWorker : WorkerAnimal
 			// Check for nearby predators
 			PredatorAnimal nearbyPredator = FindNearestPredator();
 			
-			// Only seek items if critically hungry OR if no predators are nearby
+			// Only seek food/items if critically hungry OR if no predators are nearby
 			if (isCriticallyHungry || nearbyPredator == null)
 			{
-				Vector2Int? nearestItem = FindNearestItem();
+				Vector2Int? nearestTarget = FindNearestFoodOrItemTarget();
 				
-				if (nearestItem.HasValue)
+				if (nearestTarget.HasValue)
 				{
-					_foodDestination = nearestItem.Value;
+					_foodDestination = nearestTarget.Value;
 					
 					// Check if we're already at the item position
-					if (GridPosition == nearestItem.Value)
+					if (GridPosition == nearestTarget.Value)
 					{
 						// TODO: Leyth, make this work for all item types (for now, we just delete the item and restore hunger cuz why not)
 						TryCollectAtCurrentPosition(); 
-						IncreaseHunger(100);
-						if (ItemManager.Instance != null)  // Delete this section once TryCollectAtCurrentPosition() works for all item types
-						{
-							Item item = ItemManager.Instance.GetItemAtPosition(GridPosition);
-							if (item != null)
-							{
-								item.DestroyItem();
-								_foodDestination = null;
-							}
-						}
+						// IncreaseHunger(100);
+						// if (ItemManager.Instance != null)  // Delete this section once TryCollectAtCurrentPosition() works for all item types
+						// {
+						// 	Item item = ItemManager.Instance.GetItemAtPosition(GridPosition);
+						// 	if (item != null)
+						// 	{
+						// 		item.DestroyItem();
+						// 		_foodDestination = null;
+						// 	}
+						// }
 						// END TODO
 					}
 					else
 					{
-						// Move towards the item
-						if (!MoveOneStepTowards(nearestItem.Value))
+						// Move towards the target
+						if (!MoveOneStepTowards(nearestTarget.Value))
 						{
-							// If move failed, try to find a new item destination
-							Vector2Int? newItem = FindNearestItem();
-							if (newItem.HasValue)
+							// If move failed, try to find a new food/item destination
+							Vector2Int? newTarget = FindNearestFoodOrItemTarget();
+							if (newTarget.HasValue)
 							{
-								_foodDestination = newItem.Value;
-								MoveOneStepTowards(newItem.Value);
+								_foodDestination = newTarget.Value;
+								MoveOneStepTowards(newTarget.Value);
 							}
 							else
 							{
@@ -248,6 +248,283 @@ public class KangRatWorker : WorkerAnimal
 	}
 
 	/// <summary>
+	/// Attempts to eat grass at the current position.
+	/// If fully grown grass is found, changes it to growing state and restores hunger.
+	/// </summary>
+	private void TryCollectAtCurrentPosition()
+	{
+		if (InteractableManager.Instance == null || ItemManager.Instance == null)
+		{
+			return;
+		} 
+		
+		Grass grass = InteractableManager.Instance.GetGrassAtPosition(GridPosition);
+		Item item = null;
+		
+		if (grass != null) {
+			// Only eat grass that matches the target food type
+			if (!DoesGrassMatchTargetFood(grass))
+			{
+				return;
+			}
+			
+			// Only eat fully grown grass
+			if (!grass.IsFullyGrown())
+			{
+				return;
+			}
+			
+			// Use the same grass item name that the den system and inventory expect
+			item = ItemManager.Instance.CreateItemForStorage(Globals.GRASS_ITEM_NAME_FOR_WORKER_HARDCODE);
+			
+			// Eat the grass (change it to growing state)
+			HarvestGrass(grass);
+
+			if (item != null)
+			{
+				AddItem(item);  // Pick up the grass for carrying to the den
+			}
+			else
+			{
+				Debug.LogWarning(
+					$"KangRatWorker '{name}' failed to create storage item for grass using name '{Globals.GRASS_ITEM_NAME_FOR_WORKER_HARDCODE}'. " +
+					"Grass will still restore hunger but won't be carried to the den.");
+			}
+
+			// Optionally create and carry a grass seed item
+			if (Random.Range(0f, 1f) <= Grass.SEED_DROP_RATE_FULL)
+			{
+				Item seedItem = ItemManager.Instance.CreateItemForStorage(Grass.SEED_ITEM_NAME);
+				if (seedItem != null)
+				{
+					AddItem(seedItem);
+				}
+				else
+				{
+					Debug.LogWarning(
+						$"KangRatWorker '{name}' failed to create storage item for grass seed using name '{Grass.SEED_ITEM_NAME}'.");
+				}
+			}
+			
+			// Clear food destination since we've eaten
+			_foodDestination = null;
+		}
+		else 
+		{
+			Item originalItem = ItemManager.Instance.GetItemAtPosition(GridPosition);
+			
+			if (originalItem == null) {
+				return;
+			}
+			
+			item = ItemManager.Instance.CreateItemForStorage(originalItem.ItemName);
+			
+			if (originalItem != null) {
+				originalItem.DestroyItem();
+				_foodDestination = null;
+			}
+	  	
+			
+			if (item == null) {
+				Debug.LogWarning(
+					$"KangRatWorker '{name}' failed to create storage item for ground item '{originalItem.ItemName}'.");
+				return;
+			}
+
+			AddItem(item);
+		}
+		
+		// Debug: log carried inventory after pickup (ensure items are retained for den deposit)
+		System.Text.StringBuilder sb = new System.Text.StringBuilder();
+		string pickedUpName = item != null ? item.ItemName : (grass != null ? Globals.GRASS_ITEM_NAME_FOR_WORKER_HARDCODE : "UNKNOWN");
+		sb.Append($"KangRatWorker '{name}' picked up '{pickedUpName}'. Carried items now: ");
+		List<Item> carriedItems = WorkerItemsCopy;
+		for (int i = 0; i < carriedItems.Count; i++)
+		{
+			string itemName = carriedItems[i] != null ? carriedItems[i].ItemName : "null";
+			sb.Append(itemName);
+			if (i < carriedItems.Count - 1)
+			{
+				sb.Append(", ");
+			}
+		}
+		Debug.Log(sb.ToString());
+		
+		// Restore hunger from what was collected WITHOUT consuming carried inventory
+		int hungerRestored = 0;
+		
+		if (grass != null)
+		{
+			// Use the grass's hunger value (worker gets 1.5x) but keep the carried grass item for the den
+			hungerRestored = Mathf.RoundToInt(grass.HungerRestored * 1.5f);
+		}
+		else if (item is FoodItem)
+		{
+			// For picked-up food items, use the item's hunger value but keep it in the inventory
+			int baseHungerRestored = (item as FoodItem).HungerRestored;
+			hungerRestored = Mathf.RoundToInt(baseHungerRestored * 1.5f);
+		}
+		
+		if (hungerRestored > 0)
+		{
+			IncreaseHunger(hungerRestored);
+		}
+	}
+
+
+	/// <summary>
+	/// Harvests the grass (changes it from Full to Growing state).
+	/// This simulates the kangaroo rat eating the grass.
+	/// </summary>
+	private void HarvestGrass(Grass grass)
+	{
+		if (grass == null)
+		{
+			return;
+		}
+
+		grass.HarvestForAnimal();
+	}
+
+
+	/// <summary>
+	/// Gets the kangaroo rat's intended destination (food or wandering).
+	/// Returns null if no destination is set.
+	/// </summary>
+	public Vector2Int? GetIntendedDestination()
+	{
+		// Prioritize food destination over wandering destination
+		if (_foodDestination.HasValue)
+		{
+			return _foodDestination.Value;
+		}
+		
+		if (_wanderingDestination.HasValue)
+		{
+			return _wanderingDestination.Value;
+		}
+		
+		return null;
+	}
+
+	/// <summary>
+	/// Chooses what to target between food (fully grown matching grass) and items.
+	/// When below the hunger threshold (IsHungry), prioritizes grass OR food items.
+	/// When not hungry, prioritizes items over grass.
+	/// Uses the existing search logic in PreyAnimal (including critical-hunger radius rules).
+	/// </summary>
+	private Vector2Int? FindNearestFoodOrItemTarget()
+	{
+		// Get candidates from base-class search helpers
+		Vector2Int? nearestGrass = FindNearestFullyGrownGrass();
+		Vector2Int? nearestFoodItem = FindNearestFoodItem();
+		Vector2Int? nearestItem = FindNearestItem();
+
+		// If we're hungry, prioritize grass OR food items (choose the nearest one)
+		if (IsHungry)
+		{
+			// Find the nearest between grass and food items
+			if (nearestGrass.HasValue && nearestFoodItem.HasValue)
+			{
+				// Both available - choose the closer one
+				Vector2Int myPos = GridPosition;
+				int grassDistance = Mathf.Abs(nearestGrass.Value.x - myPos.x) + Mathf.Abs(nearestGrass.Value.y - myPos.y);
+				int foodItemDistance = Mathf.Abs(nearestFoodItem.Value.x - myPos.x) + Mathf.Abs(nearestFoodItem.Value.y - myPos.y);
+				
+				return grassDistance <= foodItemDistance ? nearestGrass : nearestFoodItem;
+			}
+			
+			// Only one available - use that one
+			if (nearestGrass.HasValue)
+			{
+				return nearestGrass;
+			}
+			
+			if (nearestFoodItem.HasValue)
+			{
+				return nearestFoodItem;
+			}
+			
+			// No grass or food items - return null (don't seek non-food items when hungry)
+			return null;
+		}
+
+		// If we're not hungry, prioritize items over grass
+		if (nearestItem.HasValue)
+		{
+			return nearestItem;
+		}
+
+		return nearestGrass;
+	}
+	
+	/// <summary>
+	/// Finds the nearest FoodItem within detection radius.
+	/// If critically hungry, searches with infinite range (ignores detection radius).
+	/// </summary>
+	private Vector2Int? FindNearestFoodItem()
+	{
+		if (ItemManager.Instance == null)
+		{
+			return null;
+		}
+
+		List<Item> allItems = ItemManager.Instance.Items;
+		if (allItems == null || allItems.Count == 0)
+		{
+			return null;
+		}
+
+		Vector2Int myPos = GridPosition;
+		FoodItem nearest = null;
+		int bestDistance = int.MaxValue;
+		
+		// Check if at critical hunger - if so, ignore detection radius (infinite range)
+		bool isCriticallyHungry = IsCriticallyHungry;
+
+		for (int i = 0; i < allItems.Count; i++)
+		{
+			Item item = allItems[i];
+			if (item == null)
+			{
+				continue;
+			}
+
+			// Only consider FoodItems
+			if (!(item is FoodItem))
+			{
+				continue;
+			}
+
+			Vector2Int itemPos = item.GridPosition;
+			int distance = Mathf.Abs(itemPos.x - myPos.x) + Mathf.Abs(itemPos.y - myPos.y); // Manhattan distance
+			
+			// If critically hungry, ignore detection radius. Otherwise, only consider items within detection radius
+			if (isCriticallyHungry)
+			{
+				// Infinite range when critically hungry - just find the nearest
+				if (distance < bestDistance)
+				{
+					bestDistance = distance;
+					nearest = item as FoodItem;
+				}
+			}
+			else
+			{
+				// Normal behavior - only consider items within detection radius
+				// Use _grassDetectionRadius from base class (now protected)
+				if (distance <= _grassDetectionRadius && distance < bestDistance)
+				{
+					bestDistance = distance;
+					nearest = item as FoodItem;
+				}
+			}
+		}
+
+		return nearest != null ? nearest.GridPosition : (Vector2Int?)null;
+	}
+
+	/// <summary>
 	/// Chooses a wandering destination around the home location (for den workers).
 	/// </summary>
 	private Vector2Int? ChooseWanderingDestinationAroundHome()
@@ -287,107 +564,6 @@ public class KangRatWorker : WorkerAnimal
 			}
 		}
 
-		return null;
-	}
-	
-
-	/// <summary>
-	/// Attempts to eat grass at the current position.
-	/// If fully grown grass is found, changes it to growing state and restores hunger.
-	/// </summary>
-	private void TryCollectAtCurrentPosition()
-	{
-		if (InteractableManager.Instance == null || ItemManager.Instance == null)
-		{
-			return;
-		} 
-
-		Grass grass = InteractableManager.Instance.GetGrassAtPosition(GridPosition);
-    Item item;
-		if (grass != null) {
-      // Only eat grass that matches the target food type
-      if (!DoesGrassMatchTargetFood(grass))
-      {
-        return;
-      }
-
-      // Only eat fully grown grass
-      if (!grass.IsFullyGrown())
-      {
-        return;
-      }
-
-      item = ItemManager.Instance.CreateItemForStorage(grass.ItemName);
-      
-      // Eat the grass (change it to growing state)
-      HarvestGrass(grass);
-
-      if (Random.Range(0f, 1f) <= Grass.SEED_DROP_RATE_FULL) {
-        AddItem(ItemManager.Instance.CreateItemForStorage(Grass.SEED_ITEM_NAME));
-      }
-      
-      // Clear food destination since we've eaten
-      _foodDestination = null;
-    }
-    else {
-      Item originalItem = ItemManager.Instance.GetItemAtPosition(GridPosition);
-
-      if (originalItem == null) {
-        return;
-      }
-
-      item = ItemManager.Instance.CreateItemForStorage(originalItem.ItemName);
-      
-      if (originalItem != null) {
-        originalItem.DestroyItem();
-        _foodDestination = null;
-      }
-    }
-
-    if (item == null) {
-      return;
-    }
-    
-    AddItem(item);
-
-    if (item is FoodItem) {
-      IncreaseHunger((item as FoodItem).HungerRestored);
-    }
-  }
-
-
-	/// <summary>
-	/// Harvests the grass (changes it from Full to Growing state).
-	/// This simulates the kangaroo rat eating the grass.
-	/// </summary>
-	private void HarvestGrass(Grass grass)
-	{
-		if (grass == null)
-		{
-			return;
-		}
-
-		grass.HarvestForAnimal();
-	}
-
-
-	/// <summary>
-	/// Gets the kangaroo rat's intended destination (food or wandering).
-	/// Returns null if no destination is set.
-	/// </summary>
-	public Vector2Int? GetIntendedDestination()
-	{
-		// Prioritize food destination over wandering destination
-		if (_foodDestination.HasValue)
-		{
-			return _foodDestination.Value;
-		}
-		
-		if (_wanderingDestination.HasValue)
-		{
-			return _wanderingDestination.Value;
-		}
-		
 		return null;
 	}
 

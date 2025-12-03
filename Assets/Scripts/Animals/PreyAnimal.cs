@@ -15,7 +15,7 @@ public class PreyAnimal : Animal
     
     [Header("Food Settings")]
     [Tooltip("Detection radius for finding food. Only food within this distance will be considered.")]
-    [SerializeField] private int _grassDetectionRadius = 10;
+    [SerializeField] protected int _grassDetectionRadius = 10;
     [Tooltip("Target food type name. This is used for identification purposes.")]
     [SerializeField] private string _targetFood = "Grass";
 
