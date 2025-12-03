@@ -69,7 +69,7 @@ public class InventoryManager : Singleton<InventoryManager>
         }
         
         // Initialize inventory slots
-        InitializeInventorySlots();
+        ResetInventorySlots();
         
         // Clear usage description text at start
         ClearUsageDescription();
@@ -111,7 +111,7 @@ public class InventoryManager : Singleton<InventoryManager>
     /// <summary>
     /// Initializes the inventory slots by instantiating prefabs.
     /// </summary>
-    private void InitializeInventorySlots()
+    public void ResetInventorySlots()
     {
         if (_inventoryContainer == null || _inventorySlotPrefab == null)
         {

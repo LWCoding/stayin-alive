@@ -423,7 +423,11 @@ public class TutorialManager : Singleton<TutorialManager>
                 // Give player starting items for den management
                 if (InventoryManager.Instance != null)
                 {
+                    InventoryManager.Instance.ResetInventorySlots();
                     InventoryManager.Instance.AddItem("Sticks");
+                    InventoryManager.Instance.AddItem("Grass");
+                    InventoryManager.Instance.AddItem("Grass");
+                    InventoryManager.Instance.AddItem("Grass");
                     InventoryManager.Instance.AddItem("Grass");
                 }
                 
