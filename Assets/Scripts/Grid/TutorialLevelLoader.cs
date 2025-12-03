@@ -1112,9 +1112,9 @@ public class TutorialLevelLoader : MonoBehaviour
                 
                 // Check if position is walkable (not an obstacle)
                 bool isWalkable = EnvironmentManager.Instance.IsWalkable(grid);
-                
-                // Also check if it's a water tile - mark water as non-walkable in base graph
-                // (WaterTraversalProvider will handle allowing water for animals that can swim)
+
+                // Also check if it's a water tile - mark water as non-walkable in the base graph
+                // Animals that can swim handle water logic in their own movement checks
                 TileType tileType = EnvironmentManager.Instance.GetTileType(grid);
                 bool isWater = (tileType == TileType.Water);
                 
@@ -1128,7 +1128,7 @@ public class TutorialLevelLoader : MonoBehaviour
         // Ensure any pending work is completed
         AstarPath.active.FlushWorkItems();
         AstarPath.active.FlushGraphUpdates();
-        Debug.Log("TutorialLevelLoader: A* Pathfinding graph force-refreshed and nodes synced with EnvironmentManager (water tiles marked as non-walkable).");
+        Debug.Log("TutorialLevelLoader: A* Pathfinding graph force-refreshed and nodes synced with EnvironmentManager.");
     }
 }
 
