@@ -14,7 +14,8 @@ public class Grass : Interactable
 	[SerializeField, Range(0f, 1f)] private float _turnsVariance = 0.25f;
 	[Tooltip("Food item prefab that defines the hunger restoration value for this grass.")]
 	[SerializeField] private FoodItem _foodItemPrefab;
-
+  public string ItemName => _foodItemPrefab.name;
+  
 	[Header("Visuals")]
 	[Tooltip("Sprite shown when grass is fully grown.")]
 	[SerializeField] private Sprite _fullSprite;
@@ -41,8 +42,9 @@ public class Grass : Interactable
 	[Tooltip("Random variance applied to the turns between spreads (0 = none, 0.25 = ±25%).")]
 	[SerializeField, Range(0f, 1f)] private float _spreadVariance = 0.25f;
 
-	private const float SEED_DROP_RATE_FULL = 0.15f;  // Chance to drop from full layer to growing layer
-	private const float SEED_DROP_RATE_GROWING = 0.3f;  // Chance to drop from growing layer to destroyed layer
+	public const float SEED_DROP_RATE_FULL = 0.15f;  // Chance to drop from full layer to growing layer
+	public const float SEED_DROP_RATE_GROWING = 0.3f;  // Chance to drop from growing layer to destroyed layer
+  public const string SEED_ITEM_NAME = "GrassSeeds";
 
 	private enum GrassState
 	{
@@ -464,6 +466,8 @@ public class Grass : Interactable
 			Debug.LogWarning("Grass: InventoryManager instance not found! Cannot add grass to inventory.");
 		}
 	}
+  
+  
 
 	/// <summary>
 	/// Checks if the player (ControllableAnimal) is on the same tile as this grass.
@@ -510,7 +514,7 @@ public class Grass : Interactable
 		// First, try to add directly to player's inventory
 		if (InventoryManager.Instance != null)
 		{
-			bool added = InventoryManager.Instance.AddItem("GrassSeeds");
+			bool added = InventoryManager.Instance.AddItem(SEED_ITEM_NAME);
 			if (added)
 			{
 				// Successfully added to inventory
@@ -529,7 +533,7 @@ public class Grass : Interactable
 		Vector2Int? spawnPosition = FindAdjacentUnobstructedTile();
 		if (spawnPosition.HasValue)
 		{
-			ItemManager.Instance.SpawnItem("GrassSeeds", spawnPosition.Value);
+			ItemManager.Instance.SpawnItem(SEED_ITEM_NAME, spawnPosition.Value);
 		}
 		else
 		{

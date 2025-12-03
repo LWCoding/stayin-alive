@@ -33,7 +33,7 @@ public class KangRatWorker : WorkerAnimal
 	/// Reads from AnimalData.
 	/// </summary>
 	public int CriticalHungerThreshold => AnimalData != null ? AnimalData.criticalHungerThreshold : 20;
-
+  
 
 	/// <summary>
 	/// Override TakeTurn to add food-seeking behavior when hungry.
@@ -297,47 +297,71 @@ public class KangRatWorker : WorkerAnimal
 	/// </summary>
 	private void TryEatGrassAtCurrentPosition()
 	{
-		if (InteractableManager.Instance == null)
+		if (InteractableManager.Instance == null || ItemManager.Instance == null)
 		{
 			return;
-		}
+		} 
 
 		Grass grass = InteractableManager.Instance.GetGrassAtPosition(GridPosition);
-		if (grass == null)
-		{
-			return;
-		}
+    Item item;
+		if (grass != null) {
+      // Only eat grass that matches the target food type
+      if (!DoesGrassMatchTargetFood(grass))
+      {
+        return;
+      }
 
-		// Only eat grass that matches the target food type
-		if (!DoesGrassMatchTargetFood(grass))
-		{
-			return;
-		}
+      // Only eat fully grown grass
+      if (!grass.IsFullyGrown())
+      {
+        return;
+      }
 
-		// Only eat fully grown grass
-		if (!grass.IsFullyGrown())
-		{
-			return;
-		}
+      item = ItemManager.Instance.CreateItemForStorage(grass.ItemName);
+      
+      // Eat the grass (change it to growing state)
+      HarvestGrass(grass);
 
-		// Eat the grass (change it to growing state)
-		HarvestGrass(grass);
+      if (Random.Range(0f, 1f) <= Grass.SEED_DROP_RATE_FULL) {
+        AddItem(ItemManager.Instance.CreateItemForStorage(Grass.SEED_ITEM_NAME));
+      }
 
-		// Restore hunger based on the grass's food item prefab hunger restoration value
-		int hungerRestored = grass.HungerRestored;
-		if (hungerRestored > 0)
-		{
-			IncreaseHunger(hungerRestored);
-			Debug.Log($"KangRatWorker '{name}' ate grass at ({GridPosition.x}, {GridPosition.y}). Hunger restored by {hungerRestored} to {CurrentHunger}.");
-		}
-		else
-		{
-			Debug.LogWarning($"KangRatWorker '{name}' ate grass at ({GridPosition.x}, {GridPosition.y}), but no hunger was restored (food item prefab not set or invalid).");
-		}
+      // Restore hunger based on the grass's food item prefab hunger restoration value
+      int hungerRestored = grass.HungerRestored;
+      if (hungerRestored > 0)
+      {
+        IncreaseHunger(hungerRestored);
+        Debug.Log($"KangRatWorker '{name}' ate grass at ({GridPosition.x}, {GridPosition.y}). Hunger restored by {hungerRestored} to {CurrentHunger}.");
+      }
+      else
+      {
+        Debug.LogWarning($"KangRatWorker '{name}' ate grass at ({GridPosition.x}, {GridPosition.y}), but no hunger was restored (food item prefab not set or invalid).");
+      }
 
-		// Clear food destination since we've eaten
-		_foodDestination = null;
-	}
+      // Clear food destination since we've eaten
+      _foodDestination = null;
+    }
+    else {
+      Item originalItem = ItemManager.Instance.GetItemAtPosition(GridPosition);
+
+      if (originalItem == null) {
+        return;
+      }
+
+      item = ItemManager.Instance.CreateItemForStorage(originalItem.ItemName);
+      
+      if (originalItem != null) {
+        originalItem.DestroyItem();
+        _foodDestination = null;
+      }
+    }
+
+    if (item == null) {
+      return;
+    }
+    
+    AddItem(item);
+  }
 
 
 	/// <summary>

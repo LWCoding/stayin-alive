@@ -1,3 +1,5 @@
+using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 
 /// <summary>
@@ -7,14 +9,19 @@ using UnityEngine;
 /// </summary>
 public class WorkerAnimal : PreyAnimal
 {
-    private int _currentCarriedFood = 0;
+    private int _currentCarriedItems => workerItems.Count;
 
+    private List<Item> workerItems = new List<Item>();
+
+    public List<Item> WorkerItemsCopy => workerItems.ToList();
+    
+    
     private void OnEnable()
     {
         // Subscribe to food consumption events to track carried food
         if (this != null)
         {
-            OnFoodConsumed += OnAnimalFoodConsumed;
+            // OnFoodConsumed += OnAnimalFoodConsumed;
         }
     }
 
@@ -23,7 +30,7 @@ public class WorkerAnimal : PreyAnimal
         // Unsubscribe from food consumption events
         if (this != null)
         {
-            OnFoodConsumed -= OnAnimalFoodConsumed;
+            // OnFoodConsumed -= OnAnimalFoodConsumed;
         }
     }
 
@@ -31,16 +38,11 @@ public class WorkerAnimal : PreyAnimal
     {
         TryDepositAtHome();
     }
-
-    private void OnAnimalFoodConsumed(int hungerRestored)
-    {
-        // Each time food is consumed, increment carried food by 1
-        _currentCarriedFood += 1;
-    }
+    
 
     private void TryDepositAtHome()
     {
-        if (_currentCarriedFood <= 0)
+        if (_currentCarriedItems <= 0)
         {
             return;
         }
@@ -59,30 +61,60 @@ public class WorkerAnimal : PreyAnimal
             return;
         }
 
-        DepositCarriedFood(homeDen);
+        DepositCarriedItems(homeDen);
     }
 
-    private void DepositCarriedFood(Den den)
-    {
-        if (_currentCarriedFood <= 0)
-        {
+    public void AddItem(Item item) {
+      workerItems.Add(item);
+    }
+
+    private void DepositCarriedItems(Den den) {
+      if (_currentCarriedItems <= 0) {
+        return;
+      }
+
+      int totalItems = _currentCarriedItems;
+
+      int foodCount = 0;
+      int otherItemCount = 0;
+
+      if (DenSystemManager.Instance != null) {
+        for (int i = 0; i < totalItems; i++) {
+          if (workerItems[i] != null) {
+            if (workerItems[i] is FoodItem) {
+              foodCount++;
+            }
+            
+            else {
+              otherItemCount++;
+            }
+            
+            DenSystemManager.Instance.AddItemToDenInventory(workerItems[i]);
+            
+            workerItems[i].DestroyItem();
+          }
+        }
+
+        workerItems.Clear();
+
+        if (this is KangRatWorker) {
+          if (foodCount > 0 && otherItemCount > 0) {
+            DenSystemManager.Instance.LogHolder.SpawnLog(LogEntryGuiController.DenLogType.ADD_FOOD_AND_OTHER_ITEM,
+              foodCount, otherItemCount);
             return;
-        }
-
-        int totalFood = _currentCarriedFood;
-
-        if (DenSystemManager.Instance != null)
-        {
-          for (int i = 0; i < totalFood; i++) {
-            DenSystemManager.Instance.AddItemToDenInventory(ItemManager.Instance.CreateItemForStorage(Globals.GRASS_ITEM_NAME_FOR_WORKER_HARDCODE));
           }
 
-          if (this is KangRatWorker) {
-            DenSystemManager.Instance.LogHolder.SpawnLog(LogEntryGuiController.DenLogType.ADD_FOOD, totalFood); 
+          if (foodCount > 0) {
+            DenSystemManager.Instance.LogHolder.SpawnLog(LogEntryGuiController.DenLogType.ADD_FOOD, foodCount);
+            return;
+          }
+
+          if (otherItemCount > 0) {
+            DenSystemManager.Instance.LogHolder.SpawnLog(LogEntryGuiController.DenLogType.ADD_OTHER_ITEM, otherItemCount);
+            return;
           }
         }
-
-        _currentCarriedFood = 0;
+      }
     }
 }
 
