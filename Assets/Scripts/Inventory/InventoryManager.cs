@@ -28,7 +28,8 @@ public class InventoryManager : Singleton<InventoryManager>
     
     // List of all inventory slots
     private List<InventorySlot> _inventorySlots = new List<InventorySlot>();
-    
+    public List<InventorySlot> GetInventorySlots() => new List<InventorySlot>(_inventorySlots);
+
     // Currently selected slot index (-1 if none selected)
     private int _selectedSlotIndex = -1;
     private int _activeUseSlotIndex = -1;
@@ -51,8 +52,7 @@ public class InventoryManager : Singleton<InventoryManager>
             return count;
         }
     }
-    
-    
+
     protected override void Awake()
     {
         base.Awake();
@@ -583,12 +583,5 @@ public class InventoryManager : Singleton<InventoryManager>
         }
     }
 
-    /// <summary>
-    /// Returns the list of inventory slots. Used for UI display purposes.
-    /// </summary>
-    public List<InventorySlot> GetInventorySlots()
-    {
-        return new List<InventorySlot>(_inventorySlots);
-    }
 }
 

@@ -50,8 +50,6 @@ public class RabbitSpawner : Interactable, IHideable
 	
 	// Reference to the SpriteRenderer component
 	private SpriteRenderer _spriteRenderer;
-	
-	public int TerritoryRadius => _territoryRadius;
 
 	private void Start()
 	{

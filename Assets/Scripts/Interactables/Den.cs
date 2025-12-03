@@ -126,11 +126,6 @@ public class Den : Interactable, IHideable
         return _animalsInDen.Contains(animal);
     }
 
-    public int NumberAnimalsInDen() {
-      CleanupDestroyedAnimals();
-      return _animalsInDen.Count;
-    }
-
     /// <summary>
     /// IHideable implementation: Checks if an animal is in this hideable location.
     /// </summary>

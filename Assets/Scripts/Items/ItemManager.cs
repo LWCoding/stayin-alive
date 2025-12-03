@@ -21,7 +21,6 @@ public class ItemManager : Singleton<ItemManager>
     /// list of all hunger values items have in order from least to greatest.
     /// Used in order to get items with the smallest hunger values
     private List<int> hungerOrder = new List<int>();
-    
     public List<int> HungerOrder => hungerOrder.ToList();
     
     /// <summary>

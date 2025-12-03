@@ -14,7 +14,6 @@ public class Grass : Interactable
 	[SerializeField, Range(0f, 1f)] private float _turnsVariance = 0.25f;
 	[Tooltip("Food item prefab that defines the hunger restoration value for this grass.")]
 	[SerializeField] private FoodItem _foodItemPrefab;
-  	public string ItemName => _foodItemPrefab.name;
   
 	[Header("Visuals")]
 	[Tooltip("Sprite shown when grass is fully grown.")]
@@ -419,7 +418,7 @@ public class Grass : Interactable
 	private void AttemptHarvest()
 	{
 		// Get the player
-		ControllableAnimal player = GetPlayer();
+		ControllableAnimal player = AnimalManager.Instance.GetPlayer();
 		if (player == null)
 		{
 			Debug.LogWarning("Grass: Cannot harvest - no controllable animal found.");
@@ -474,8 +473,6 @@ public class Grass : Interactable
 			Debug.LogWarning("Grass: InventoryManager instance not found! Cannot add grass to inventory.");
 		}
 	}
-  
-  
 
 	/// <summary>
 	/// Checks if the player (ControllableAnimal) is on the same tile as this grass.
@@ -496,21 +493,6 @@ public class Grass : Interactable
 		}
 		
 		return false;
-	}
-
-	/// <summary>
-	/// Gets the player (ControllableAnimal) if one exists.
-	/// Uses cached player reference to avoid looping through all animals.
-	/// </summary>
-	private ControllableAnimal GetPlayer()
-	{
-		if (AnimalManager.Instance == null)
-		{
-			return null;
-		}
-		
-		// Use cached player reference instead of looping through all animals
-		return AnimalManager.Instance.GetPlayer();
 	}
 
 	/// <summary>
@@ -556,11 +538,6 @@ public class Grass : Interactable
 	/// </summary>
 	private Vector2Int? FindAdjacentUnobstructedTile()
 	{
-		if (EnvironmentManager.Instance == null || ItemManager.Instance == null)
-		{
-			return null;
-		}
-		
 		// Get adjacent tiles (4-directional)
 		Vector2Int[] directions = { Vector2Int.up, Vector2Int.down, Vector2Int.left, Vector2Int.right };
 		
@@ -583,11 +560,6 @@ public class Grass : Interactable
 	/// </summary>
 	private bool IsValidTileForItemSpawn(Vector2Int position)
 	{
-		if (EnvironmentManager.Instance == null)
-		{
-			return false;
-		}
-		
 		// Check if position is valid
 		if (!EnvironmentManager.Instance.IsValidPosition(position))
 		{
@@ -635,18 +607,6 @@ public class Grass : Interactable
 	/// </summary>
 	private void TrySpreadToAdjacentTiles()
 	{
-		if (InteractableManager.Instance == null)
-		{
-			Debug.LogWarning("Grass: InteractableManager instance not found. Cannot spread grass.");
-			return;
-		}
-
-		if (EnvironmentManager.Instance == null)
-		{
-			Debug.LogWarning("Grass: EnvironmentManager instance not found. Cannot spread grass.");
-			return;
-		}
-
 		// Get adjacent tiles (4-directional)
 		Vector2Int[] directions = { Vector2Int.up, Vector2Int.down, Vector2Int.left, Vector2Int.right };
 		
@@ -673,11 +633,6 @@ public class Grass : Interactable
 	/// </summary>
 	private bool IsValidTileForSpreading(Vector2Int position)
 	{
-		if (EnvironmentManager.Instance == null)
-		{
-			return false;
-		}
-
 		// Check if position is valid
 		if (!EnvironmentManager.Instance.IsValidPosition(position))
 		{
@@ -691,14 +646,8 @@ public class Grass : Interactable
 			return false;
 		}
 
-		// Check if there's already an interactable at this position
-		if (InteractableManager.Instance == null)
-		{
-			return false;
-		}
-
 		// Check for any type of interactable
-		if (InteractableManager.Instance.HasInteractableAtPosition(position))
+		if (InteractableManager.Instance == null && InteractableManager.Instance.HasInteractableAtPosition(position))
 		{
 			return false;
 		}
