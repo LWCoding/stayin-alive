@@ -148,9 +148,9 @@ public class KangRatWorker : WorkerAnimal
 					if (GridPosition == nearestItem.Value)
 					{
 						// TODO: Leyth, make this work for all item types (for now, we just delete the item and restore hunger cuz why not)
-						TryEatGrassAtCurrentPosition(); 
+						TryCollectAtCurrentPosition(); 
 						IncreaseHunger(100);
-						if (ItemManager.Instance != null)  // Delete this section once TryEatGrassAtCurrentPosition() works for all item types
+						if (ItemManager.Instance != null)  // Delete this section once TryCollectAtCurrentPosition() works for all item types
 						{
 							Item item = ItemManager.Instance.GetItemAtPosition(GridPosition);
 							if (item != null)
@@ -295,7 +295,7 @@ public class KangRatWorker : WorkerAnimal
 	/// Attempts to eat grass at the current position.
 	/// If fully grown grass is found, changes it to growing state and restores hunger.
 	/// </summary>
-	private void TryEatGrassAtCurrentPosition()
+	private void TryCollectAtCurrentPosition()
 	{
 		if (InteractableManager.Instance == null || ItemManager.Instance == null)
 		{
@@ -325,19 +325,7 @@ public class KangRatWorker : WorkerAnimal
       if (Random.Range(0f, 1f) <= Grass.SEED_DROP_RATE_FULL) {
         AddItem(ItemManager.Instance.CreateItemForStorage(Grass.SEED_ITEM_NAME));
       }
-
-      // Restore hunger based on the grass's food item prefab hunger restoration value
-      int hungerRestored = grass.HungerRestored;
-      if (hungerRestored > 0)
-      {
-        IncreaseHunger(hungerRestored);
-        Debug.Log($"KangRatWorker '{name}' ate grass at ({GridPosition.x}, {GridPosition.y}). Hunger restored by {hungerRestored} to {CurrentHunger}.");
-      }
-      else
-      {
-        Debug.LogWarning($"KangRatWorker '{name}' ate grass at ({GridPosition.x}, {GridPosition.y}), but no hunger was restored (food item prefab not set or invalid).");
-      }
-
+      
       // Clear food destination since we've eaten
       _foodDestination = null;
     }
@@ -361,6 +349,10 @@ public class KangRatWorker : WorkerAnimal
     }
     
     AddItem(item);
+
+    if (item is FoodItem) {
+      IncreaseHunger((item as FoodItem).HungerRestored);
+    }
   }
 
 
@@ -468,12 +460,15 @@ public class KangRatWorker : WorkerAnimal
 			return false;
 		}
 
-		if (!DenSystemManager.Instance.SpendFoodFromDen(1))
-		{
-			return false;
-		}
+		// if (!DenSystemManager.Instance.SpendFoodFromDen(1))
+		// {
+		// 	return false;
+		// }
 
-		int hungerRestored = Mathf.Max(0, Globals.DenFoodHungerRestoration);
+    int hungerRestoredResult = DenSystemManager.Instance.SpendFoodFromDen();
+    
+
+		int hungerRestored = Mathf.Max(0, hungerRestoredResult);
 		if (hungerRestored > 0)
 		{
 			IncreaseHunger(hungerRestored);

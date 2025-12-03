@@ -91,7 +91,7 @@ public class WorkerAnimal : PreyAnimal
             
             DenSystemManager.Instance.AddItemToDenInventory(workerItems[i]);
             
-            workerItems[i].DestroyItem();
+            // workerItems[i].DestroyItem();
           }
         }
 

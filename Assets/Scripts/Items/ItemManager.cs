@@ -18,6 +18,12 @@ public class ItemManager : Singleton<ItemManager>
     // Track all items in the scene
     private List<Item> _items = new List<Item>();
     
+    /// list of all hunger values items have in order from least to greatest.
+    /// Used in order to get items with the smallest hunger values
+    private List<int> hungerOrder = new List<int>();
+    
+    public List<int> HungerOrder => hungerOrder.ToList();
+    
     /// <summary>
     /// Gets all items in the scene.
     /// </summary>
@@ -29,6 +35,17 @@ public class ItemManager : Singleton<ItemManager>
 
         // Load all ItemData from Resources/Items/ folder
         LoadItemData();
+
+        // Initialize the hunger restored list
+        foreach (ItemData itemData in _itemDataDictionary.Values) {
+          Item item = itemData.prefab.GetComponent<Item>();
+          if (item == null || item is not FoodItem) {
+            continue;
+          }
+          FoodItem foodItem = item as FoodItem;
+          hungerOrder.Add(foodItem.HungerRestored);
+        }
+        hungerOrder.Sort();
     }
     
     /// <summary>

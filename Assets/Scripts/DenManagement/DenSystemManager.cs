@@ -193,22 +193,48 @@ public class DenSystemManager : Singleton<DenSystemManager> {
       return false;
     }
 
-    if (storedDenFood - amount < 0)
+    if (NumFoodItems - amount < 0)
     {
       return false;
     }
-
-    storedDenFood -= amount;
+    
     // Remove and destroy only the requested amount of food items
     int itemsToRemove = Mathf.Min(amount, foodItemsInDen.Count);
     for (int i = 0; i < itemsToRemove; i++) {
-      Item item_to_destroy = foodItemsInDen[0];
-      foodItemsInDen.RemoveRange(0,1);
-      Destroy(item_to_destroy.gameObject);
+      int res = SpendFoodFromDen();
+      if (res < 0) {
+        return false;
+      }
     }
     
     DenAdminMenu.UpdateGui();
     return true;
+  }
+
+  /// Return value is hunger of food spent
+  public int SpendFoodFromDen() {
+    if (NumFoodItems <= 0) {
+      return -1;
+    }
+
+    int foodToRemoveIndex = -1;
+    
+    foreach (int hungerTier in ItemManager.Instance.HungerOrder) {
+      foodToRemoveIndex = foodItemsInDen.FindIndex((item) => (item as FoodItem)?.HungerRestored == hungerTier);
+      if (foodToRemoveIndex >= 0) {
+        break;
+      }
+    }
+    
+    foodToRemoveIndex = Mathf.Max(0, foodToRemoveIndex);
+    Item itemToDestroy = foodItemsInDen[foodToRemoveIndex];
+    if (!foodItemsInDen.Remove(itemToDestroy)) {
+      return -1;
+    }
+    int ret = (int)((itemToDestroy as FoodItem).HungerRestored);
+    
+    Destroy(itemToDestroy.gameObject);
+    return ret;
   }
 
   // Transfer indexed food item
@@ -232,7 +258,6 @@ public class DenSystemManager : Singleton<DenSystemManager> {
     // If it is, remove the ItemObject from the Den System food item list
     foodItemsInDen.Remove(itemToTransfer);
     Destroy(itemToTransfer.gameObject);
-    storedDenFood--;
     DenAdminMenu.UpdateGui();
     return true;
   }
@@ -281,7 +306,6 @@ public class DenSystemManager : Singleton<DenSystemManager> {
   public void ResetDenFood(int? overrideAmount = null)
   {
     int target = overrideAmount.HasValue ? overrideAmount.Value : startingDenFood;
-    storedDenFood = Mathf.Max(0, target);
     foodItemsInDen.Clear();
     if (target > 0) {
       for (int i = 0; i < target; i++) {
