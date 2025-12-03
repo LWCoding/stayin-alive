@@ -51,4 +51,16 @@ public class DenInventoryPanelGuiController : MonoBehaviour {
       inventorySlots.Add(newSlot);
     }
   }
+
+  /// <summary>
+  /// Shakes each inventory slot to provide visual feedback.
+  /// </summary>
+  public void Shake() {
+    // Shake each slot independently
+    foreach (DenMenuInventorySlotGui slot in inventorySlots) {
+      if (slot != null && slot.gameObject != null) {
+        slot.Shake();
+      }
+    }
+  }
 }

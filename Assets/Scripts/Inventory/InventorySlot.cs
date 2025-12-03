@@ -1,3 +1,4 @@
+using System.Collections;
 using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
@@ -17,9 +18,20 @@ public class InventorySlot : MonoBehaviour
     [SerializeField] [Tooltip("Text component that displays the slot number (1-9) for keyboard selection.")]
     private TextMeshProUGUI _slotNumberText;
     
+    [Header("Shake Settings")]
+    [SerializeField] [Tooltip("Intensity of the shake")]
+    private float _shakeIntensity = 10f;
+    
+    [SerializeField] [Tooltip("Duration of the shake animation in seconds")]
+    private float _shakeDuration = 0.5f;
+    
     private Item _item = null;
     private bool _isEmpty = true;
     private bool _isSelected = false;
+    
+    // Track shake coroutine
+    private Coroutine _shakeCoroutine;
+    private Vector3 _originalLocalPosition;
 
     public Item GetItem() => _item;
     public bool IsEmpty => _isEmpty;
@@ -31,6 +43,9 @@ public class InventorySlot : MonoBehaviour
         {
             Debug.LogError($"InventorySlot '{name}': Item Image not found. Please assign it in the Inspector or ensure there's an Image component in a child GameObject named 'Item'.");
         }
+        
+        // Store original position for shake animation
+        _originalLocalPosition = transform.localPosition;
         
         // Initialize as empty and deselected
         ClearSlot();
@@ -132,6 +147,51 @@ public class InventorySlot : MonoBehaviour
         {
             _selectedIndicator.SetActive(selected);
         }
+    }
+    
+    /// <summary>
+    /// Shakes this slot to provide visual feedback.
+    /// </summary>
+    public void Shake()
+    {
+        // Stop any existing shake coroutine
+        if (_shakeCoroutine != null)
+        {
+            StopCoroutine(_shakeCoroutine);
+            // Reset to original position before starting new shake
+            transform.localPosition = _originalLocalPosition;
+        }
+        
+        // Always capture the current position right before shaking to ensure we use the correct base position
+        _originalLocalPosition = transform.localPosition;
+        
+        // Start shake coroutine
+        _shakeCoroutine = StartCoroutine(ShakeCoroutine());
+    }
+    
+    /// <summary>
+    /// Coroutine that shakes this slot.
+    /// </summary>
+    private IEnumerator ShakeCoroutine()
+    {
+        float elapsed = 0f;
+        
+        while (elapsed < _shakeDuration)
+        {
+            // Calculate random offset for shake
+            float offsetX = UnityEngine.Random.Range(-_shakeIntensity, _shakeIntensity);
+            float offsetY = UnityEngine.Random.Range(-_shakeIntensity, _shakeIntensity);
+            
+            // Apply shake offset
+            transform.localPosition = _originalLocalPosition + new Vector3(offsetX, offsetY, 0f);
+            
+            elapsed += Time.deltaTime;
+            yield return null;
+        }
+        
+        // Reset to original position
+        transform.localPosition = _originalLocalPosition;
+        _shakeCoroutine = null;
     }
 }
 

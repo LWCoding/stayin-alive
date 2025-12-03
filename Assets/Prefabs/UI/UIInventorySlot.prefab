@@ -163,6 +163,8 @@ MonoBehaviour:
   _itemImage: {fileID: 1253336139996027324}
   _selectedIndicator: {fileID: 1993987067483442422}
   _slotNumberText: {fileID: 4625154972862255768}
+  _shakeIntensity: 10
+  _shakeDuration: 0.5
 --- !u!1 &4232496240378161318
 GameObject:
   m_ObjectHideFlags: 0

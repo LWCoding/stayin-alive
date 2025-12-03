@@ -22,13 +22,6 @@ public class InventoryManager : Singleton<InventoryManager>
     [SerializeField] [Tooltip("Prefab for inventory slot UI")]
     private GameObject _inventorySlotPrefab;
     
-    [Header("Shake Settings")]
-    [SerializeField] [Tooltip("Intensity of the shake when inventory is full")]
-    private float _shakeIntensity = 10f;
-    
-    [SerializeField] [Tooltip("Duration of the shake animation in seconds")]
-    private float _shakeDuration = 0.5f;
-    
     [Header("Usage Description")]
     [SerializeField] [Tooltip("Text component that displays the usage description of the selected item")]
     private TextMeshProUGUI _usageDescriptionText;
@@ -39,12 +32,6 @@ public class InventoryManager : Singleton<InventoryManager>
     // Currently selected slot index (-1 if none selected)
     private int _selectedSlotIndex = -1;
     private int _activeUseSlotIndex = -1;
-    
-    // Store original position of inventory container for shake animation
-    private Vector3 _originalContainerPosition;
-    
-    // Track if shake coroutine is running
-    private Coroutine _shakeCoroutine;
     
     /// <summary>
     /// Current number of items in the inventory.
@@ -74,11 +61,6 @@ public class InventoryManager : Singleton<InventoryManager>
         if (_inventoryContainer == null)
         {
             Debug.LogError("InventoryManager: Inventory container is not assigned! Please assign a Transform in the Inspector.");
-        }
-        else
-        {
-            // Store original position for shake animation
-            _originalContainerPosition = _inventoryContainer.localPosition;
         }
         
         if (_inventorySlotPrefab == null)
@@ -520,61 +502,20 @@ public class InventoryManager : Singleton<InventoryManager>
     /// </summary>
     private void ShakeInventory()
     {
-        if (_inventoryContainer == null)
-        {
-            return;
-        }
-        
         // Play FullInventory sound effect
         if (AudioManager.Instance != null)
         {
             AudioManager.Instance.PlaySFX(AudioManager.SFXType.FullInventory);
         }
         
-        // Stop any existing shake coroutine
-        if (_shakeCoroutine != null)
+        // Shake each slot independently
+        foreach (InventorySlot slot in _inventorySlots)
         {
-            StopCoroutine(_shakeCoroutine);
-            // Reset to original position before starting new shake
-            _inventoryContainer.localPosition = _originalContainerPosition;
+            if (slot != null)
+            {
+                slot.Shake();
+            }
         }
-        
-        // Always capture the current position right before shaking to ensure we use the correct base position
-        // This prevents teleportation issues if the UI was repositioned after Awake()
-        _originalContainerPosition = _inventoryContainer.localPosition;
-        
-        // Start shake coroutine
-        _shakeCoroutine = StartCoroutine(ShakeCoroutine());
-    }
-    
-    /// <summary>
-    /// Coroutine that shakes the inventory container.
-    /// </summary>
-    private IEnumerator ShakeCoroutine()
-    {
-        if (_inventoryContainer == null)
-        {
-            yield break;
-        }
-        
-        float elapsed = 0f;
-        
-        while (elapsed < _shakeDuration)
-        {
-            // Calculate random offset for shake
-            float offsetX = UnityEngine.Random.Range(-_shakeIntensity, _shakeIntensity);
-            float offsetY = UnityEngine.Random.Range(-_shakeIntensity, _shakeIntensity);
-            
-            // Apply shake offset
-            _inventoryContainer.localPosition = _originalContainerPosition + new Vector3(offsetX, offsetY, 0f);
-            
-            elapsed += Time.deltaTime;
-            yield return null;
-        }
-        
-        // Reset to original position
-        _inventoryContainer.localPosition = _originalContainerPosition;
-        _shakeCoroutine = null;
     }
     
     /// <summary>

@@ -223,8 +223,9 @@ public class DenSystemManager : Singleton<DenSystemManager> {
     // Attempt to add item to the inventory (pass the Item object directly)
     bool itemAdded = InventoryManager.Instance.AddItem(itemToTransfer);
     
-    // If the item is not added successfully, no-op
+    // If the item is not added successfully, shake the den inventory panel
     if (!itemAdded) {
+      DenAdminMenu.ShakeInventoryPanel();
       return false;
     }
     
@@ -248,8 +249,9 @@ public class DenSystemManager : Singleton<DenSystemManager> {
     // Attempt to add item to the inventory (pass the Item object directly)
     bool itemAdded = InventoryManager.Instance.AddItem(itemToTransfer);
     
-    // If the item is not added successfully, no-op
+    // If the item is not added successfully, shake the den inventory panel
     if (!itemAdded) {
+      DenAdminMenu.ShakeInventoryPanel();
       return false;
     }
     

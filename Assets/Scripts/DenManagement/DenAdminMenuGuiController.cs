@@ -168,4 +168,29 @@ public class DenAdminMenuGuiController : MonoBehaviour {
     bool canAfford = DenSystemManager.Instance.FoodInDen >= currentWorkerPrice;
     purchaseWorkerButton.interactable = canAfford;
   }
+
+  /// <summary>
+  /// Shakes the den inventory panel to indicate that items cannot be collected.
+  /// Refreshes the GUI first to ensure we're shaking the current slots.
+  /// </summary>
+  public void ShakeInventoryPanel() {
+    if (inventoryPanel != null) {
+      // Refresh GUI first to ensure we have the current slots -- workaround because it would delete it after I shook it :(
+      inventoryPanel.RefreshGui();
+      // Then shake the slots (use a coroutine to ensure RefreshGui completes first)
+      StartCoroutine(ShakeInventoryPanelCoroutine());
+    }
+  }
+  
+  /// <summary>
+  /// Coroutine that shakes the inventory panel after ensuring the GUI is refreshed.
+  /// </summary>
+  private System.Collections.IEnumerator ShakeInventoryPanelCoroutine() {
+    // Wait one frame to ensure RefreshGui has completed and slots are created
+    yield return null;
+    
+    if (inventoryPanel != null) {
+      inventoryPanel.Shake();
+    }
+  }
 }
