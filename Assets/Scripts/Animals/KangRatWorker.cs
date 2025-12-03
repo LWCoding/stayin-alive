@@ -135,33 +135,43 @@ public class KangRatWorker : WorkerAnimal
 			// Check for nearby predators
 			PredatorAnimal nearbyPredator = FindNearestPredator();
 			
-			// Only seek food if critically hungry OR if no predators are nearby
+			// Only seek items if critically hungry OR if no predators are nearby
 			if (isCriticallyHungry || nearbyPredator == null)
 			{
-				// Try to find and move towards fully grown grass
-				Vector2Int? nearestGrass = FindNearestFullyGrownGrass();
+				Vector2Int? nearestItem = FindNearestItem();
 				
-				if (nearestGrass.HasValue)
+				if (nearestItem.HasValue)
 				{
-					_foodDestination = nearestGrass.Value;
+					_foodDestination = nearestItem.Value;
 					
-					// Check if we're already at the grass position
-					if (GridPosition == nearestGrass.Value)
+					// Check if we're already at the item position
+					if (GridPosition == nearestItem.Value)
 					{
-						// We're on the grass, try to eat it
-						TryEatGrassAtCurrentPosition();
-					}
-					else 
-                    {
-						// Move towards the grass (even if predators are nearby when critically hungry)
-						if (!MoveOneStepTowards(nearestGrass.Value))
+						// TODO: Leyth, make this work for all item types (for now, we just delete the item and restore hunger cuz why not)
+						TryEatGrassAtCurrentPosition(); 
+						IncreaseHunger(100);
+						if (ItemManager.Instance != null)  // Delete this section once TryEatGrassAtCurrentPosition() works for all item types
 						{
-							// If move failed, try to find a new grass destination
-							Vector2Int? newGrass = FindNearestFullyGrownGrass();
-							if (newGrass.HasValue)
+							Item item = ItemManager.Instance.GetItemAtPosition(GridPosition);
+							if (item != null)
 							{
-								_foodDestination = newGrass.Value;
-								MoveOneStepTowards(newGrass.Value);
+								item.DestroyItem();
+								_foodDestination = null;
+							}
+						}
+						// END TODO
+					}
+					else
+					{
+						// Move towards the item
+						if (!MoveOneStepTowards(nearestItem.Value))
+						{
+							// If move failed, try to find a new item destination
+							Vector2Int? newItem = FindNearestItem();
+							if (newItem.HasValue)
+							{
+								_foodDestination = newItem.Value;
+								MoveOneStepTowards(newItem.Value);
 							}
 							else
 							{
@@ -172,7 +182,7 @@ public class KangRatWorker : WorkerAnimal
 				}
 				else
 				{
-					// No grass found, fall back to wandering (still prioritize food search)
+					// No grass or items found, fall back to wandering
 					_foodDestination = null;
 					Wander();
 				}

@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 
 /// <summary>
@@ -16,6 +17,11 @@ public class ItemManager : Singleton<ItemManager>
     
     // Track all items in the scene
     private List<Item> _items = new List<Item>();
+    
+    /// <summary>
+    /// Gets all items in the scene.
+    /// </summary>
+    public List<Item> Items => _items.Where(i => i != null).ToList();
     
     protected override void Awake()
     {

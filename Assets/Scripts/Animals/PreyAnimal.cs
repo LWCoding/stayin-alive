@@ -714,6 +714,65 @@ public class PreyAnimal : Animal
     }
     
     /// <summary>
+    /// Finds the nearest item within detection radius.
+    /// If critically hungry, searches with infinite range (ignores detection radius).
+    /// </summary>
+    protected virtual Vector2Int? FindNearestItem()
+    {
+        if (ItemManager.Instance == null)
+        {
+            return null;
+        }
+
+        List<Item> allItems = ItemManager.Instance.Items;
+        if (allItems == null || allItems.Count == 0)
+        {
+            return null;
+        }
+
+        Vector2Int myPos = GridPosition;
+        Item nearest = null;
+        int bestDistance = int.MaxValue;
+        
+        // Check if at critical hunger - if so, ignore detection radius (infinite range)
+        bool isCriticallyHungry = IsCriticallyHungry;
+
+        for (int i = 0; i < allItems.Count; i++)
+        {
+            Item item = allItems[i];
+            if (item == null)
+            {
+                continue;
+            }
+
+            Vector2Int itemPos = item.GridPosition;
+            int distance = Mathf.Abs(itemPos.x - myPos.x) + Mathf.Abs(itemPos.y - myPos.y); // Manhattan distance
+            
+            // If critically hungry, ignore detection radius. Otherwise, only consider items within detection radius
+            if (isCriticallyHungry)
+            {
+                // Infinite range when critically hungry - just find the nearest
+                if (distance < bestDistance)
+                {
+                    bestDistance = distance;
+                    nearest = item;
+                }
+            }
+            else
+            {
+                // Normal behavior - only consider items within detection radius
+                if (distance <= _grassDetectionRadius && distance < bestDistance)
+                {
+                    bestDistance = distance;
+                    nearest = item;
+                }
+            }
+        }
+
+        return nearest != null ? nearest.GridPosition : (Vector2Int?)null;
+    }
+    
+    /// <summary>
     /// Checks if a grass interactable matches the target food type.
     /// Override in subclasses to provide custom food matching logic.
     /// </summary>
