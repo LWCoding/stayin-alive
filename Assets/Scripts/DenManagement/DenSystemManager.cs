@@ -85,6 +85,8 @@ public class DenSystemManager : Singleton<DenSystemManager> {
   public Dictionary<Animal, int> WorkersToDens => workersToDens;
   
   private List<Animal> unassignedWorkers;
+  
+  public bool UnassignedDenFull => unassignedWorkers.Count >= Globals.MaxWorkersPerDen;
 
   private int _densBuiltWithSticks;
   public int DensBuiltWithSticks => ConstructDenInfos().Count - 1;
@@ -362,6 +364,16 @@ public class DenSystemManager : Singleton<DenSystemManager> {
     return true;
   }
 
+  /// Check if there is room to create a new worker in either the current den or unassigned
+  public bool HaveRoomToCreateWorker() {
+    if (currentDenAdministrator == null || CurrentAdminDen == null) {
+      return false;
+    }
+
+    return !UnassignedDenFull || !CurrentAdminDen.IsFull();
+
+  }
+  
   // Deposits Player Inventory into Den
   // Player must be in a den for this to work
   public void DepositAllPlayerItemsToDen() {
@@ -421,6 +433,10 @@ public class DenSystemManager : Singleton<DenSystemManager> {
   public bool UnassignWorker(Animal animal) {
     ConstructDenInfos();
     if (!workersToDens.ContainsKey(animal) || !workersToDens.ContainsKey(animal)) {
+      return false;
+    }
+
+    if (UnassignedDenFull) {
       return false;
     }
 
@@ -543,17 +559,57 @@ public class DenSystemManager : Singleton<DenSystemManager> {
   
   /// <summary>
   /// Adds a worker to the unassigned workers list and notifies the player to update follower count.
+  /// DOES NOT CHECK CURRENT UNASSIGNED POPULATION
   /// </summary>
   /// <param name="animal">The worker animal to add as unassigned</param>
-  private void AddUnassignedWorker(Animal animal) {
+  private bool AddUnassignedWorker(Animal animal) {
     if (animal == null) {
-      return;
+      return false;
     }
     
     unassignedWorkers.Add(animal);
     workersToDens[animal] = UNASSIGNED_DEN_ID;
     NotifyPlayerUpdateFollowerCount();
+    return true;
   }
+  
+  private bool AddAssignedWorker(Animal animal) {
+    if (animal == null) {
+      return false;
+    }
+    if (CurrentDenAdministrator == null || CurrentAdminDen == null) {
+      return false;
+    }
+    
+    unassignedWorkers.Add(animal);
+    workersToDens[animal] = UNASSIGNED_DEN_ID;
+    AssignWorker(animal, CurrentAdminDenID);
+    NotifyPlayerUpdateFollowerCount();
+    return true;
+  }
+
+  /// This function adds a worker to the den if there's room, or the unassigned worker list if there is not
+  /// Function will fail if both lists are full
+  private bool TryAddWorkerToSystem(Animal animal) {
+    if (animal == null) {
+      return false;
+    }
+    if (CurrentDenAdministrator == null || CurrentAdminDen == null) {
+      return false;
+    }
+
+    if (!CurrentAdminDen.IsFull()) {
+      return AddAssignedWorker(animal);
+    }
+
+    if (!UnassignedDenFull) {
+      return AddUnassignedWorker(animal);
+    }
+
+    return false;
+  }
+  
+  
   
   /// <summary>
   /// Removes a worker from the unassigned workers list and notifies the player to update follower count.
@@ -591,6 +647,7 @@ public class DenSystemManager : Singleton<DenSystemManager> {
   public DenAdministrator CurrentDenAdministrator => currentDenAdministrator;
   
   public Den CurrentAdminDen => currentDenAdministrator.Animal.CurrentDen;
+  public int CurrentAdminDenID => CurrentAdminDen.GetDenInfo().denId;
   
   [SerializeField]
   private DenAdminMenuGuiController denAdminMenu;
