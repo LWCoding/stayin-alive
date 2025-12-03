@@ -17,12 +17,15 @@ public class PauseManager : MonoBehaviour
     {
         if (Input.GetKeyDown(KeyCode.Escape))
         {
+            Debug.Log("PauseManager: Escape key pressed");
             if (_isPaused)
             {
+                Debug.Log("PauseManager: Resuming game");
                 ResumeGame();
             }
             else
             {
+                Debug.Log("PauseManager: Pausing game");
                 PauseGame();
             }
         }
