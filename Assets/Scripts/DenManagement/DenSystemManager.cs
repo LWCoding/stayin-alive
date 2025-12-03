@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using JetBrains.Annotations;
+using Unity.VisualScripting;
 using UnityEngine;
 
 public class DenSystemManager : Singleton<DenSystemManager> {
@@ -355,7 +356,11 @@ public class DenSystemManager : Singleton<DenSystemManager> {
     
     newWorkerAnimal.SetVisualVisibility(false);
     
-    AddUnassignedWorker(newWorkerAnimal);
+    bool workerAddResult = TryAddWorkerToSystem(newWorkerAnimal);
+    if (!workerAddResult) {
+      Destroy(newWorkerAnimal.gameObject);
+      return false;
+    }
     IncrementMvpPopulation();
     
     // Notify that a worker was created
@@ -559,7 +564,7 @@ public class DenSystemManager : Singleton<DenSystemManager> {
   
   /// <summary>
   /// Adds a worker to the unassigned workers list and notifies the player to update follower count.
-  /// DOES NOT CHECK CURRENT UNASSIGNED POPULATION
+  /// DOES NOT CHECK AGAINST CURRENT UNASSIGNED POPULATION
   /// </summary>
   /// <param name="animal">The worker animal to add as unassigned</param>
   private bool AddUnassignedWorker(Animal animal) {
@@ -594,11 +599,8 @@ public class DenSystemManager : Singleton<DenSystemManager> {
     if (animal == null) {
       return false;
     }
-    if (CurrentDenAdministrator == null || CurrentAdminDen == null) {
-      return false;
-    }
-
-    if (!CurrentAdminDen.IsFull()) {
+    
+    if (CurrentDenAdministrator != null && CurrentAdminDen !=null && !CurrentAdminDen.IsFull()) {
       return AddAssignedWorker(animal);
     }
 

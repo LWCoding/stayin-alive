@@ -55,6 +55,10 @@ public class DenAdminMenuGuiController : MonoBehaviour {
   [Tooltip("Text displayed on the purchase worker button when den is not full")]
   private string purchaseWorkerButtonText;
 
+  [SerializeField]
+  [Tooltip("Text displayed on the purchase worker button when den is at maximum capacity")]
+  private string denFullButtonText;
+  
   private List<DenSystemManager.DenInformation> mapDenInfo;
 
   private List<DenMapIconGuiController> mapDenMapIcons;
@@ -165,8 +169,13 @@ public class DenAdminMenuGuiController : MonoBehaviour {
     }
     
     // Only check if player can afford - allow breeding even if den is full (workers go to unassigned pool)
+    // JUST KIDDING! Do NOT allow if den is full
     bool canAfford = DenSystemManager.Instance.FoodInDen >= currentWorkerPrice;
-    purchaseWorkerButton.interactable = canAfford;
+    bool hasRoom = DenSystemManager.Instance.HaveRoomToCreateWorker();
+    if (!hasRoom) {
+      buttonText.text = denFullButtonText.Replace("\\n", "\n");
+    }
+    purchaseWorkerButton.interactable = canAfford && hasRoom;
   }
 
   /// <summary>

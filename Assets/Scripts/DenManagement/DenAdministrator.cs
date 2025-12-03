@@ -121,9 +121,12 @@ public class DenAdministrator : MonoBehaviour {
       return;
     }
 
-    DenSystemManager.Instance.CreateWorker();
+    bool success = DenSystemManager.Instance.CreateWorker();
+
+    if (!success) {
+      return;
+    }
     
-    // Worst case if something is out of sync, error will be in player's favor
     DenSystemManager.Instance.SpendFoodFromDen(currentWorkerPrice);
   }
 
