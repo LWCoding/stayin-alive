@@ -8,8 +8,8 @@ using UnityEngine;
 public class WormSpawner : Interactable
 {
 	[Header("Spawner Settings")]
-	[Tooltip("Name of the worm item to spawn.")]
-	[SerializeField] private string _wormItemName = "Worm";
+	[Tooltip("Type of the worm item to spawn.")]
+	[SerializeField] private ItemType _wormItemType = ItemType.Worm;
 	[Tooltip("Number of turns between spawn attempts.")]
 	[SerializeField] private int _turnsBetweenSpawns = 8;
 	[Tooltip("Radius of the spawn area around the spawner (in grid tiles).")]
@@ -230,7 +230,7 @@ public class WormSpawner : Interactable
 			if (existingItem != null)
 			{
 				// Specifically check if it's a worm - ensure we don't spawn on top of other worms
-				if (existingItem.ItemName == _wormItemName)
+				if (existingItem.ItemType == _wormItemType)
 				{
 					continue; // Don't spawn worm on top of another worm
 				}
@@ -239,7 +239,7 @@ public class WormSpawner : Interactable
 			}
 
 			// Spawn the worm and track it
-			Item spawnedWorm = ItemManager.Instance.SpawnItem(_wormItemName, spawnPos);
+			Item spawnedWorm = ItemManager.Instance.SpawnItem(_wormItemType, spawnPos);
 			if (spawnedWorm != null)
 			{
 				_spawnedWorms.Add(spawnedWorm);

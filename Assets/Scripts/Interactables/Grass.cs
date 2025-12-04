@@ -43,7 +43,7 @@ public class Grass : Interactable
 
 	public const float SEED_DROP_RATE_FULL = 0.15f;  // Chance to drop from full layer to growing layer
 	public const float SEED_DROP_RATE_GROWING = 0.3f;  // Chance to drop from growing layer to destroyed layer
-  	public const string SEED_ITEM_NAME = "GrassSeeds";
+  	public const ItemType SEED_ITEM_TYPE = ItemType.GrassSeeds;
 
 	private enum GrassState
 	{
@@ -428,7 +428,7 @@ public class Grass : Interactable
 		// Try to add grass item to inventory
 		if (InventoryManager.Instance != null)
 		{
-			bool added = InventoryManager.Instance.AddItem("Grass");
+			bool added = InventoryManager.Instance.AddItem(ItemType.Grass);
 			
 			if (added)
 			{
@@ -504,7 +504,7 @@ public class Grass : Interactable
 		// First, try to add directly to player's inventory
 		if (InventoryManager.Instance != null)
 		{
-			bool added = InventoryManager.Instance.AddItem(SEED_ITEM_NAME);
+			bool added = InventoryManager.Instance.AddItem(SEED_ITEM_TYPE);
 			if (added)
 			{
 				// Successfully added to inventory
@@ -523,7 +523,7 @@ public class Grass : Interactable
 		Vector2Int? spawnPosition = FindAdjacentUnobstructedTile();
 		if (spawnPosition.HasValue)
 		{
-			ItemManager.Instance.SpawnItem(SEED_ITEM_NAME, spawnPosition.Value);
+			ItemManager.Instance.SpawnItem(SEED_ITEM_TYPE, spawnPosition.Value);
 		}
 		else
 		{

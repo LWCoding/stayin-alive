@@ -179,7 +179,7 @@ public class InventoryManager : Singleton<InventoryManager>
             return false;
         }
         
-        Item inventoryItem = ItemManager.Instance.CreateItemForStorage(item.ItemName);
+        Item inventoryItem = ItemManager.Instance.CreateItemForStorage(item.ItemType);
         if (inventoryItem == null)
         {
             Debug.LogWarning($"InventoryManager: Failed to create inventory item '{item.ItemName}'.");
@@ -229,28 +229,22 @@ public class InventoryManager : Singleton<InventoryManager>
     }
     
     /// <summary>
-    /// Attempts to add an item to the inventory by name. Creates a new Item instance from the prefab.
-    /// This is a convenience method for cases where only the item name is available.
+    /// Attempts to add an item to the inventory by type. Creates a new Item instance from the prefab.
+    /// This is a convenience method for cases where only the item type is available.
     /// </summary>
-    public bool AddItem(string itemName)
+    public bool AddItem(ItemType itemType)
     {
-        if (string.IsNullOrEmpty(itemName))
-        {
-            Debug.LogWarning("InventoryManager: Cannot add item with null or empty name.");
-            return false;
-        }
-        
         if (ItemManager.Instance == null)
         {
-            Debug.LogWarning("InventoryManager: ItemManager instance not found. Cannot create item from name.");
+            Debug.LogWarning("InventoryManager: ItemManager instance not found. Cannot create item from type.");
             return false;
         }
         
         // Create a new Item instance from the prefab for storage
-        Item item = ItemManager.Instance.CreateItemForStorage(itemName);
+        Item item = ItemManager.Instance.CreateItemForStorage(itemType);
         if (item == null)
         {
-            Debug.LogWarning($"InventoryManager: Cannot create item '{itemName}' from prefab.");
+            Debug.LogWarning($"InventoryManager: Cannot create item '{itemType}' from prefab.");
             return false;
         }
         
@@ -265,6 +259,7 @@ public class InventoryManager : Singleton<InventoryManager>
         
         return added;
     }
+    
     
     /// <summary>
     /// Transfers all items from inventory slots to another system (e.g., den inventory).

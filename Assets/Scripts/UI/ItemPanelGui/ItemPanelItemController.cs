@@ -38,7 +38,7 @@ public class ItemPanelItemController : MonoBehaviour, IPointerEnterHandler, IPoi
 
   public void Setup(Item item) {
     itemRepresented = item;
-    Sprite itemSprite = ItemManager.Instance.GetItemSprite(itemRepresented.ItemName);
+    Sprite itemSprite = ItemManager.Instance.GetItemSprite(itemRepresented.ItemType);
     itemIcon.sprite = itemSprite;
   }
 

@@ -98,7 +98,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: f70b0eaab2b6d384faeb92001cf48e2b, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _itemName: Sticks
+  _itemType: 3
   _inventorySprite: {fileID: 21300000, guid: fb39a6f408d1d354bae3778f84eccb47, type: 3}
   _usageDescription: Use to build a den
   _interactionIndicator: {fileID: 432400173586988042}

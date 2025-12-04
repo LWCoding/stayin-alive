@@ -95,6 +95,6 @@ public static class Globals
 	/// </summary>
 	public static int WormSpawnerMinDistance = 8;
 
-  public static string GRASS_ITEM_NAME_FOR_WORKER_HARDCODE = "Grass";
+  public static ItemType GRASS_ITEM_TYPE_FOR_WORKER_HARDCODE = ItemType.Grass;
 }
 

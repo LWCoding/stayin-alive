@@ -8,8 +8,8 @@ using UnityEngine;
 public class HawkDen : PredatorDen
 {
 	[Header("Stick Spawner Settings")]
-	[Tooltip("Name of the sticks item to spawn.")]
-	[SerializeField] private string _sticksItemName = "Sticks";
+	[Tooltip("Type of the sticks item to spawn.")]
+	[SerializeField] private ItemType _sticksItemType = ItemType.Sticks;
 	[Tooltip("Number of turns between spawn attempts.")]
 	[SerializeField] private int _turnsBetweenSpawns = 10;
 	[Tooltip("Minimum distance from the den that sticks can spawn (in grid tiles).")]
@@ -221,7 +221,7 @@ public class HawkDen : PredatorDen
 			if (existingItem != null)
 			{
 				// Specifically check if it's a stick - ensure we don't spawn on top of other sticks
-				if (existingItem.ItemName == _sticksItemName)
+				if (existingItem.ItemType == _sticksItemType)
 				{
 					continue; // Don't spawn stick on top of another stick
 				}
@@ -230,7 +230,7 @@ public class HawkDen : PredatorDen
 			}
 
 			// Spawn the stick and track it
-			Item spawnedStick = ItemManager.Instance.SpawnItem(_sticksItemName, spawnPos);
+			Item spawnedStick = ItemManager.Instance.SpawnItem(_sticksItemType, spawnPos);
 			if (spawnedStick != null)
 			{
 				_spawnedSticks.Add(spawnedStick);

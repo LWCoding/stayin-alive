@@ -2,14 +2,26 @@ using System.Collections.Generic;
 using UnityEngine;
 
 /// <summary>
+/// Enumeration of item types in the game.
+/// Used instead of strings for type safety and better performance.
+/// </summary>
+public enum ItemType
+{
+    Grass,
+    GrassSeeds,
+    Worm,
+    Sticks
+}
+
+/// <summary>
 /// Base class for items that can be placed in the world as prefabs.
 /// Implements IItem interface and provides basic functionality.
 /// </summary>
 public abstract class Item : MonoBehaviour, IItem
 {
     [Header("Item Settings")]
-    [SerializeField] [Tooltip("Unique name identifier for this item.")]
-    private string _itemName;
+    [SerializeField] [Tooltip("Type of this item.")]
+    private ItemType _itemType;
     
     [HideInInspector] [Tooltip("Grid position of this item")]
     private Vector2Int _gridPosition;
@@ -30,9 +42,15 @@ public abstract class Item : MonoBehaviour, IItem
     public Vector2Int GridPosition => _gridPosition;
     
     /// <summary>
-    /// The name identifier for this item.
+    /// The type of this item.
     /// </summary>
-    public string ItemName => _itemName;
+    public ItemType ItemType => _itemType;
+    
+    /// <summary>
+    /// The name identifier for this item (for backward compatibility with IItem interface).
+    /// Converts ItemType enum to string.
+    /// </summary>
+    public string ItemName => _itemType.ToString();
     
     /// <summary>
     /// The sprite used for displaying this item in the inventory UI.
@@ -51,21 +69,16 @@ public abstract class Item : MonoBehaviour, IItem
     /// </summary>
     public virtual void Initialize(Vector2Int gridPosition)
     {
-        Initialize(gridPosition, _itemName);
+        Initialize(gridPosition, _itemType);
     }
     
     /// <summary>
-    /// Initializes the item at the specified grid position with a specific item name.
+    /// Initializes the item at the specified grid position with a specific item type.
     /// </summary>
-    public virtual void Initialize(Vector2Int gridPosition, string itemName)
+    public virtual void Initialize(Vector2Int gridPosition, ItemType itemType)
     {
         _gridPosition = gridPosition;
-        
-        // Set item name if provided (ensures it matches the lookup key)
-        if (!string.IsNullOrEmpty(itemName))
-        {
-            _itemName = itemName;
-        }
+        _itemType = itemType;
         
         // Set world position based on grid position
         if (EnvironmentManager.Instance != null)
@@ -80,6 +93,7 @@ public abstract class Item : MonoBehaviour, IItem
             _interactionIndicator.SetActive(false);
         }
     }
+    
 
     private void Start()
     {
@@ -209,7 +223,7 @@ public abstract class Item : MonoBehaviour, IItem
             else
             {
                 // Item was not added (inventory full), so it remains
-                Debug.Log($"Cannot pick up '{_itemName}' - inventory is full!");
+                Debug.Log($"Cannot pick up '{ItemName}' - inventory is full!");
             }
         }
         else

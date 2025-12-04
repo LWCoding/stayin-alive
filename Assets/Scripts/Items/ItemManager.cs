@@ -104,11 +104,12 @@ public class ItemManager : Singleton<ItemManager>
     /// <summary>
     /// Spawns an item at the specified grid position.
     /// </summary>
-    /// <param name="itemName">Name of the item to spawn (must match ItemData)</param>
+    /// <param name="itemType">Type of the item to spawn</param>
     /// <param name="gridPosition">Grid position to spawn the item at</param>
     /// <returns>The spawned Item component, or null if ItemData or prefab is not found</returns>
-    public Item SpawnItem(string itemName, Vector2Int gridPosition)
+    public Item SpawnItem(ItemType itemType, Vector2Int gridPosition)
     {
+        string itemName = itemType.ToString();
         ItemData itemData = GetItemData(itemName);
         if (itemData == null)
         {
@@ -145,15 +146,14 @@ public class ItemManager : Singleton<ItemManager>
             return null;
         }
         
-        // Initialize the item with the item name
-        item.Initialize(gridPosition, itemName);
+        // Initialize the item with the item type
+        item.Initialize(gridPosition, itemType);
         _items.Add(item);
         
         Debug.Log($"ItemManager: Spawned item '{itemName}' at ({gridPosition.x}, {gridPosition.y})");
         
         return item;
     }
-    
     
     /// <summary>
     /// Gets the item at the specified grid position, if any.
@@ -192,17 +192,13 @@ public class ItemManager : Singleton<ItemManager>
     }
     
     /// <summary>
-    /// Gets the inventory sprite for an item by name. Creates a temporary instance to get the sprite, then destroys it.
+    /// Gets the inventory sprite for an item by type. Creates a temporary instance to get the sprite, then destroys it.
     /// </summary>
-    /// <param name="itemName">Name of the item</param>
+    /// <param name="itemType">Type of the item</param>
     /// <returns>The inventory sprite, or null if not found</returns>
-    public Sprite GetItemSprite(string itemName)
+    public Sprite GetItemSprite(ItemType itemType)
     {
-        if (string.IsNullOrEmpty(itemName))
-        {
-            return null;
-        }
-        
+        string itemName = itemType.ToString();
         ItemData itemData = GetItemData(itemName);
         if (itemData == null || itemData.prefab == null)
         {
@@ -233,15 +229,11 @@ public class ItemManager : Singleton<ItemManager>
     /// Creates an inactive Item instance for storage (inventory, den, etc.).
     /// The item is created as an inactive GameObject that won't exist in the world.
     /// </summary>
-    /// <param name="itemName">Name of the item to create</param>
+    /// <param name="itemType">Type of the item to create</param>
     /// <returns>The created Item, or null if ItemData or prefab is not found</returns>
-    public Item CreateItemForStorage(string itemName)
+    public Item CreateItemForStorage(ItemType itemType)
     {
-        if (string.IsNullOrEmpty(itemName))
-        {
-            return null;
-        }
-        
+        string itemName = itemType.ToString();
         ItemData itemData = GetItemData(itemName);
         if (itemData == null || itemData.prefab == null)
         {
@@ -262,8 +254,12 @@ public class ItemManager : Singleton<ItemManager>
             return null;
         }
         
+        // Initialize with the item type
+        item.Initialize(Vector2Int.zero, itemType);
+        
         return item;
     }
+    
     
     /// <summary>
     /// Clears all items from the scene.

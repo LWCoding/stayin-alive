@@ -27,8 +27,16 @@ public class DenMenuInventorySlotGui : MonoBehaviour {
   }
 
   public void Setup(string itemName) {
-    Sprite itemSprite = ItemManager.Instance.GetItemSprite(itemName);
-    itemImage.sprite = itemSprite;
+    // Convert string to ItemType enum
+    if (System.Enum.TryParse<ItemType>(itemName, out ItemType itemType))
+    {
+      Sprite itemSprite = ItemManager.Instance.GetItemSprite(itemType);
+      itemImage.sprite = itemSprite;
+    }
+    else
+    {
+      Debug.LogWarning($"DenMenuInventorySlotGui: Could not parse item name '{itemName}' as ItemType.");
+    }
   }
   
   /// <summary>

@@ -274,8 +274,8 @@ public class KangRatWorker : WorkerAnimal
 				return;
 			}
 			
-			// Use the same grass item name that the den system and inventory expect
-			item = ItemManager.Instance.CreateItemForStorage(Globals.GRASS_ITEM_NAME_FOR_WORKER_HARDCODE);
+			// Use the same grass item type that the den system and inventory expect
+			item = ItemManager.Instance.CreateItemForStorage(Globals.GRASS_ITEM_TYPE_FOR_WORKER_HARDCODE);
 			
 			// Eat the grass (change it to growing state)
 			HarvestGrass(grass);
@@ -287,14 +287,14 @@ public class KangRatWorker : WorkerAnimal
 			else
 			{
 				Debug.LogWarning(
-					$"KangRatWorker '{name}' failed to create storage item for grass using name '{Globals.GRASS_ITEM_NAME_FOR_WORKER_HARDCODE}'. " +
+					$"KangRatWorker '{name}' failed to create storage item for grass using type '{Globals.GRASS_ITEM_TYPE_FOR_WORKER_HARDCODE}'. " +
 					"Grass will still restore hunger but won't be carried to the den.");
 			}
 
 			// Optionally create and carry a grass seed item
 			if (Random.Range(0f, 1f) <= Grass.SEED_DROP_RATE_FULL)
 			{
-				Item seedItem = ItemManager.Instance.CreateItemForStorage(Grass.SEED_ITEM_NAME);
+				Item seedItem = ItemManager.Instance.CreateItemForStorage(Grass.SEED_ITEM_TYPE);
 				if (seedItem != null)
 				{
 					AddItem(seedItem);
@@ -302,7 +302,7 @@ public class KangRatWorker : WorkerAnimal
 				else
 				{
 					Debug.LogWarning(
-						$"KangRatWorker '{name}' failed to create storage item for grass seed using name '{Grass.SEED_ITEM_NAME}'.");
+						$"KangRatWorker '{name}' failed to create storage item for grass seed using type '{Grass.SEED_ITEM_TYPE}'.");
 				}
 			}
 			
@@ -317,7 +317,7 @@ public class KangRatWorker : WorkerAnimal
 				return;
 			}
 			
-			item = ItemManager.Instance.CreateItemForStorage(originalItem.ItemName);
+			item = ItemManager.Instance.CreateItemForStorage(originalItem.ItemType);
 			
 			if (originalItem != null) {
 				originalItem.DestroyItem();
@@ -336,7 +336,7 @@ public class KangRatWorker : WorkerAnimal
 		
 		// Debug: log carried inventory after pickup (ensure items are retained for den deposit)
 		System.Text.StringBuilder sb = new System.Text.StringBuilder();
-		string pickedUpName = item != null ? item.ItemName : (grass != null ? Globals.GRASS_ITEM_NAME_FOR_WORKER_HARDCODE : "UNKNOWN");
+		string pickedUpName = item != null ? item.ItemName : (grass != null ? Globals.GRASS_ITEM_TYPE_FOR_WORKER_HARDCODE.ToString() : "UNKNOWN");
 		sb.Append($"KangRatWorker '{name}' picked up '{pickedUpName}'. Carried items now: ");
 		List<Item> carriedItems = WorkerItemsCopy;
 		for (int i = 0; i < carriedItems.Count; i++)

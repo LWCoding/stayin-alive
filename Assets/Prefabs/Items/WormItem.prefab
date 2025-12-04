@@ -99,7 +99,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 422e28256760f954ea5c5381d01b5fc9, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _itemName: Worm
+  _itemType: 2
   _inventorySprite: {fileID: 21300000, guid: 80b064f05c5448a4384059eaa0e0977d, type: 3}
   _usageDescription: Use to consume
   _interactionIndicator: {fileID: 5002926863957130536}

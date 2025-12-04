@@ -98,7 +98,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 9d2691ef4a4fb6c40ab7507d491fc75a, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _itemName: GrassSeeds
+  _itemType: 1
   _inventorySprite: {fileID: 21300000, guid: e4b09442ef04a1e42ac8eb71b9c149da, type: 3}
   _usageDescription: Use to plant grass on your tile
   _interactionIndicator: {fileID: 6682148183303101780}

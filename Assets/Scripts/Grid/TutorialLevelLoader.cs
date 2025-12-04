@@ -277,7 +277,15 @@ public class TutorialLevelLoader : MonoBehaviour
                     Vector2Int gridPos = new Vector2Int(x, y);
                     if (EnvironmentManager.Instance != null && EnvironmentManager.Instance.IsValidPosition(gridPos))
                     {
-                        ItemManager.Instance.SpawnItem(itemName, gridPos);
+                        // Convert string to ItemType enum
+                        if (System.Enum.TryParse<ItemType>(itemName, out ItemType itemType))
+                        {
+                            ItemManager.Instance.SpawnItem(itemType, gridPos);
+                        }
+                        else
+                        {
+                            Debug.LogWarning($"TutorialLevelLoader: Could not parse item name '{itemName}' as ItemType. Skipping item at ({x}, {y}).");
+                        }
                     }
                     else
                     {

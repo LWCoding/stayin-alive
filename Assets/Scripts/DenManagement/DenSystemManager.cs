@@ -311,7 +311,7 @@ public class DenSystemManager : Singleton<DenSystemManager> {
     foodItemsInDen.Clear();
     if (target > 0) {
       for (int i = 0; i < target; i++) {
-        AddItemToDenInventory(ItemManager.Instance.CreateItemForStorage(Globals.GRASS_ITEM_NAME_FOR_WORKER_HARDCODE));
+        AddItemToDenInventory(ItemManager.Instance.CreateItemForStorage(Globals.GRASS_ITEM_TYPE_FOR_WORKER_HARDCODE));
       }
     }
     
