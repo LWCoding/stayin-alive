@@ -22,8 +22,13 @@ public class ItemPanelItemController : MonoBehaviour, IPointerEnterHandler, IPoi
   private void Start() {
     itemBackground.color = itemBackgroundDefaultColor;
     
+    //Parent
+    RectTransform parent = transform.parent.GetComponent<RectTransform>();
+    
     //Bump X Position a bit randomly Slightly so things don't stack perfectly vertically
-    transform.position += new Vector3(Random.Range(-5f, 5f), 0, 0);
+    float randomBounds = (parent.rect.width * 0.7f)/2f;
+    
+    transform.position += new Vector3(Random.Range(-randomBounds, randomBounds), 0, 0);
     
     transferToPlayer.onClick.AddListener(TransferToPlayer);
   }

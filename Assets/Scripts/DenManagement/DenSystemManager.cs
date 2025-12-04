@@ -163,7 +163,6 @@ public class DenSystemManager : Singleton<DenSystemManager> {
   public void AddItemToDenInventory(Item item) {
     if (item is FoodItem) {
       foodItemsInDen.Add(item);
-      AddFoodToDen(1);
     }
     else {
       Debug.LogWarning(item);
@@ -172,22 +171,6 @@ public class DenSystemManager : Singleton<DenSystemManager> {
     }
   }
   
-  // DEPRECATED DO NOT USE
-  public bool AddFoodToDen(int amount) {
-    
-    if (amount <= 0)
-    {
-      return false;
-    }
-    
-    if (amount != 1) {
-      throw new NotImplementedException("Please use the new item inventory system");
-    }
-
-    storedDenFood += amount;
-    return true;
-  }
-
   public bool SpendFoodFromDen(int amount)
   {
     if (amount <= 0)
