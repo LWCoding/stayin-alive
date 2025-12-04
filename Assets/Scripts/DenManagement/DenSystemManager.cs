@@ -58,12 +58,11 @@ public class DenSystemManager : Singleton<DenSystemManager> {
   
   /// <summary>
   /// Gets the current worker price based on the total number of workers.
-  /// Uses formula: floor(2 * sqrt(workers))
   /// </summary>
   public int GetCurrentWorkerPrice()
   {
     int totalWorkers = workersToDens != null ? workersToDens.Count : 0;
-    return Mathf.FloorToInt(2 * Mathf.Sqrt(totalWorkers));
+    return Mathf.FloorToInt(Mathf.Sqrt(totalWorkers));
   }
   
   [Header("Worker Settings")]

@@ -878,7 +878,7 @@ MonoBehaviour:
   _levelHeight: 50
   _terrainNoiseScale: 0.1
   _obstacleNoiseScale: 0.15
-  _waterThreshold: 0.35
+  _waterThreshold: 0.25
   _grassThreshold: 0.75
   _obstacleThreshold: 1
   _randomSeed: 0
@@ -1278,8 +1278,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   _inventoryContainer: {fileID: 571582721}
   _inventorySlotPrefab: {fileID: 3916526104676833151, guid: e77f3e284adf8844380d2e2fc6051538, type: 3}
-  _shakeIntensity: 10
-  _shakeDuration: 0.5
   _usageDescriptionText: {fileID: 2040102655}
 --- !u!1 &861405191
 GameObject:
@@ -2627,6 +2625,10 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 1144474250}
     m_Modifications:
+    - target: {fileID: 1112185864201836834, guid: 18142a8288a9a4033a51e9219bb3def1, type: 3}
+      propertyPath: m_SizeDelta.x
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 1351239240659793598, guid: 18142a8288a9a4033a51e9219bb3def1, type: 3}
       propertyPath: m_IsActive
       value: 0
