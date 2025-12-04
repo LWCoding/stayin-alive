@@ -878,9 +878,9 @@ MonoBehaviour:
   _levelHeight: 50
   _terrainNoiseScale: 0.1
   _obstacleNoiseScale: 0.15
-  _waterThreshold: 0.25
+  _waterThreshold: 0.28
   _grassThreshold: 0.75
-  _obstacleThreshold: 1
+  _obstacleThreshold: 0.8
   _randomSeed: 0
   _addBorderWalls: 1
   _controllableAnimalName: KangarooRat
@@ -895,7 +895,7 @@ MonoBehaviour:
   _foodItemName: Worm
   _foodItemCount: 5
   _bushCount: 8
-  _grassCount: 24
+  _grassCount: 32
   _stickItemName: Sticks
   _stickCount: 5
 --- !u!1 &480649642 stripped
