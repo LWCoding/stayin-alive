@@ -665,7 +665,7 @@ public class Grass : Interactable
 		}
 
 		// Check for any type of interactable
-		if (InteractableManager.Instance == null && InteractableManager.Instance.HasInteractableAtPosition(position))
+		if (InteractableManager.Instance != null && InteractableManager.Instance.HasInteractableAtPosition(position))
 		{
 			return false;
 		}
