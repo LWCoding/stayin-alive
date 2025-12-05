@@ -14,6 +14,8 @@ public class TutorialManager : Singleton<TutorialManager>
     [SerializeField] private Transform _mvpContainerTransform;
     [Tooltip("UI object that explains hunger drains after every turn")]
     [SerializeField] private GameObject _hungerExplanationUI;
+    [Tooltip("UI object that explains the seasons changing")]
+    [SerializeField] private GameObject _seasonsExplanationUI;
     [Tooltip("UI object that explains the inventory system")]
     [SerializeField] private GameObject _inventoryExplanationUI;
     [Tooltip("UI object that explains the sticks item")]
@@ -61,6 +63,7 @@ public class TutorialManager : Singleton<TutorialManager>
     private bool _denUIExplanationShown = false;
     private bool _denUITeleportExplanationShown = false;
     private bool _teleportBackExplanationShown = false;
+    private bool _seasonsExplanationShown = false;
     private int _playerTeleportCount = 0;
     private bool _breedExplanationShown = false;
     private bool _denInventoryExplanationShown = false;
@@ -126,6 +129,12 @@ public class TutorialManager : Singleton<TutorialManager>
         if (_hungerExplanationUI != null)
         {
             _hungerExplanationUI.SetActive(false);
+        }
+
+        // Hide seasons explanation UI at start
+        if (_seasonsExplanationUI != null)
+        {
+            _seasonsExplanationUI.SetActive(false);
         }
         
         // Hide inventory explanation UI at start
@@ -298,14 +307,6 @@ public class TutorialManager : Singleton<TutorialManager>
         {
             _hungerExplanationUI.SetActive(true);
             _hungerExplanationShown = true;
-            TimeManager.Instance?.Pause();
-        }
-        
-        // Show sticks explanation when player moves beyond X threshold
-        if (!_sticksExplanationShown && _sticksExplanationUI != null && player.GridPosition.x >= _sticksExplanationXThreshold)
-        {
-            _sticksExplanationUI.SetActive(true);
-            _sticksExplanationShown = true;
             TimeManager.Instance?.Pause();
         }
         
@@ -499,10 +500,29 @@ public class TutorialManager : Singleton<TutorialManager>
     /// </summary>
     public void AdvanceTutorial()
     {
-        // Close hunger explanation if shown
+        // Close hunger explanation if shown, then immediately show seasons explanation
         if (_hungerExplanationShown && _hungerExplanationUI != null && _hungerExplanationUI.activeSelf)
         {
             _hungerExplanationUI.SetActive(false);
+            
+            // Show seasons explanation immediately after closing hunger explanation
+            if (!_seasonsExplanationShown && _seasonsExplanationUI != null)
+            {
+                _seasonsExplanationUI.SetActive(true);
+                _seasonsExplanationShown = true;
+                TimeManager.Instance?.Pause();
+            }
+            else
+            {
+                TimeManager.Instance?.Resume();
+            }
+            return;
+        }
+
+        // Close seasons explanation if shown
+        if (_seasonsExplanationShown && _seasonsExplanationUI != null && _seasonsExplanationUI.activeSelf)
+        {
+            _seasonsExplanationUI.SetActive(false);
             TimeManager.Instance?.Resume();
             return;
         }

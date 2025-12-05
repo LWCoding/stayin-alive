@@ -188,7 +188,7 @@ public class UIManager : Singleton<UIManager>
         if (rectTransform != null)
         {
             Vector3 currentScale = rectTransform.localScale;
-            rectTransform.localScale = new Vector3(currentScale.x, hungerRatio, currentScale.z);
+            rectTransform.localScale = new Vector3(hungerRatio, currentScale.y, currentScale.z);
         }
 
         if (hungerRatio <= _lowHungerThreshold)
