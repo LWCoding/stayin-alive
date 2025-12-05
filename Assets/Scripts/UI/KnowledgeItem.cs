@@ -40,9 +40,8 @@ public class KnowledgeItem : MonoBehaviour
     private Color known = Color.white;
     private Color unknown = Color.black;
 
-    private const string unkownName = "?????";
-    private const string unkownDescription = "????????????????\n" +
-                                             "????????";
+    private const string unknownName = "?????";
+    private const string unknownDescription = "<i>I haven't encountered this yet. I need to keep exploring!</i>";
     /// <summary>
     /// Initializes the knowledge item with the given knowledge data.
     /// </summary>
@@ -97,8 +96,8 @@ public class KnowledgeItem : MonoBehaviour
           var knowledgeData = KnowledgeManager.Instance.GetKnowledgeDataByTitle(_title);
           spriteImage.sprite = knowledgeData.sprite;
           spriteImage.color = unknown;
-          nameText.text = unkownName;
-          descriptionText.text = unkownDescription;
+          nameText.text = unknownName;
+          descriptionText.text = unknownDescription;
           break;
         case KnowledgeOperationResult.KNOWLEDGE_LEARNED:
           var learnedKnowledgeData = KnowledgeManager.Instance.GetKnowledgeDataByTitle(_title);
