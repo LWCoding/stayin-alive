@@ -32,8 +32,16 @@ public class DenAdminMenuGuiController : MonoBehaviour {
   [SerializeField]
   private RectTransform currentDenWorkers;
 
+  private const string FRACTION_STRING = "{0}/{1}";
+  
+  [SerializeField]
+  private TextMeshProUGUI currentDenCounter;
+
   [SerializeField]
   private RectTransform unassignedWorkers;
+  
+  [SerializeField]
+  private TextMeshProUGUI unassignedCounter;
   
   [Header("GUI Controllers")]
   [SerializeField]
@@ -143,6 +151,10 @@ public class DenAdminMenuGuiController : MonoBehaviour {
       workerIcon.InitializeWorkerIcon(worker);
       workerIcons.Add(workerIcon);
     }
+    
+    currentDenCounter.text = string.Format(FRACTION_STRING, WorkerManager.Instance.CurrentAdminPopulation, Globals.MaxWorkersPerDen);
+    unassignedCounter.text = string.Format(FRACTION_STRING, WorkerManager.Instance.CurrentUnassignedPopulation,
+      Globals.MaxWorkersUnassigned);
   }
   
   /// <summary>

@@ -54,6 +54,8 @@ public class WorkerManager : Singleton<WorkerManager> {
   public int CurrentMvpPopulation => workersToDens.Keys.Count + PLAYER_MVP_CONTRIBUTION;
   public int CurrentUnassignedPopulation => unassignedWorkers.Count;
   
+  public int CurrentAdminPopulation => adminDenInitialized ? currentAdminDen.WorkerCount() : 0;
+  
   /// <summary>
   /// Calculates the current worker price based on the total number of workers.
   /// </summary>
