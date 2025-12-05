@@ -79,11 +79,8 @@ public class SticksItem : Item
                 
                 // Convert world position to screen position
                 Camera mainCamera = Camera.main;
-                if (mainCamera != null)
-                {
-                    Vector2 screenPos = mainCamera.WorldToScreenPoint(playerWorldPos);
-                    ParticleManager.Instance.SpawnFadeText("Not enough sticks!", screenPos);
-                }
+                Vector2 screenPos = mainCamera.WorldToScreenPoint(playerWorldPos);
+                ParticleManager.Instance.SpawnFadeText("Not enough sticks!", screenPos);
             }
             
             return false;

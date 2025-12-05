@@ -31,6 +31,13 @@ public class UIManager : Singleton<UIManager>
     [Tooltip("Format string for displaying points. Use {0} for current points.")]
     [SerializeField] private string _pointsFormat = "{0}";
     
+    [Header("Knowledge Panel")]
+    [Tooltip("Button that toggles the knowledge panel visibility and interactability.")]
+    [SerializeField] private Button _knowledgeButton;
+    
+    [Tooltip("KnowledgeMenuGuiController that manages the knowledge panel UI.")]
+    [SerializeField] private KnowledgeMenuGuiController _knowledgeMenuGuiController;
+    
     [Header("Post-Processing")]
     [Tooltip("Global post-processing volume to modify vignette based on hunger. If not assigned, will attempt to find a global volume.")]
     [SerializeField] private Volume _postProcessingVolume;
@@ -71,6 +78,11 @@ public class UIManager : Singleton<UIManager>
         // Initialize post-processing
         InitializePostProcessing();
         
+        // Subscribe to knowledge button click event
+        if (_knowledgeButton != null)
+        {
+            _knowledgeButton.onClick.AddListener(ToggleKnowledgePanel);
+        }
     }
     
     private void Update()
@@ -289,6 +301,41 @@ public class UIManager : Singleton<UIManager>
         if (_pointsTextMenu != null)
         {
             _pointsTextMenu.text = string.Format(_pointsFormat, currentPoints);
+        }
+    }
+    
+    /// <summary>
+    /// Toggles the knowledge panel visibility and interactability.
+    /// </summary>
+    private void ToggleKnowledgePanel()
+    {
+        Debug.Log("UIManager: ToggleKnowledgePanel called");
+        
+        if (_knowledgeMenuGuiController == null)
+        {
+            Debug.LogWarning("UIManager: KnowledgeMenuGuiController is null!");
+            return;
+        }
+        
+        // Ensure the GameObject is active
+        if (!_knowledgeMenuGuiController.gameObject.activeInHierarchy)
+        {
+            _knowledgeMenuGuiController.gameObject.SetActive(true);
+        }
+        
+        // Toggle visibility: if currently visible, hide it; otherwise show it
+        bool isVisible = _knowledgeMenuGuiController.IsVisible();
+        Debug.Log($"UIManager: Panel isVisible = {isVisible}");
+        
+        if (isVisible)
+        {
+            Debug.Log("UIManager: Hiding knowledge panel");
+            _knowledgeMenuGuiController.Hide();
+        }
+        else
+        {
+            Debug.Log("UIManager: Showing knowledge panel");
+            _knowledgeMenuGuiController.Show();
         }
     }
 }
