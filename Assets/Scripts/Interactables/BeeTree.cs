@@ -226,6 +226,8 @@ public class BeeTree : Interactable
             Grass grass = InteractableManager.Instance.SpawnGrass(validPositions[i]);
             if (grass != null)
             {
+                // Apply 50% faster growth for grass near bee trees (1.5x multiplier)
+                grass.SetBeeTreeProximityMultiplier(1.5f);
                 _spawnedGrass.Add(grass);
                 grassSpawned++;
             }

@@ -62,6 +62,7 @@ public class Grass : Interactable
 	private bool _initialized;
 	private GrassState _currentState;
 	private float _currentWaterProximityMultiplier = 1.0f;
+	private float _beeTreeProximityMultiplier = 1.0f;
 	private GrassState CurrentState
 	{
 		get => _currentState;
@@ -369,8 +370,8 @@ public class Grass : Interactable
 		float variance = Mathf.Clamp01(_turnsVariance);
 		float randomFactor = variance > 0f ? Random.Range(1f - variance, 1f + variance) : 1f;
 		
-		// Combine season multiplier and water proximity multiplier: higher multiplier = fewer turns (faster growth)
-		float combinedMultiplier = seasonMultiplier * _currentWaterProximityMultiplier;
+		// Combine season multiplier, water proximity multiplier, and bee tree proximity multiplier: higher multiplier = fewer turns (faster growth)
+		float combinedMultiplier = seasonMultiplier * _currentWaterProximityMultiplier * _beeTreeProximityMultiplier;
 		float adjustedTurns = _averageTurnsBetweenSpawns / Mathf.Max(0.01f, combinedMultiplier) * randomFactor;
 		_turnsUntilNextSpawn = Mathf.Max(1, Mathf.RoundToInt(adjustedTurns));
 	}
@@ -715,6 +716,18 @@ public class Grass : Interactable
 	public void SetWaterProximityMultiplier(float multiplier)
 	{
 		_currentWaterProximityMultiplier = multiplier;
+		// Recalculate next spawn time with the new multiplier
+		CalculateNextSpawnTime();
+	}
+
+	/// <summary>
+	/// Sets the bee tree proximity multiplier for this grass instance.
+	/// Called when grass is placed near a bee tree to apply growth acceleration.
+	/// </summary>
+	/// <param name="multiplier">The multiplier to apply (1.5 = 50% faster growth)</param>
+	public void SetBeeTreeProximityMultiplier(float multiplier)
+	{
+		_beeTreeProximityMultiplier = multiplier;
 		// Recalculate next spawn time with the new multiplier
 		CalculateNextSpawnTime();
 	}

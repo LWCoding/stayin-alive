@@ -874,8 +874,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 035606061360caf439f8703e503af46f, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _levelWidth: 50
-  _levelHeight: 50
+  _levelWidth: 60
+  _levelHeight: 60
   _terrainNoiseScale: 0.1
   _obstacleNoiseScale: 0.15
   _waterThreshold: 0.28
