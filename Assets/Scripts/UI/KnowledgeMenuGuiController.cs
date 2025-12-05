@@ -32,6 +32,7 @@ public class KnowledgeMenuGuiController : MonoBehaviour
     public void Start()
     {
         knowledgeItems = new List<KnowledgeItem>();
+        InitializeKnowledgeItems();
         Hide();
     }
 
@@ -89,6 +90,8 @@ public class KnowledgeMenuGuiController : MonoBehaviour
             TimeManager.Instance.Pause();
         }
         
+        KnowledgeManager.Instance.InvokeOnNewKnowledgeFlagChange(false);
+        
         UpdateGui();
         Debug.Log($"KnowledgeMenuGuiController: Show() completed. Final position: {transform.localPosition}, alpha: {(visibilityController != null ? visibilityController.alpha.ToString() : "N/A")}");
     }
@@ -119,56 +122,58 @@ public class KnowledgeMenuGuiController : MonoBehaviour
     /// </summary>
     public void UpdateGui()
     {
-        UpdateKnowledgeItems();
+        RefreshKnowledgeItems();
+    }
+
+    private void InitializeKnowledgeItems() {
+      knowledgeItems = new List<KnowledgeItem>();
+
+      // Validate required references
+      if (contentParent == null)
+      {
+        Debug.LogWarning("KnowledgeMenuGuiController: contentParent is not assigned!");
+        return;
+      }
+
+      if (knowledgeItemPrefab == null)
+      {
+        Debug.LogWarning("KnowledgeMenuGuiController: knowledgeItemPrefab is not assigned!");
+        return;
+      }
+
+      // Get the list of knowledge (for now, use static list)
+      List<KnowledgeData> knowledgeList = KnowledgeManager.Instance.AllKnowledgeData;
+
+      // Instantiate a knowledge item for each piece of knowledge
+      foreach (KnowledgeData knowledge in knowledgeList)
+      {
+        GameObject knowledgeItemObj = Instantiate(knowledgeItemPrefab, contentParent);
+        KnowledgeItem knowledgeItem = knowledgeItemObj.GetComponent<KnowledgeItem>();
+            
+        if (knowledgeItem != null)
+        {
+          if (knowledgeItem.Initialize(knowledge.title)) {
+            knowledgeItems.Add(knowledgeItem);
+          }
+        }
+        else
+        {
+          Debug.LogWarning("KnowledgeMenuGuiController: Instantiated prefab does not have a KnowledgeItem component!");
+          Destroy(knowledgeItemObj);
+        }
+      }
     }
 
     /// <summary>
     /// Clears existing knowledge items and creates new ones for each piece of knowledge the player knows.
     /// </summary>
-    private void UpdateKnowledgeItems()
+    private void RefreshKnowledgeItems()
     {
-        // Clear existing knowledge items
+        // Refresh existing knowledge items
         foreach (KnowledgeItem knowledgeItem in knowledgeItems)
         {
-            if (knowledgeItem != null)
-            {
-                Destroy(knowledgeItem.gameObject);
-            }
-        }
-
-        knowledgeItems = new List<KnowledgeItem>();
-
-        // Validate required references
-        if (contentParent == null)
-        {
-            Debug.LogWarning("KnowledgeMenuGuiController: contentParent is not assigned!");
-            return;
-        }
-
-        if (knowledgeItemPrefab == null)
-        {
-            Debug.LogWarning("KnowledgeMenuGuiController: knowledgeItemPrefab is not assigned!");
-            return;
-        }
-
-        // Get the list of knowledge (for now, use static list)
-        List<KnowledgeItem.KnowledgeData> knowledgeList = GetPlayerKnowledge();
-
-        // Instantiate a knowledge item for each piece of knowledge
-        foreach (KnowledgeItem.KnowledgeData knowledge in knowledgeList)
-        {
-            GameObject knowledgeItemObj = Instantiate(knowledgeItemPrefab, contentParent);
-            KnowledgeItem knowledgeItem = knowledgeItemObj.GetComponent<KnowledgeItem>();
-            
-            if (knowledgeItem != null)
-            {
-                knowledgeItem.Initialize(knowledge);
-                knowledgeItems.Add(knowledgeItem);
-            }
-            else
-            {
-                Debug.LogWarning("KnowledgeMenuGuiController: Instantiated prefab does not have a KnowledgeItem component!");
-                Destroy(knowledgeItemObj);
+            if (knowledgeItem != null) {
+              knowledgeItem.Refresh();
             }
         }
     }

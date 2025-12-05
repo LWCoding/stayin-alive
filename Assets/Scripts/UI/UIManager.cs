@@ -1,3 +1,4 @@
+using System;
 using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.Rendering;
@@ -34,6 +35,10 @@ public class UIManager : Singleton<UIManager>
     [Header("Knowledge Panel")]
     [Tooltip("Button that toggles the knowledge panel visibility and interactability.")]
     [SerializeField] private Button _knowledgeButton;
+
+    [Tooltip("Exclamation Mark when a new Knowledge is learned")]
+    [SerializeField]
+    private Image _knowledgeExclaimImage;
     
     [Tooltip("KnowledgeMenuGuiController that manages the knowledge panel UI.")]
     [SerializeField] private KnowledgeMenuGuiController _knowledgeMenuGuiController;
@@ -54,6 +59,7 @@ public class UIManager : Singleton<UIManager>
     
     private ControllableAnimal _trackedAnimal = null;
     private Color _originalColor = Color.white;
+    private Color _clear = Color.clear;
     private bool _hasStoredOriginalColor = false;
     private bool _isLowHunger = false;
     private bool _isVignetteCritical = false;
@@ -61,6 +67,7 @@ public class UIManager : Singleton<UIManager>
     private float _defaultVignetteIntensity = 0.4f;
     private bool _vignetteInitialized = false;
     private bool _hasPlayedHungerSoundForCurrentState = true;
+  
 
     public ControllableAnimal TrackedAnimal => _trackedAnimal;
 
@@ -84,7 +91,11 @@ public class UIManager : Singleton<UIManager>
             _knowledgeButton.onClick.AddListener(ToggleKnowledgePanel);
         }
     }
-    
+
+    private void Start() {
+      KnowledgeManager.Instance.OnNewKnowledgeFlagChange += SetKnowledgeNotif;
+    }
+
     private void Update()
     {
         UpdateMvpProgress();
@@ -362,6 +373,10 @@ public class UIManager : Singleton<UIManager>
         {
             _knowledgeMenuGuiController.Hide();
         }
+    }
+
+    private void SetKnowledgeNotif(bool shouldNotif) {
+      _knowledgeExclaimImage.color = shouldNotif ? _originalColor : _clear;
     }
 }
 
