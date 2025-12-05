@@ -78,6 +78,10 @@ public class ProceduralLevelLoader : MonoBehaviour
 	[Tooltip("Number of grass interactables to spawn on grass tiles")]
 	[SerializeField] private int _grassCount = 10;
 
+	[Header("Tree Spawn Settings")]
+	[Tooltip("Number of trees to spawn on grass tiles")]
+	[SerializeField] private int _treeCount = 3;
+
 	[Header("Stick Spawn Settings")]
 	[Tooltip("Name of the sticks item to spawn on the map")]
 	[SerializeField] private string _stickItemName = "Sticks";
@@ -126,6 +130,7 @@ public class ProceduralLevelLoader : MonoBehaviour
 			InteractableManager.Instance.SpawnWormSpawnersFromLevelData(levelData.WormSpawners);
 			InteractableManager.Instance.SpawnBushesFromLevelData(levelData.Bushes);
 			InteractableManager.Instance.SpawnGrassesFromLevelData(levelData.Grasses);
+			InteractableManager.Instance.SpawnTreesFromLevelData(levelData.Trees);
         }
         else
         {
@@ -228,7 +233,7 @@ public class ProceduralLevelLoader : MonoBehaviour
         // Set virtual camera to follow the controllable animal
         SetupCameraFollow();
 
-		Debug.Log($"ProceduralLevelLoader: Successfully generated level with {levelData.Tiles.Count} tiles, {levelData.Animals.Count} animals, {levelData.Items.Count} items, {levelData.Dens.Count} dens, {levelData.RabbitSpawners.Count} rabbit spawners, {levelData.PredatorDens.Count} predator dens, {levelData.Bushes.Count} bushes, and {levelData.Grasses.Count} grass interactables");
+		Debug.Log($"ProceduralLevelLoader: Successfully generated level with {levelData.Tiles.Count} tiles, {levelData.Animals.Count} animals, {levelData.Items.Count} items, {levelData.Dens.Count} dens, {levelData.RabbitSpawners.Count} rabbit spawners, {levelData.PredatorDens.Count} predator dens, {levelData.Bushes.Count} bushes, {levelData.Grasses.Count} grass interactables, and {levelData.Trees.Count} trees");
     }
 
     /// <summary>
@@ -313,6 +318,7 @@ public class ProceduralLevelLoader : MonoBehaviour
 		levelData.PredatorDens = new List<(int x, int y, string predatorType)>();
 		levelData.Bushes = new List<(int x, int y)>();
 		levelData.Grasses = new List<(int x, int y)>();
+		levelData.Trees = new List<(int x, int y)>();
 
 		// Generate worm spawners near water tiles (before other spawns to avoid conflicts)
 		GenerateWormSpawnersNearWater(levelData);
@@ -633,6 +639,61 @@ public class ProceduralLevelLoader : MonoBehaviour
 			else
 			{
 				Debug.LogWarning("ProceduralLevelLoader: No grass tiles available for spawning grass interactables!");
+			}
+		}
+
+		// Spawn trees at random positions on grass tiles
+		if (_treeCount > 0 && spawnPositions.Count > 0)
+		{
+			// Collect grass positions for trees (excluding positions with dens, bushes, grass, or other interactables)
+			List<Vector2Int> grassPositions = new List<Vector2Int>();
+			foreach (Vector2Int pos in spawnPositions)
+			{
+				// Skip if position is already occupied by a den, bush, grass, or other interactable
+				if (IsPositionOccupiedByInteractable(pos, levelData))
+					continue;
+
+				// Find the tile type for this position
+				TileType tileType = TileType.Empty;
+				foreach (var (tx, ty, tt) in levelData.Tiles)
+				{
+					if (tx == pos.x && ty == pos.y)
+					{
+						tileType = tt;
+						break;
+					}
+				}
+
+				if (tileType == TileType.Grass)
+				{
+					grassPositions.Add(pos);
+				}
+			}
+
+			if (grassPositions.Count > 0)
+			{
+				int treesSpawned = 0;
+				int attempts = 0;
+				int maxAttempts = grassPositions.Count * 2;
+
+				while (treesSpawned < _treeCount && grassPositions.Count > 0 && attempts < maxAttempts)
+				{
+					attempts++;
+					int index = Random.Range(0, grassPositions.Count);
+					Vector2Int treePos = grassPositions[index];
+
+					levelData.Trees.Add((treePos.x, treePos.y));
+					levelData.Interactables.Add(new InteractableData(InteractableType.Tree, treePos.x, treePos.y));
+					treesSpawned++;
+
+					// Remove so animals/items don't overlap
+					grassPositions.RemoveAt(index);
+					spawnPositions.Remove(treePos);
+				}
+			}
+			else
+			{
+				Debug.LogWarning("ProceduralLevelLoader: No grass tiles available for spawning trees!");
 			}
 		}
 

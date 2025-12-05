@@ -1,6 +1,6 @@
 %YAML 1.1
 %TAG !u! tag:unity3d.com,2011:
---- !u!1 &5996904726313599547
+--- !u!1 &4490760952198988224
 GameObject:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -8,23 +8,23 @@ GameObject:
   m_PrefabAsset: {fileID: 0}
   serializedVersion: 6
   m_Component:
-  - component: {fileID: 2133543604814765120}
-  - component: {fileID: 6639119743890779358}
-  - component: {fileID: 4874912516413503682}
+  - component: {fileID: 4343481860224141941}
+  - component: {fileID: 1902269382679281505}
+  - component: {fileID: 4673751972038388267}
   m_Layer: 0
-  m_Name: HawkDen
+  m_Name: Tree
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
   m_IsActive: 1
---- !u!4 &2133543604814765120
+--- !u!4 &4343481860224141941
 Transform:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 5996904726313599547}
+  m_GameObject: {fileID: 4490760952198988224}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
@@ -33,13 +33,13 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!212 &6639119743890779358
+--- !u!212 &1902269382679281505
 SpriteRenderer:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 5996904726313599547}
+  m_GameObject: {fileID: 4490760952198988224}
   m_Enabled: 1
   m_CastShadows: 0
   m_ReceiveShadows: 0
@@ -74,7 +74,7 @@ SpriteRenderer:
   m_SortingLayerID: 0
   m_SortingLayer: 0
   m_SortingOrder: 0
-  m_Sprite: {fileID: 21300000, guid: b337508bc7977ab449161ffb33d25126, type: 3}
+  m_Sprite: {fileID: 21300000, guid: 6e499fb707a4ac64f81984607f69c26d, type: 3}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_FlipX: 0
   m_FlipY: 0
@@ -85,25 +85,23 @@ SpriteRenderer:
   m_WasSpriteAssigned: 1
   m_MaskInteraction: 0
   m_SpriteSortPoint: 0
---- !u!114 &4874912516413503682
+--- !u!114 &4673751972038388267
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 5996904726313599547}
+  m_GameObject: {fileID: 4490760952198988224}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 3999974dfb4898840afaf01d082621c8, type: 3}
+  m_Script: {fileID: 11500000, guid: f20a184ad0bd2ef49b242f4cb4d8b9f5, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _territoryRadius: 5
-  _spriteRenderer: {fileID: 6639119743890779358}
   _sticksItemType: 3
   _turnsBetweenSpawns: 60
   _minSpawnRadius: 2
   _maxSpawnRadius: 5
-  _maxSticks: 3
+  _maxSticks: 2
   _springSpawnMultiplier: 1
   _summerSpawnMultiplier: 0.5
   _fallSpawnMultiplier: 1.2

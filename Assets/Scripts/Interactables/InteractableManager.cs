@@ -50,6 +50,10 @@ public class InteractableManager : Singleton<InteractableManager>
 	[Tooltip("Prefab to use when spawning grass interactables. Must have a Grass component.")]
 	[SerializeField] private GameObject _grassPrefab;
 	
+	[Header("Tree Prefab")]
+	[Tooltip("Prefab to use when spawning trees. Must have a Tree component.")]
+	[SerializeField] private GameObject _treePrefab;
+    
     private List<Interactable> _allInteractables = new List<Interactable>();
     private List<Den> _dens = new List<Den>();
 	private List<RabbitSpawner> _rabbitSpawners = new List<RabbitSpawner>();
@@ -57,6 +61,7 @@ public class InteractableManager : Singleton<InteractableManager>
 	private List<WormSpawner> _wormSpawners = new List<WormSpawner>();
 	private List<Bush> _bushes = new List<Bush>();
 	private List<Grass> _grasses = new List<Grass>();
+	private List<Tree> _trees = new List<Tree>();
 
 	/// <summary>
 	/// Gets all dens in the scene.
@@ -87,6 +92,11 @@ public class InteractableManager : Singleton<InteractableManager>
 	/// Gets all grass interactables in the scene.
 	/// </summary>
 	public List<Grass> Grasses => _grasses.Where(g => g != null).ToList();
+
+	/// <summary>
+	/// Gets all trees in the scene.
+	/// </summary>
+	public List<Tree> Trees => _trees.Where(t => t != null).ToList();
     
     protected override void Awake()
     {
@@ -701,6 +711,106 @@ public class InteractableManager : Singleton<InteractableManager>
 		{
 			_grasses.Remove(grass);
 			_allInteractables.Remove(grass);
+		}
+	}
+
+	/// <summary>
+	/// Spawns a tree at the specified grid position.
+	/// </summary>
+	/// <param name="gridPosition">Grid position to spawn the tree at</param>
+	/// <returns>The spawned Tree component, or null if prefab is not assigned</returns>
+	public Tree SpawnTree(Vector2Int gridPosition)
+	{
+		if (_treePrefab == null)
+		{
+			Debug.LogError("InteractableManager: Tree prefab is not assigned! Please assign a tree prefab in the Inspector.");
+			return null;
+		}
+
+		if (EnvironmentManager.Instance == null)
+		{
+			Debug.LogError("InteractableManager: EnvironmentManager instance not found!");
+			return null;
+		}
+
+		if (!EnvironmentManager.Instance.IsValidPosition(gridPosition))
+		{
+			Debug.LogWarning($"InteractableManager: Cannot spawn tree at invalid position ({gridPosition.x}, {gridPosition.y}).");
+			return null;
+		}
+
+		GameObject treeObj = Instantiate(_treePrefab, _interactableParent);
+		Tree tree = treeObj.GetComponent<Tree>();
+
+		if (tree == null)
+		{
+			Debug.LogError("InteractableManager: Tree prefab does not have a Tree component!");
+			Destroy(treeObj);
+			return null;
+		}
+
+		tree.Initialize(gridPosition);
+		_trees.Add(tree);
+		_allInteractables.Add(tree);
+
+		return tree;
+	}
+
+	/// <summary>
+	/// Spawns trees from level data.
+	/// </summary>
+	public void SpawnTreesFromLevelData(List<(int x, int y)> trees)
+	{
+		if (trees == null)
+		{
+			return;
+		}
+
+		foreach (var (x, y) in trees)
+		{
+			Vector2Int gridPos = new Vector2Int(x, y);
+			if (EnvironmentManager.Instance != null && EnvironmentManager.Instance.IsValidPosition(gridPos))
+			{
+				SpawnTree(gridPos);
+			}
+			else
+			{
+				Debug.LogWarning($"InteractableManager: Tree at ({x}, {y}) is out of bounds!");
+			}
+		}
+	}
+
+	/// <summary>
+	/// Gets the tree at the specified grid position, if any.
+	/// </summary>
+	public Tree GetTreeAtPosition(Vector2Int gridPosition)
+	{
+		for (int i = _trees.Count - 1; i >= 0; i--)
+		{
+			if (_trees[i] == null)
+			{
+				_trees.RemoveAt(i);
+				continue;
+			}
+
+			if (_trees[i].GridPosition == gridPosition)
+			{
+				return _trees[i];
+			}
+		}
+
+		return null;
+	}
+
+	/// <summary>
+	/// Removes a tree from the trees list. Called when a tree is destroyed.
+	/// </summary>
+	public void RemoveTree(Tree tree)
+	{
+		if (tree != null && _trees != null)
+		{
+			_trees.Remove(tree);
+			_allInteractables.Remove(tree);
 		}
 	}
     

@@ -10,7 +10,8 @@ public enum InteractableType
     PredatorDen,
     WormSpawner,
     Bush,
-    Grass
+    Grass,
+    Tree
 }
 
 /// <summary>
@@ -53,6 +54,7 @@ public class LevelData
     public List<(int x, int y)> WormSpawners { get; set; }
     public List<(int x, int y)> Bushes { get; set; }
     public List<(int x, int y)> Grasses { get; set; }
+    public List<(int x, int y)> Trees { get; set; }
 
     public LevelData()
     {
@@ -69,6 +71,7 @@ public class LevelData
         WormSpawners = new List<(int x, int y)>();
         Bushes = new List<(int x, int y)>();
         Grasses = new List<(int x, int y)>();
+        Trees = new List<(int x, int y)>();
     }
 }
 
