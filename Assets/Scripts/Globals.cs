@@ -64,7 +64,7 @@ public static class Globals
     /// </summary>
     public static int MaxWorkersPerDen = 5;
 
-    public static int MaxWorkersUnassigned => MaxWorkersPerDen;
+    public static int MaxWorkersUnassigned => 2 * MaxWorkersPerDen;
 
     /// <summary>
     /// Maximum number of inventory slots.
