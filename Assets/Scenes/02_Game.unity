@@ -899,7 +899,7 @@ MonoBehaviour:
     count: 8
     predatorType: 
   - interactableType: 5
-    count: 30
+    count: 22
     predatorType: 
   - interactableType: 6
     count: 3

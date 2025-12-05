@@ -99,4 +99,5 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   _beePrefab: {fileID: 5678899040721423647, guid: 3b8d56c2f32123a4ea230441230ff190, type: 3}
   _beeCount: 3
-  _beeRadius: 3
+  _treeRadius: 3
+  _grassCount: 5
