@@ -680,6 +680,11 @@ public class DenSystemManager : Singleton<DenSystemManager> {
   }
   
   public void OpenPanel() {
+    // Ensure knowledge menu is closed so the menus remain mutually exclusive
+    if (UIManager.Instance != null) {
+      UIManager.Instance.HideKnowledgePanelIfVisible();
+    }
+    
     panelOpen = true;
     DenAdminMenu.Show();
     Debug.LogWarning("Panel Opened");

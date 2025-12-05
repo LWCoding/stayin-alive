@@ -89,6 +89,12 @@ public class UIManager : Singleton<UIManager>
     {
         UpdateMvpProgress();
         UpdatePointsDisplay();
+        
+        // Open knowledge panel with K key
+        if (Input.GetKeyDown(KeyCode.K))
+        {
+            ToggleKnowledgePanel();
+        }
     }
     
     /// <summary>
@@ -317,6 +323,15 @@ public class UIManager : Singleton<UIManager>
             return;
         }
         
+        // Check visibility before toggling
+        bool isVisible = _knowledgeMenuGuiController.IsVisible();
+        
+        // If we're about to show the knowledge panel, close the den admin panel to keep menus exclusive
+        if (!isVisible && DenSystemManager.Instance != null && DenSystemManager.Instance.PanelOpen)
+        {
+            DenSystemManager.Instance.ClosePanel();
+        }
+        
         // Ensure the GameObject is active
         if (!_knowledgeMenuGuiController.gameObject.activeInHierarchy)
         {
@@ -324,7 +339,6 @@ public class UIManager : Singleton<UIManager>
         }
         
         // Toggle visibility: if currently visible, hide it; otherwise show it
-        bool isVisible = _knowledgeMenuGuiController.IsVisible();
         Debug.Log($"UIManager: Panel isVisible = {isVisible}");
         
         if (isVisible)
@@ -336,6 +350,17 @@ public class UIManager : Singleton<UIManager>
         {
             Debug.Log("UIManager: Showing knowledge panel");
             _knowledgeMenuGuiController.Show();
+        }
+    }
+
+    /// <summary>
+    /// Hides the knowledge panel if it is currently visible.
+    /// </summary>
+    public void HideKnowledgePanelIfVisible()
+    {
+        if (_knowledgeMenuGuiController != null && _knowledgeMenuGuiController.IsVisible())
+        {
+            _knowledgeMenuGuiController.Hide();
         }
     }
 }
