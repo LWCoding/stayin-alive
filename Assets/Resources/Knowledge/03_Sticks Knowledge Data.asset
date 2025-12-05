@@ -14,5 +14,5 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   sprite: {fileID: 21300000, guid: fb39a6f408d1d354bae3778f84eccb47, type: 3}
   title: Sticks
-  description: 'A pile of sticks fallen from a tree that can be used to make a Den!
-    As you expand your network of dens, you''ll need more sticks to make Dens. '
+  description: Good material for home. I need more and more sticks for each new den
+    to support the tunnel. Each harder to build but safer to rest in.

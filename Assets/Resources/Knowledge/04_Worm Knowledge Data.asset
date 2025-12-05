@@ -14,5 +14,5 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   sprite: {fileID: 21300000, guid: 80b064f05c5448a4384059eaa0e0977d, type: 3}
   title: Worm
-  description: Worms! Even yummier than grass, but harder to find. These slimy creatures
-    like living in moist soil, so keep a look out!
+  description: 'Rich food pulled from wet soil. Usually near water. One worm can
+    carry a tired rat through a long journey. '
