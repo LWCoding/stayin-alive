@@ -12,7 +12,6 @@ public class GrassPatch : Interactable
     [SerializeField] private int _patchSize = 3;
     
     private List<Grass> _childGrass = new List<Grass>();
-    private bool _isInitialized = false;
     
     /// <summary>
     /// Gets the size of this grass patch (width and height in grid tiles).
@@ -46,7 +45,6 @@ public class GrassPatch : Interactable
     public override void Initialize(Vector2Int gridPosition)
     {
         _gridPosition = gridPosition;
-        _isInitialized = true;
         
         UpdateWorldPosition();
         

@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -17,8 +18,32 @@ public class KnowledgeMenuGuiController : MonoBehaviour
     [SerializeField]
     private CanvasGroup visibilityController;
 
+    [SerializeField]
+    [Tooltip("The content parent transform for the scroll view where knowledge items will be instantiated")]
+    private RectTransform contentParent;
+
+    [Header("Prefabs")]
+    [SerializeField]
+    [Tooltip("Prefab to use when spawning knowledge items. Must have a KnowledgeItem component.")]
+    private GameObject knowledgeItemPrefab;
+
+    private List<KnowledgeItem> knowledgeItems = new List<KnowledgeItem>();
+
+    /// <summary>
+    /// Static list of knowledge data for testing. In the future, this will be replaced with actual player knowledge data.
+    /// </summary>
+    private static readonly List<KnowledgeItem.KnowledgeData> StaticKnowledgeList = new List<KnowledgeItem.KnowledgeData>
+    {
+        new KnowledgeItem.KnowledgeData("Rabbits", "Rabbits can be found near bushes and grass patches."),
+        new KnowledgeItem.KnowledgeData("Worms", "Worms can be found by digging in the ground."),
+        new KnowledgeItem.KnowledgeData("Dens", "Dens provide shelter and storage for items."),
+        new KnowledgeItem.KnowledgeData("Predators", "Predators are dangerous and should be avoided."),
+        new KnowledgeItem.KnowledgeData("Food", "Food is essential for survival.")
+    };
+
     public void Start()
     {
+        knowledgeItems = new List<KnowledgeItem>();
         Hide();
     }
 
@@ -106,5 +131,67 @@ public class KnowledgeMenuGuiController : MonoBehaviour
     /// </summary>
     public void UpdateGui()
     {
+        UpdateKnowledgeItems();
+    }
+
+    /// <summary>
+    /// Clears existing knowledge items and creates new ones for each piece of knowledge the player knows.
+    /// </summary>
+    private void UpdateKnowledgeItems()
+    {
+        // Clear existing knowledge items
+        foreach (KnowledgeItem knowledgeItem in knowledgeItems)
+        {
+            if (knowledgeItem != null)
+            {
+                Destroy(knowledgeItem.gameObject);
+            }
+        }
+
+        knowledgeItems = new List<KnowledgeItem>();
+
+        // Validate required references
+        if (contentParent == null)
+        {
+            Debug.LogWarning("KnowledgeMenuGuiController: contentParent is not assigned!");
+            return;
+        }
+
+        if (knowledgeItemPrefab == null)
+        {
+            Debug.LogWarning("KnowledgeMenuGuiController: knowledgeItemPrefab is not assigned!");
+            return;
+        }
+
+        // Get the list of knowledge (for now, use static list)
+        List<KnowledgeItem.KnowledgeData> knowledgeList = GetPlayerKnowledge();
+
+        // Instantiate a knowledge item for each piece of knowledge
+        foreach (KnowledgeItem.KnowledgeData knowledge in knowledgeList)
+        {
+            GameObject knowledgeItemObj = Instantiate(knowledgeItemPrefab, contentParent);
+            KnowledgeItem knowledgeItem = knowledgeItemObj.GetComponent<KnowledgeItem>();
+            
+            if (knowledgeItem != null)
+            {
+                knowledgeItem.Initialize(knowledge);
+                knowledgeItems.Add(knowledgeItem);
+            }
+            else
+            {
+                Debug.LogWarning("KnowledgeMenuGuiController: Instantiated prefab does not have a KnowledgeItem component!");
+                Destroy(knowledgeItemObj);
+            }
+        }
+    }
+
+    /// <summary>
+    /// Gets the list of knowledge data the player currently knows.
+    /// For now, returns a static list. In the future, this will query actual player knowledge data.
+    /// </summary>
+    /// <returns>List of knowledge data</returns>
+    private List<KnowledgeItem.KnowledgeData> GetPlayerKnowledge()
+    {
+        return new List<KnowledgeItem.KnowledgeData>(StaticKnowledgeList);
     }
 }
