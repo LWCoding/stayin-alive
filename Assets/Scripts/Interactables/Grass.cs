@@ -525,23 +525,11 @@ public class Grass : Interactable
 	}
 
 	/// <summary>
-	/// Attempts to add a grass seed item to the player's inventory.
-	/// If inventory is full, spawns it on the ground in an unobstructed adjacent spot.
+	/// Spawns a grass seed item on the ground nearby.
+	/// Seeds dropped by player harvests always go to the ground, not directly into inventory.
 	/// </summary>
 	private void SpawnGrassSeedItem()
 	{
-		// First, try to add directly to player's inventory
-		if (InventoryManager.Instance != null)
-		{
-			bool added = InventoryManager.Instance.AddItem(SEED_ITEM_TYPE);
-			if (added)
-			{
-				// Successfully added to inventory
-				return;
-			}
-		}
-		
-		// Inventory is full, try to spawn on ground in an adjacent unobstructed spot
 		if (ItemManager.Instance == null)
 		{
 			Debug.LogWarning("Grass: ItemManager instance not found! Cannot spawn grass seed item.");
@@ -557,7 +545,7 @@ public class Grass : Interactable
 		else
 		{
 			// No valid adjacent tile found, cannot spawn grass seed
-			Debug.LogWarning("Grass: Cannot spawn grass seed - inventory is full and no adjacent unobstructed tile found.");
+			Debug.LogWarning("Grass: Cannot spawn grass seed - no adjacent unobstructed tile found.");
 		}
 	}
 	
