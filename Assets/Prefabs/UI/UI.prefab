@@ -87,7 +87,7 @@ GameObject:
   - component: {fileID: 2571277986522008276}
   - component: {fileID: 7346666586223628796}
   m_Layer: 5
-  m_Name: WinText (TMP)
+  m_Name: LoseText (TMP)
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -2135,6 +2135,7 @@ GameObject:
   - component: {fileID: 5883156314352878971}
   - component: {fileID: 7042966268329032411}
   - component: {fileID: 344904626422949713}
+  - component: {fileID: 7948657671191224001}
   m_Layer: 5
   m_Name: ScreenBlocker
   m_TagString: Untagged
@@ -2238,6 +2239,29 @@ MonoBehaviour:
     m_RotationOrder: 4
   wipeInDirection: 2
   wipeOutDirection: 3
+--- !u!223 &7948657671191224001
+Canvas:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3560805765878573706}
+  m_Enabled: 1
+  serializedVersion: 3
+  m_RenderMode: 2
+  m_Camera: {fileID: 0}
+  m_PlaneDistance: 100
+  m_PixelPerfect: 0
+  m_ReceivesEvents: 1
+  m_OverrideSorting: 1
+  m_OverridePixelPerfect: 0
+  m_SortingBucketNormalizedSize: 0
+  m_VertexColorAlwaysGammaSpace: 0
+  m_AdditionalShaderChannelsFlag: 0
+  m_UpdateRectTransformForStandalone: 0
+  m_SortingLayerID: 0
+  m_SortingOrder: 99
+  m_TargetDisplay: 0
 --- !u!1 &3610128406495870297
 GameObject:
   m_ObjectHideFlags: 0
