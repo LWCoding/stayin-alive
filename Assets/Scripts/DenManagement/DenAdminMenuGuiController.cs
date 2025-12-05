@@ -72,6 +72,9 @@ public class DenAdminMenuGuiController : MonoBehaviour {
   private List<DenMapIconGuiController> mapDenMapIcons;
 
   private List<WorkerIconGuiController> workerIcons;
+  
+  private ToggleClock mapToggleClock;
+  public ToggleClock MapToggleClock => mapToggleClock;
 
   public void UpdateGui() {
     UpdateDenMapIcons();
@@ -82,6 +85,7 @@ public class DenAdminMenuGuiController : MonoBehaviour {
   }
 
   public void Start() {
+    mapToggleClock = gameObject.AddComponent<ToggleClock>();
     mapDenMapIcons = new List<DenMapIconGuiController>();
     workerIcons = new List<WorkerIconGuiController>();
     

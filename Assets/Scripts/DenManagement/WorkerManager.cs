@@ -188,6 +188,7 @@ public class WorkerManager : Singleton<WorkerManager> {
     unassignedWorkers.Add(animal);
     
     workersToDens[animal] = UNASSIGNED_DEN_ID;
+    denSystemManager.InvokeOnWorkerAssigned();
     denSystemManager.NotifyPlayerUpdateFollowerCount();
     return WorkerOperationResult.WORKER_UNASSIGNED;
     
@@ -246,6 +247,7 @@ public class WorkerManager : Singleton<WorkerManager> {
     workersToDens[animal] = denId;
     
     denSystemManager.InvokeOnWorkerAssigned();
+    denSystemManager.NotifyPlayerUpdateFollowerCount();
     
     return WorkerOperationResult.WORKER_ASSIGNED;
   }

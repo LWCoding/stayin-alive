@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -17,13 +18,36 @@ public class DenMapIconGuiController : MonoBehaviour, IPointerEnterHandler, IPoi
   [SerializeField]
   private Button denIconButton;
   
+  [SerializeField]
+  private Color blinkOnColor = Color.yellow;
+  [SerializeField]
+  private Color blinkOffColor = Color.black;
+
+  [SerializeField]
+  private Image iconOutline;
+  
   private DenSystemManager.DenInformation denInfo;
 
+  private void BlinkOn() {
+    iconOutline.color = blinkOnColor;
+  }
+
+  private void BlinkOff() {
+    iconOutline.color = blinkOffColor;
+  }
+  
   public void InitializeDenMapIcon(DenSystemManager.DenInformation denInfo) {
+    DenSystemManager.Instance.DenAdminMenu.MapToggleClock.ToggleOn += BlinkOn;
+    DenSystemManager.Instance.DenAdminMenu.MapToggleClock.ToggleOff += BlinkOff;
     this.denInfo = denInfo;
     Debug.LogWarning(denInfo.denId);
     SetDenImage();
     SetPosition();
+  }
+
+  private void OnDestroy() {
+    DenSystemManager.Instance.DenAdminMenu.MapToggleClock.ToggleOn -= BlinkOn;
+    DenSystemManager.Instance.DenAdminMenu.MapToggleClock.ToggleOff -= BlinkOff;
   }
 
   private void SetDenImage() {
