@@ -70,6 +70,22 @@ public class SticksItem : Item
         {
             int deficit = sticksRequired - availableSticks;
             Debug.Log($"SticksItem: Cannot place den - need {deficit} more stick(s).");
+            
+            // Spawn fade text at player's position
+            if (ParticleManager.Instance != null)
+            {
+                // Get player's world position - use transform position for accuracy
+                Vector3 playerWorldPos = user.transform.position;
+                
+                // Convert world position to screen position
+                Camera mainCamera = Camera.main;
+                if (mainCamera != null)
+                {
+                    Vector2 screenPos = mainCamera.WorldToScreenPoint(playerWorldPos);
+                    ParticleManager.Instance.SpawnFadeText("Not enough sticks!", screenPos);
+                }
+            }
+            
             return false;
         }
         
