@@ -29,18 +29,6 @@ public class KnowledgeMenuGuiController : MonoBehaviour
 
     private List<KnowledgeItem> knowledgeItems = new List<KnowledgeItem>();
 
-    /// <summary>
-    /// Static list of knowledge data for testing. In the future, this will be replaced with actual player knowledge data.
-    /// </summary>
-    private static readonly List<KnowledgeItem.KnowledgeData> StaticKnowledgeList = new List<KnowledgeItem.KnowledgeData>
-    {
-        new KnowledgeItem.KnowledgeData("Rabbits", "Rabbits can be found near bushes and grass patches."),
-        new KnowledgeItem.KnowledgeData("Worms", "Worms can be found by digging in the ground."),
-        new KnowledgeItem.KnowledgeData("Dens", "Dens provide shelter and storage for items."),
-        new KnowledgeItem.KnowledgeData("Predators", "Predators are dangerous and should be avoided."),
-        new KnowledgeItem.KnowledgeData("Food", "Food is essential for survival.")
-    };
-
     public void Start()
     {
         knowledgeItems = new List<KnowledgeItem>();
@@ -187,11 +175,33 @@ public class KnowledgeMenuGuiController : MonoBehaviour
 
     /// <summary>
     /// Gets the list of knowledge data the player currently knows.
-    /// For now, returns a static list. In the future, this will query actual player knowledge data.
+    /// Loads all knowledge from KnowledgeManager. In the future, this will filter based on what the player has actually discovered.
     /// </summary>
     /// <returns>List of knowledge data</returns>
     private List<KnowledgeItem.KnowledgeData> GetPlayerKnowledge()
     {
-        return new List<KnowledgeItem.KnowledgeData>(StaticKnowledgeList);
+        List<KnowledgeItem.KnowledgeData> knowledgeList = new List<KnowledgeItem.KnowledgeData>();
+
+        if (KnowledgeManager.Instance == null)
+        {
+            Debug.LogWarning("KnowledgeMenuGuiController: KnowledgeManager instance not found! Cannot load knowledge data.");
+            return knowledgeList;
+        }
+
+        // Get all knowledge data from KnowledgeManager
+        // In the future, this should filter based on what the player has actually discovered
+        foreach (KnowledgeData knowledgeData in KnowledgeManager.Instance.AllKnowledgeData)
+        {
+            if (knowledgeData != null)
+            {
+                knowledgeList.Add(new KnowledgeItem.KnowledgeData(
+                    knowledgeData.sprite,
+                    knowledgeData.title,
+                    knowledgeData.description
+                ));
+            }
+        }
+
+        return knowledgeList;
     }
 }

@@ -4176,6 +4176,50 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 571662754}
   m_CullTransparentMesh: 1
+--- !u!1 &593811968
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 593811969}
+  - component: {fileID: 593811970}
+  m_Layer: 0
+  m_Name: KnowledgeManager
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &593811969
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 593811968}
+  serializedVersion: 2
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 1312731903}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &593811970
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 593811968}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 726dc8a8b2d81b348b36d4ab933d4bfb, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1 &614740230
 GameObject:
   m_ObjectHideFlags: 0
@@ -6576,6 +6620,8 @@ MonoBehaviour:
   _bushPrefab: {fileID: 7190123244994547298, guid: ebc09e35edd2c194e8a55411b8405b09, type: 3}
   _grassPrefab: {fileID: 3330622115949650018, guid: b1e6597e20b412d44b7197791ddb2054, type: 3}
   _treePrefab: {fileID: 0}
+  _beeTreePrefab: {fileID: 0}
+  _grassPatchPrefab: {fileID: 0}
 --- !u!1 &892782282
 GameObject:
   m_ObjectHideFlags: 0
@@ -8282,6 +8328,7 @@ Transform:
   - {fileID: 1487268836}
   - {fileID: 1260482465}
   - {fileID: 381710278}
+  - {fileID: 593811969}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1332111598

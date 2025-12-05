@@ -1,5 +1,6 @@
 using TMPro;
 using UnityEngine;
+using UnityEngine.UI;
 
 /// <summary>
 /// Represents a single knowledge item in the knowledge menu.
@@ -8,19 +9,24 @@ using UnityEngine;
 public class KnowledgeItem : MonoBehaviour
 {
     /// <summary>
-    /// Basic struct containing name and description for a knowledge entry.
+    /// Basic struct containing sprite, name, and description for a knowledge entry.
     /// </summary>
     public struct KnowledgeData
     {
+        public Sprite sprite;
         public string name;
         public string description;
 
-        public KnowledgeData(string name, string description)
+        public KnowledgeData(Sprite sprite, string name, string description)
         {
+            this.sprite = sprite;
             this.name = name;
             this.description = description;
         }
     }
+
+    [SerializeField]
+    private Image spriteImage;
 
     [SerializeField]
     private TextMeshProUGUI nameText;
@@ -31,9 +37,19 @@ public class KnowledgeItem : MonoBehaviour
     /// <summary>
     /// Initializes the knowledge item with the given knowledge data.
     /// </summary>
-    /// <param name="knowledgeData">The knowledge data containing name and description</param>
+    /// <param name="knowledgeData">The knowledge data containing sprite, name, and description</param>
     public void Initialize(KnowledgeData knowledgeData)
     {
+        if (spriteImage != null)
+        {
+            spriteImage.sprite = knowledgeData.sprite;
+            spriteImage.enabled = knowledgeData.sprite != null;
+        }
+        else
+        {
+            Debug.LogWarning("KnowledgeItem: Sprite image component is not assigned!");
+        }
+
         if (nameText != null)
         {
             nameText.text = knowledgeData.name;
