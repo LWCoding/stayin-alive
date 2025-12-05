@@ -57,6 +57,10 @@ public class InteractableManager : Singleton<InteractableManager>
 	[Header("BeeTree Prefab")]
 	[Tooltip("Prefab to use when spawning bee trees. Must have a BeeTree component.")]
 	[SerializeField] private GameObject _beeTreePrefab;
+	
+	[Header("GrassPatch Prefab")]
+	[Tooltip("Prefab to use when spawning grass patches. Must have a GrassPatch component.")]
+	[SerializeField] private GameObject _grassPatchPrefab;
     
     private List<Interactable> _allInteractables = new List<Interactable>();
     private List<Den> _dens = new List<Den>();
@@ -67,6 +71,7 @@ public class InteractableManager : Singleton<InteractableManager>
 	private List<Grass> _grasses = new List<Grass>();
 	private List<Tree> _trees = new List<Tree>();
 	private List<BeeTree> _beeTrees = new List<BeeTree>();
+	private List<GrassPatch> _grassPatches = new List<GrassPatch>();
 
 	/// <summary>
 	/// Gets all dens in the scene.
@@ -107,6 +112,11 @@ public class InteractableManager : Singleton<InteractableManager>
 	/// Gets all bee trees in the scene.
 	/// </summary>
 	public List<BeeTree> BeeTrees => _beeTrees.Where(bt => bt != null).ToList();
+
+	/// <summary>
+	/// Gets all grass patches in the scene.
+	/// </summary>
+	public List<GrassPatch> GrassPatches => _grassPatches.Where(gp => gp != null).ToList();
     
     protected override void Awake()
     {
@@ -133,9 +143,142 @@ public class InteractableManager : Singleton<InteractableManager>
 			{
 				return true;
 			}
+			
+			// Check if this is a multi-tile interactable (like GrassPatch) that occupies this position
+			if (_allInteractables[i] is GrassPatch grassPatch)
+			{
+				List<Vector2Int> occupiedPositions = grassPatch.GetOccupiedPositions();
+				if (occupiedPositions.Contains(gridPosition))
+				{
+					return true;
+				}
+			}
 		}
 
 		return false;
+	}
+	
+	/// <summary>
+	/// Gets the interactable at the specified grid position, if any.
+	/// </summary>
+	/// <param name="gridPosition">Grid position to check</param>
+	/// <returns>The interactable at that position, or null if no interactable exists there</returns>
+	public Interactable GetInteractableAtPosition(Vector2Int gridPosition)
+	{
+		// Filter out null references
+		for (int i = _allInteractables.Count - 1; i >= 0; i--)
+		{
+			if (_allInteractables[i] == null)
+			{
+				_allInteractables.RemoveAt(i);
+				continue;
+			}
+
+			if (_allInteractables[i].GridPosition == gridPosition)
+			{
+				return _allInteractables[i];
+			}
+			
+			// Check if this is a multi-tile interactable (like GrassPatch) that occupies this position
+			if (_allInteractables[i] is GrassPatch grassPatch)
+			{
+				List<Vector2Int> occupiedPositions = grassPatch.GetOccupiedPositions();
+				if (occupiedPositions.Contains(gridPosition))
+				{
+					return _allInteractables[i];
+				}
+			}
+		}
+
+		return null;
+	}
+	
+	/// <summary>
+	/// Removes an interactable from the manager's tracking lists.
+	/// </summary>
+	/// <param name="interactable">The interactable to remove</param>
+	public void RemoveInteractable(Interactable interactable)
+	{
+		if (interactable == null)
+		{
+			return;
+		}
+		
+		_allInteractables.Remove(interactable);
+		
+		// Remove from specific type lists
+		if (interactable is Den den)
+		{
+			_dens.Remove(den);
+		}
+		else if (interactable is RabbitSpawner rabbitSpawner)
+		{
+			_rabbitSpawners.Remove(rabbitSpawner);
+		}
+		else if (interactable is PredatorDen predatorDen)
+		{
+			_predatorDens.Remove(predatorDen);
+		}
+		else if (interactable is WormSpawner wormSpawner)
+		{
+			_wormSpawners.Remove(wormSpawner);
+		}
+		else if (interactable is Bush bush)
+		{
+			_bushes.Remove(bush);
+		}
+		else if (interactable is Grass grass)
+		{
+			_grasses.Remove(grass);
+		}
+		else if (interactable is Tree tree)
+		{
+			_trees.Remove(tree);
+		}
+		else if (interactable is BeeTree beeTree)
+		{
+			_beeTrees.Remove(beeTree);
+		}
+		else if (interactable is GrassPatch grassPatch)
+		{
+			_grassPatches.Remove(grassPatch);
+		}
+	}
+	
+	/// <summary>
+	/// Checks if an area is available for placing a multi-tile interactable.
+	/// Returns true if all positions in the area are valid and not occupied (or can be cleared).
+	/// </summary>
+	/// <param name="positions">List of grid positions to check</param>
+	/// <param name="checkTileTypes">If true, also checks that tiles are not water or obstacles</param>
+	/// <returns>True if the area is available, false otherwise</returns>
+	public bool IsAreaAvailable(List<Vector2Int> positions, bool checkTileTypes = true)
+	{
+		if (EnvironmentManager.Instance == null)
+		{
+			return false;
+		}
+		
+		foreach (Vector2Int pos in positions)
+		{
+			// Check if position is valid
+			if (!EnvironmentManager.Instance.IsValidPosition(pos))
+			{
+				return false;
+			}
+			
+			// Check tile types if requested
+			if (checkTileTypes)
+			{
+				TileType tileType = EnvironmentManager.Instance.GetTileType(pos);
+				if (tileType == TileType.Water || tileType == TileType.Obstacle)
+				{
+					return false;
+				}
+			}
+		}
+		
+		return true;
 	}
     
     /// <summary>
@@ -155,10 +298,11 @@ public class InteractableManager : Singleton<InteractableManager>
 		_rabbitSpawners.Clear();
 		_predatorDens.Clear();
 		_wormSpawners.Clear();
-		_bushes.Clear();
+        _bushes.Clear();
 		_grasses.Clear();
 		_trees.Clear();
 		_beeTrees.Clear();
+		_grassPatches.Clear();
     }
     
     /// <summary>
@@ -727,6 +871,22 @@ public class InteractableManager : Singleton<InteractableManager>
 	}
 
 	/// <summary>
+	/// Registers an existing grass object with the manager (for prefab children that weren't spawned through SpawnGrass).
+	/// </summary>
+	/// <param name="grass">The grass object to register</param>
+	public void RegisterGrass(Grass grass)
+	{
+		if (grass != null && !_grasses.Contains(grass))
+		{
+			_grasses.Add(grass);
+			if (!_allInteractables.Contains(grass))
+			{
+				_allInteractables.Add(grass);
+			}
+		}
+	}
+
+	/// <summary>
 	/// Spawns a tree at the specified grid position.
 	/// </summary>
 	/// <param name="gridPosition">Grid position to spawn the tree at</param>
@@ -932,6 +1092,109 @@ public class InteractableManager : Singleton<InteractableManager>
 			_allInteractables.Remove(beeTree);
 		}
 	}
+
+	/// <summary>
+	/// Spawns a grass patch at the specified grid position (center of the patch).
+	/// </summary>
+	/// <param name="gridPosition">Grid position to spawn the grass patch at (center position)</param>
+	/// <returns>The spawned GrassPatch component, or null if prefab is not assigned</returns>
+	public GrassPatch SpawnGrassPatch(Vector2Int gridPosition)
+	{
+		if (_grassPatchPrefab == null)
+		{
+			Debug.LogError("InteractableManager: GrassPatch prefab is not assigned! Please assign a grass patch prefab in the Inspector.");
+			return null;
+		}
+
+		if (EnvironmentManager.Instance == null)
+		{
+			Debug.LogError("InteractableManager: EnvironmentManager instance not found!");
+			return null;
+		}
+
+		if (!EnvironmentManager.Instance.IsValidPosition(gridPosition))
+		{
+			Debug.LogWarning($"InteractableManager: Cannot spawn grass patch at invalid position ({gridPosition.x}, {gridPosition.y}).");
+			return null;
+		}
+
+		GameObject grassPatchObj = Instantiate(_grassPatchPrefab, _interactableParent);
+		GrassPatch grassPatch = grassPatchObj.GetComponent<GrassPatch>();
+
+		if (grassPatch == null)
+		{
+			Debug.LogError("InteractableManager: GrassPatch prefab does not have a GrassPatch component!");
+			Destroy(grassPatchObj);
+			return null;
+		}
+
+		grassPatch.Initialize(gridPosition);
+		_grassPatches.Add(grassPatch);
+		_allInteractables.Add(grassPatch);
+
+		return grassPatch;
+	}
+
+	/// <summary>
+	/// Spawns grass patches from level data.
+	/// </summary>
+	public void SpawnGrassPatchesFromLevelData(List<(int x, int y)> grassPatches)
+	{
+		if (grassPatches == null)
+		{
+			return;
+		}
+
+		foreach (var (x, y) in grassPatches)
+		{
+			Vector2Int gridPos = new Vector2Int(x, y);
+			if (EnvironmentManager.Instance != null && EnvironmentManager.Instance.IsValidPosition(gridPos))
+			{
+				SpawnGrassPatch(gridPos);
+			}
+			else
+			{
+				Debug.LogWarning($"InteractableManager: GrassPatch at ({x}, {y}) is out of bounds!");
+			}
+		}
+	}
+
+	/// <summary>
+	/// Gets the grass patch at the specified grid position, if any.
+	/// Checks if the position is within any grass patch's area.
+	/// </summary>
+	public GrassPatch GetGrassPatchAtPosition(Vector2Int gridPosition)
+	{
+		for (int i = _grassPatches.Count - 1; i >= 0; i--)
+		{
+			if (_grassPatches[i] == null)
+			{
+				_grassPatches.RemoveAt(i);
+				continue;
+			}
+
+			// Check if position is within this patch's area
+			List<Vector2Int> occupiedPositions = _grassPatches[i].GetOccupiedPositions();
+			if (occupiedPositions.Contains(gridPosition))
+			{
+				return _grassPatches[i];
+			}
+		}
+
+		return null;
+	}
+
+	/// <summary>
+	/// Removes a grass patch from the grass patches list. Called when a grass patch is destroyed.
+	/// </summary>
+	public void RemoveGrassPatch(GrassPatch grassPatch)
+	{
+		if (grassPatch != null && _grassPatches != null)
+		{
+			_grassPatches.Remove(grassPatch);
+			_allInteractables.Remove(grassPatch);
+		}
+	}
     
 	/// <summary>
 	/// Registers any existing controllable animals that are currently on dens.
@@ -1022,6 +1285,9 @@ public class InteractableManager : Singleton<InteractableManager>
 					break;
 				case InteractableType.BeeTree:
 					SpawnBeeTree(gridPos);
+					break;
+				case InteractableType.GrassPatch:
+					SpawnGrassPatch(gridPos);
 					break;
 				case InteractableType.PredatorDen:
 					// Predator dens are handled by PredatorAnimal.SpawnPredatorDensFromLevelData

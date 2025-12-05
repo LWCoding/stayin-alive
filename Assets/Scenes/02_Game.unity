@@ -907,6 +907,9 @@ MonoBehaviour:
   - interactableType: 7
     count: 3
     predatorType: 
+  - interactableType: 8
+    count: 3
+    predatorType: 
   _itemSpawnConfigs:
   - itemType: 2
     count: 6
@@ -2079,6 +2082,7 @@ MonoBehaviour:
   _grassPrefab: {fileID: 3330622115949650018, guid: b1e6597e20b412d44b7197791ddb2054, type: 3}
   _treePrefab: {fileID: 4490760952198988224, guid: d9f4efb632b17fc439a76d78be9f4060, type: 3}
   _beeTreePrefab: {fileID: 2353448005261710028, guid: ca9885285364a2345b91588d996398b9, type: 3}
+  _grassPatchPrefab: {fileID: 7470162807929425548, guid: cbe59190e678d2045ab1da2e3beb350e, type: 3}
 --- !u!1 &1972867175
 GameObject:
   m_ObjectHideFlags: 0

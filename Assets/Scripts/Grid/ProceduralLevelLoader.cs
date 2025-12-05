@@ -379,20 +379,65 @@ public class ProceduralLevelLoader : MonoBehaviour
                                  config.interactableType == InteractableType.Grass ||
                                  config.interactableType == InteractableType.Tree;
 
+            // Check if this is a multi-tile interactable
+            bool isMultiTile = config.interactableType == InteractableType.GrassPatch;
+            int patchSize = isMultiTile ? 3 : 1; // GrassPatch is 3x3
+
             // Collect valid positions for this interactable type
             List<Vector2Int> validPositions = new List<Vector2Int>();
             foreach (Vector2Int pos in spawnPositions)
             {
-                // Skip if position is already occupied
-                if (IsPositionOccupiedByInteractable(pos, levelData))
-                    continue;
-
-                // If this interactable requires grass, check tile type
-                if (requiresGrass)
+                // For multi-tile interactables, check if the entire area is available
+                if (isMultiTile)
                 {
-                    TileType tileType = GetTileTypeAt(levelData, pos.x, pos.y);
-                    if (tileType != TileType.Grass)
+                    // Calculate all positions that would be occupied by this patch
+                    List<Vector2Int> occupiedPositions = GetPatchPositions(pos, patchSize);
+                    
+                    // Check if all positions in the patch are valid and available
+                    bool areaAvailable = true;
+                    foreach (Vector2Int occupiedPos in occupiedPositions)
+                    {
+                        // Check if position is valid
+                        if (occupiedPos.x < 0 || occupiedPos.x >= _levelWidth ||
+                            occupiedPos.y < 0 || occupiedPos.y >= _levelHeight)
+                        {
+                            areaAvailable = false;
+                            break;
+                        }
+                        
+                        // Check if position is already occupied by another interactable
+                        if (IsPositionOccupiedByInteractable(occupiedPos, levelData))
+                        {
+                            areaAvailable = false;
+                            break;
+                        }
+                        
+                        // Check tile type (no water or obstacles)
+                        TileType tileType = GetTileTypeAt(levelData, occupiedPos.x, occupiedPos.y);
+                        if (tileType == TileType.Water || tileType == TileType.Obstacle)
+                        {
+                            areaAvailable = false;
+                            break;
+                        }
+                    }
+                    
+                    if (!areaAvailable)
                         continue;
+                }
+                else
+                {
+                    // Single-tile interactable
+                    // Skip if position is already occupied
+                    if (IsPositionOccupiedByInteractable(pos, levelData))
+                        continue;
+
+                    // If this interactable requires grass, check tile type
+                    if (requiresGrass)
+                    {
+                        TileType tileType = GetTileTypeAt(levelData, pos.x, pos.y);
+                        if (tileType != TileType.Grass)
+                            continue;
+                    }
                 }
 
                 validPositions.Add(pos);
@@ -418,10 +463,24 @@ public class ProceduralLevelLoader : MonoBehaviour
                 // Add to Interactables list
                 levelData.Interactables.Add(new InteractableData(config.interactableType, spawnPos.x, spawnPos.y, config.predatorType));
 
+                // Remove occupied positions from available spawn positions
+                if (isMultiTile)
+                {
+                    List<Vector2Int> occupiedPositions = GetPatchPositions(spawnPos, patchSize);
+                    foreach (Vector2Int occupiedPos in occupiedPositions)
+                    {
+                        spawnPositions.Remove(occupiedPos);
+                        walkablePositions.Remove(occupiedPos);
+                    }
+                }
+                else
+                {
+                    spawnPositions.Remove(spawnPos);
+                    walkablePositions.Remove(spawnPos);
+                }
+
                 spawned++;
                 validPositions.RemoveAt(index);
-                spawnPositions.Remove(spawnPos);
-                walkablePositions.Remove(spawnPos);
             }
 
             if (spawned < config.count)
@@ -429,6 +488,29 @@ public class ProceduralLevelLoader : MonoBehaviour
                 Debug.LogWarning($"ProceduralLevelLoader: Only spawned {spawned} of {config.count} {config.interactableType} interactables!");
             }
         }
+    }
+    
+    /// <summary>
+    /// Gets all grid positions occupied by a patch of the specified size centered at the given position.
+    /// </summary>
+    /// <param name="centerPos">Center position of the patch</param>
+    /// <param name="patchSize">Size of the patch (width and height in grid tiles)</param>
+    /// <returns>List of all positions occupied by the patch</returns>
+    private List<Vector2Int> GetPatchPositions(Vector2Int centerPos, int patchSize)
+    {
+        List<Vector2Int> positions = new List<Vector2Int>();
+        int halfSize = patchSize / 2;
+        
+        // Center the patch around the center position
+        for (int x = centerPos.x - halfSize; x <= centerPos.x + halfSize; x++)
+        {
+            for (int y = centerPos.y - halfSize; y <= centerPos.y + halfSize; y++)
+            {
+                positions.Add(new Vector2Int(x, y));
+            }
+        }
+        
+        return positions;
     }
 
     /// <summary>

@@ -12,7 +12,8 @@ public enum InteractableType
     Bush,
     Grass,
     Tree,
-    BeeTree
+    BeeTree,
+    GrassPatch
 }
 
 /// <summary>
