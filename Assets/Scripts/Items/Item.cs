@@ -48,9 +48,21 @@ public abstract class Item : MonoBehaviour, IItem
     
     /// <summary>
     /// The name identifier for this item (for backward compatibility with IItem interface).
-    /// Converts ItemType enum to string.
+    /// Gets the item name from ItemData, falling back to enum string if ItemData not found.
     /// </summary>
-    public string ItemName => _itemType.ToString();
+    public string ItemName
+    {
+        get
+        {
+            if (ItemManager.Instance != null)
+            {
+                return ItemManager.Instance.GetItemName(_itemType);
+            }
+            
+            // Fallback to enum string if ItemManager not available
+            return _itemType.ToString();
+        }
+    }
     
     /// <summary>
     /// The sprite used for displaying this item in the inventory UI.

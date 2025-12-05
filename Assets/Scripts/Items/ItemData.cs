@@ -2,13 +2,16 @@ using UnityEngine;
 
 /// <summary>
 /// ScriptableObject that stores data for an item type.
-/// Contains name and prefab reference.
+/// Contains item type enum and prefab reference.
 /// </summary>
 [CreateAssetMenu(fileName = "New Item Data", menuName = "Items/Item Data")]
 public class ItemData : ScriptableObject
 {
     [Header("Item Info")]
-    [Tooltip("Unique name identifier for this item type")]
+    [Tooltip("The ItemType enum value this ItemData represents")]
+    public ItemType itemType;
+
+    [Tooltip("Name of the item for this item type")]
     public string itemName;
 
     [Header("Prefab")]

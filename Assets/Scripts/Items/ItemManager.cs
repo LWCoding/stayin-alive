@@ -12,8 +12,8 @@ public class ItemManager : Singleton<ItemManager>
     [Header("Item Settings")]
     [SerializeField] private Transform _itemParent;
     
-    // Dictionary mapping item names to their ItemData
-    private Dictionary<string, ItemData> _itemDataDictionary = new Dictionary<string, ItemData>();
+    // Dictionary mapping item types (enum) to their ItemData
+    private Dictionary<ItemType, ItemData> _itemDataDictionary = new Dictionary<ItemType, ItemData>();
     
     // Track all items in the scene
     private List<Item> _items = new List<Item>();
@@ -69,36 +69,45 @@ public class ItemManager : Singleton<ItemManager>
                 continue;
             }
 
-            if (string.IsNullOrEmpty(itemData.itemName))
+            if (_itemDataDictionary.ContainsKey(itemData.itemType))
             {
-                Debug.LogWarning($"ItemManager: Found ItemData with null or empty name: {itemData.name}");
+                Debug.LogWarning($"ItemManager: Duplicate item type '{itemData.itemType}' found. Keeping first occurrence.");
                 continue;
             }
 
-            if (_itemDataDictionary.ContainsKey(itemData.itemName))
-            {
-                Debug.LogWarning($"ItemManager: Duplicate item name '{itemData.itemName}' found. Keeping first occurrence.");
-                continue;
-            }
-
-            _itemDataDictionary[itemData.itemName] = itemData;
+            _itemDataDictionary[itemData.itemType] = itemData;
         }
 
         Debug.Log($"ItemManager: Loaded {_itemDataDictionary.Count} item data entries from Resources/Items/");
     }
     
     /// <summary>
-    /// Gets an ItemData by name. Returns null if not found.
+    /// Gets an ItemData by ItemType enum. Returns null if not found.
     /// </summary>
-    private ItemData GetItemData(string itemName)
+    private ItemData GetItemData(ItemType itemType)
     {
-        if (_itemDataDictionary.TryGetValue(itemName, out ItemData data))
+        if (_itemDataDictionary.TryGetValue(itemType, out ItemData data))
         {
             return data;
         }
 
-        Debug.LogWarning($"ItemManager: Item data not found for name '{itemName}'");
+        Debug.LogWarning($"ItemManager: Item data not found for type '{itemType}'");
         return null;
+    }
+    
+    /// <summary>
+    /// Gets the item name string for a given ItemType. Returns the enum string as fallback if ItemData not found.
+    /// </summary>
+    public string GetItemName(ItemType itemType)
+    {
+        ItemData itemData = GetItemData(itemType);
+        if (itemData != null && !string.IsNullOrEmpty(itemData.itemName))
+        {
+            return itemData.itemName;
+        }
+        
+        // Fallback to enum string if ItemData not found or itemName is empty
+        return itemType.ToString();
     }
     
     /// <summary>
@@ -109,17 +118,16 @@ public class ItemManager : Singleton<ItemManager>
     /// <returns>The spawned Item component, or null if ItemData or prefab is not found</returns>
     public Item SpawnItem(ItemType itemType, Vector2Int gridPosition)
     {
-        string itemName = itemType.ToString();
-        ItemData itemData = GetItemData(itemName);
+        ItemData itemData = GetItemData(itemType);
         if (itemData == null)
         {
-            Debug.LogError($"ItemManager: Item data not found for '{itemName}'! Make sure the ItemData ScriptableObject exists in Resources/Items/ folder.");
+            Debug.LogError($"ItemManager: Item data not found for '{itemType}'! Make sure the ItemData ScriptableObject exists in Resources/Items/ folder.");
             return null;
         }
 
         if (itemData.prefab == null)
         {
-            Debug.LogError($"ItemManager: Prefab is not assigned for item '{itemName}'!");
+            Debug.LogError($"ItemManager: Prefab is not assigned for item '{itemType}'!");
             return null;
         }
         
@@ -141,7 +149,7 @@ public class ItemManager : Singleton<ItemManager>
         
         if (item == null)
         {
-            Debug.LogError($"ItemManager: Item prefab for '{itemName}' does not have an Item component!");
+            Debug.LogError($"ItemManager: Item prefab for '{itemType}' does not have an Item component!");
             Destroy(itemObj);
             return null;
         }
@@ -150,7 +158,7 @@ public class ItemManager : Singleton<ItemManager>
         item.Initialize(gridPosition, itemType);
         _items.Add(item);
         
-        Debug.Log($"ItemManager: Spawned item '{itemName}' at ({gridPosition.x}, {gridPosition.y})");
+        Debug.Log($"ItemManager: Spawned item '{itemType}' at ({gridPosition.x}, {gridPosition.y})");
         
         return item;
     }
@@ -198,11 +206,10 @@ public class ItemManager : Singleton<ItemManager>
     /// <returns>The inventory sprite, or null if not found</returns>
     public Sprite GetItemSprite(ItemType itemType)
     {
-        string itemName = itemType.ToString();
-        ItemData itemData = GetItemData(itemName);
+        ItemData itemData = GetItemData(itemType);
         if (itemData == null || itemData.prefab == null)
         {
-            Debug.LogWarning($"ItemManager: Cannot get sprite for item '{itemName}' - ItemData or prefab not found.");
+            Debug.LogWarning($"ItemManager: Cannot get sprite for item '{itemType}' - ItemData or prefab not found.");
             return null;
         }
         
@@ -212,7 +219,7 @@ public class ItemManager : Singleton<ItemManager>
         
         if (item == null)
         {
-            Debug.LogWarning($"ItemManager: Item prefab for '{itemName}' does not have an Item component!");
+            Debug.LogWarning($"ItemManager: Item prefab for '{itemType}' does not have an Item component!");
             Destroy(tempItemObj);
             return null;
         }
@@ -233,11 +240,10 @@ public class ItemManager : Singleton<ItemManager>
     /// <returns>The created Item, or null if ItemData or prefab is not found</returns>
     public Item CreateItemForStorage(ItemType itemType)
     {
-        string itemName = itemType.ToString();
-        ItemData itemData = GetItemData(itemName);
+        ItemData itemData = GetItemData(itemType);
         if (itemData == null || itemData.prefab == null)
         {
-            Debug.LogWarning($"ItemManager: Cannot create item '{itemName}' - ItemData or prefab not found.");
+            Debug.LogWarning($"ItemManager: Cannot create item '{itemType}' - ItemData or prefab not found.");
             return null;
         }
         
@@ -249,7 +255,7 @@ public class ItemManager : Singleton<ItemManager>
         Item item = itemObj.GetComponent<Item>();
         if (item == null)
         {
-            Debug.LogWarning($"ItemManager: Item prefab for '{itemName}' does not have an Item component!");
+            Debug.LogWarning($"ItemManager: Item prefab for '{itemType}' does not have an Item component!");
             Destroy(itemObj);
             return null;
         }

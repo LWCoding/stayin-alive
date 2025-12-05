@@ -13,6 +13,6 @@ MonoBehaviour:
   m_Name: 02_GrassSeeds Knowledge Data
   m_EditorClassIdentifier: 
   sprite: {fileID: 21300000, guid: e4b09442ef04a1e42ac8eb71b9c149da, type: 3}
-  title: GrassSeeds
+  title: Grass Seeds
   description: Some of these fell out of that grass! Plant them and, with time and
     safety, we have new grass.

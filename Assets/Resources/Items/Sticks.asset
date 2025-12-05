@@ -12,5 +12,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 4ca062de4a30e184082841a184e864fc, type: 3}
   m_Name: Sticks
   m_EditorClassIdentifier: 
+  itemType: 3
   itemName: Sticks
   prefab: {fileID: 1319182490056406658, guid: ef2e7a42ef590ba4cba0c0786a88a599, type: 3}
