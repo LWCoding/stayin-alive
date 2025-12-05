@@ -15,7 +15,7 @@ public class PauseManager : MonoBehaviour
 
     private void Update()
     {
-        if (Input.GetKeyDown(KeyCode.Escape))
+        if (Input.GetKeyDown(KeyCode.P))
         {
             Debug.Log("PauseManager: Escape key pressed");
             if (_isPaused)
