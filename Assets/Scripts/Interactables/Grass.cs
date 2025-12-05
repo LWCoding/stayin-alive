@@ -41,6 +41,10 @@ public class Grass : Interactable
 	[Tooltip("Random variance applied to the turns between spreads (0 = none, 0.25 = ±25%).")]
 	[SerializeField, Range(0f, 1f)] private float _spreadVariance = 0.25f;
 
+	[Header("Water Proximity")]
+	[Tooltip("Growth multiplier applied when grass is adjacent to water tiles (1.25 = 25% faster growth).")]
+	[SerializeField] private float _waterProximityMultiplier = 1.25f;
+
 	public const float SEED_DROP_RATE_FULL = 0.15f;  // Chance to drop from full layer to growing layer
 	public const float SEED_DROP_RATE_GROWING = 0.3f;  // Chance to drop from growing layer to destroyed layer
   	public const ItemType SEED_ITEM_TYPE = ItemType.GrassSeeds;
@@ -57,6 +61,7 @@ public class Grass : Interactable
 	private int _turnsUntilNextSpread;
 	private bool _initialized;
 	private GrassState _currentState;
+	private float _currentWaterProximityMultiplier = 1.0f;
 	private GrassState CurrentState
 	{
 		get => _currentState;
@@ -205,6 +210,18 @@ public class Grass : Interactable
 		_initialized = true;
 
 		UpdateWorldPosition();
+		
+		// Check if grass is near water and apply growth acceleration (25% faster = 1.25x multiplier)
+		// This happens once when grass is placed, regardless of how it was placed
+		if (IsNearWater())
+		{
+			_currentWaterProximityMultiplier = _waterProximityMultiplier;
+		}
+		else
+		{
+			_currentWaterProximityMultiplier = 1.0f;
+		}
+		
 		CalculateNextSpawnTime();
 		CalculateNextSpreadTime();
 	}
@@ -247,6 +264,17 @@ public class Grass : Interactable
 		_turnsSinceLastSpread = 0;
 		CurrentState = GrassState.Full;
 		_initialized = true;
+		
+		// Check if grass is near water and apply growth acceleration (25% faster = 1.25x multiplier)
+		// This happens once when grass is placed, regardless of how it was placed
+		if (IsNearWater())
+		{
+			_currentWaterProximityMultiplier = _waterProximityMultiplier;
+		}
+		else
+		{
+			_currentWaterProximityMultiplier = 1.0f;
+		}
 	}
 
 	private void UpdateWorldPosition()
@@ -333,7 +361,7 @@ public class Grass : Interactable
 	}
 
 	/// <summary>
-	/// Calculates the number of turns until the next growth attempt, with variance and season multiplier applied.
+	/// Calculates the number of turns until the next growth attempt, with variance, season multiplier, and water proximity multiplier applied.
 	/// </summary>
 	private void CalculateNextSpawnTime()
 	{
@@ -341,8 +369,9 @@ public class Grass : Interactable
 		float variance = Mathf.Clamp01(_turnsVariance);
 		float randomFactor = variance > 0f ? Random.Range(1f - variance, 1f + variance) : 1f;
 		
-		// Divide by multiplier: higher multiplier = fewer turns (faster growth)
-		float adjustedTurns = _averageTurnsBetweenSpawns / Mathf.Max(0.01f, seasonMultiplier) * randomFactor;
+		// Combine season multiplier and water proximity multiplier: higher multiplier = fewer turns (faster growth)
+		float combinedMultiplier = seasonMultiplier * _currentWaterProximityMultiplier;
+		float adjustedTurns = _averageTurnsBetweenSpawns / Mathf.Max(0.01f, combinedMultiplier) * randomFactor;
 		_turnsUntilNextSpawn = Mathf.Max(1, Mathf.RoundToInt(adjustedTurns));
 	}
 
@@ -653,5 +682,52 @@ public class Grass : Interactable
 		}
 
 		return true;
+	}
+
+	/// <summary>
+	/// Checks if this grass is adjacent to any water tiles.
+	/// </summary>
+	/// <returns>True if any adjacent tile (4-directional) is water, false otherwise</returns>
+	public bool IsNearWater()
+	{
+		if (EnvironmentManager.Instance == null)
+		{
+			return false;
+		}
+
+		// Check adjacent tiles (4-directional)
+		Vector2Int[] directions = { Vector2Int.up, Vector2Int.down, Vector2Int.left, Vector2Int.right };
+		
+		foreach (Vector2Int dir in directions)
+		{
+			Vector2Int adjacentPos = _gridPosition + dir;
+			
+			// Check if the adjacent position is valid
+			if (!EnvironmentManager.Instance.IsValidPosition(adjacentPos))
+			{
+				continue;
+			}
+			
+			// Check if the adjacent tile is water
+			TileType tileType = EnvironmentManager.Instance.GetTileType(adjacentPos);
+			if (tileType == TileType.Water)
+			{
+				return true;
+			}
+		}
+		
+		return false;
+	}
+
+	/// <summary>
+	/// Sets the water proximity multiplier for this grass instance.
+	/// Called when grass is placed to apply growth acceleration if near water.
+	/// </summary>
+	/// <param name="multiplier">The multiplier to apply (1.25 = 25% faster growth)</param>
+	public void SetWaterProximityMultiplier(float multiplier)
+	{
+		_currentWaterProximityMultiplier = multiplier;
+		// Recalculate next spawn time with the new multiplier
+		CalculateNextSpawnTime();
 	}
 }
