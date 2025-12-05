@@ -1548,7 +1548,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _butterflyPrefab: {fileID: 2195891697856963084, guid: bde88d0faba7e874f86a3c6a79b9bb62, type: 3}
-  _butterflyCount: 5
+  _butterflyCount: 8
 --- !u!1 &1322588353
 GameObject:
   m_ObjectHideFlags: 0

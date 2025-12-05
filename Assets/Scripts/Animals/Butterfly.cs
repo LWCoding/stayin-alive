@@ -16,10 +16,8 @@ public class Butterfly : MonoBehaviour
     
     [Tooltip("Minimum distance the butterfly can move in one turn (in world units)")]
     [SerializeField] private float _minMoveDistance = 0.5f;
-    
-    [Tooltip("Bounds for butterfly movement. If null, will use EnvironmentManager grid bounds")]
-    [SerializeField] private Bounds _movementBounds;
 
+    private Bounds _movementBounds;
     private Vector3 _targetPosition;
     private Coroutine _moveCoroutine;
     private bool _isMoving = false;
@@ -45,19 +43,16 @@ public class Butterfly : MonoBehaviour
     private void Start()
     {
         // Initialize movement bounds if not set (excluding outer borders which are rocks)
-        if (_movementBounds.size == Vector3.zero && EnvironmentManager.Instance != null)
-        {
-            Vector2Int gridSize = EnvironmentManager.Instance.GetGridSize();
-            
-            // Exclude outer borders (1 cell from each edge)
-            // Convert border positions to world space
-            Vector3 minBorder = EnvironmentManager.Instance.GridToWorldPosition(new Vector2Int(1, 1));
-            Vector3 maxBorder = EnvironmentManager.Instance.GridToWorldPosition(new Vector2Int(gridSize.x - 2, gridSize.y - 2));
-            
-            Vector3 center = (minBorder + maxBorder) * 0.5f;
-            Vector3 size = maxBorder - minBorder;
-            _movementBounds = new Bounds(center, size);
-        }
+        Vector2Int gridSize = EnvironmentManager.Instance.GetGridSize();
+        
+        // Exclude outer borders (1 cell from each edge)
+        // Convert border positions to world space
+        Vector3 minBorder = EnvironmentManager.Instance.GridToWorldPosition(new Vector2Int(1, 1));
+        Vector3 maxBorder = EnvironmentManager.Instance.GridToWorldPosition(new Vector2Int(gridSize.x - 2, gridSize.y - 2));
+        
+        Vector3 center = (minBorder + maxBorder) * 0.5f;
+        Vector3 size = maxBorder - minBorder;
+        _movementBounds = new Bounds(center, size);
 
         // Set initial target position
         _targetPosition = transform.position;
@@ -190,24 +185,9 @@ public class Butterfly : MonoBehaviour
             return;
         }
 
-        // Load prefab from Resources if not provided
         if (prefab == null)
         {
-            // Try different possible paths
-            prefab = Resources.Load<GameObject>("Prefabs/Animals/Butterfly");
-            if (prefab == null)
-            {
-                prefab = Resources.Load<GameObject>("Animals/Butterfly");
-            }
-            if (prefab == null)
-            {
-                prefab = Resources.Load<GameObject>("Butterfly");
-            }
-        }
-
-        if (prefab == null)
-        {
-            return;
+            Debug.LogWarning("Butterfly: Prefab not assigned.");
         }
 
         // Create parent if not provided
