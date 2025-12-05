@@ -11,7 +11,8 @@ public enum InteractableType
     WormSpawner,
     Bush,
     Grass,
-    Tree
+    Tree,
+    BeeTree
 }
 
 /// <summary>

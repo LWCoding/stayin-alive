@@ -699,7 +699,8 @@ public class TutorialLevelLoader : MonoBehaviour
             // Determine if this interactable requires grass tiles
             bool requiresGrass = config.interactableType == InteractableType.Bush ||
                                  config.interactableType == InteractableType.Grass ||
-                                 config.interactableType == InteractableType.Tree;
+                                 config.interactableType == InteractableType.Tree ||
+                                 config.interactableType == InteractableType.BeeTree;
 
             // Use appropriate position list
             List<Vector2Int> validPositions = requiresGrass 

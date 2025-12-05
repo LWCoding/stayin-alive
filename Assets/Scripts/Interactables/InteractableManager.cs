@@ -53,6 +53,10 @@ public class InteractableManager : Singleton<InteractableManager>
 	[Header("Tree Prefab")]
 	[Tooltip("Prefab to use when spawning trees. Must have a Tree component.")]
 	[SerializeField] private GameObject _treePrefab;
+	
+	[Header("BeeTree Prefab")]
+	[Tooltip("Prefab to use when spawning bee trees. Must have a BeeTree component.")]
+	[SerializeField] private GameObject _beeTreePrefab;
     
     private List<Interactable> _allInteractables = new List<Interactable>();
     private List<Den> _dens = new List<Den>();
@@ -62,6 +66,7 @@ public class InteractableManager : Singleton<InteractableManager>
 	private List<Bush> _bushes = new List<Bush>();
 	private List<Grass> _grasses = new List<Grass>();
 	private List<Tree> _trees = new List<Tree>();
+	private List<BeeTree> _beeTrees = new List<BeeTree>();
 
 	/// <summary>
 	/// Gets all dens in the scene.
@@ -97,6 +102,11 @@ public class InteractableManager : Singleton<InteractableManager>
 	/// Gets all trees in the scene.
 	/// </summary>
 	public List<Tree> Trees => _trees.Where(t => t != null).ToList();
+
+	/// <summary>
+	/// Gets all bee trees in the scene.
+	/// </summary>
+	public List<BeeTree> BeeTrees => _beeTrees.Where(bt => bt != null).ToList();
     
     protected override void Awake()
     {
@@ -147,6 +157,8 @@ public class InteractableManager : Singleton<InteractableManager>
 		_wormSpawners.Clear();
 		_bushes.Clear();
 		_grasses.Clear();
+		_trees.Clear();
+		_beeTrees.Clear();
     }
     
     /// <summary>
@@ -813,6 +825,113 @@ public class InteractableManager : Singleton<InteractableManager>
 			_allInteractables.Remove(tree);
 		}
 	}
+
+	/// <summary>
+	/// Spawns a bee tree at the specified grid position.
+	/// </summary>
+	/// <param name="gridPosition">Grid position to spawn the bee tree at</param>
+	/// <returns>The spawned BeeTree component, or null if prefab is not assigned</returns>
+	public BeeTree SpawnBeeTree(Vector2Int gridPosition)
+	{
+		if (_beeTreePrefab == null)
+		{
+			Debug.LogError("InteractableManager: BeeTree prefab is not assigned! Please assign a bee tree prefab in the Inspector.");
+			return null;
+		}
+
+		if (EnvironmentManager.Instance == null)
+		{
+			Debug.LogError("InteractableManager: EnvironmentManager instance not found!");
+			return null;
+		}
+
+		if (!EnvironmentManager.Instance.IsValidPosition(gridPosition))
+		{
+			Debug.LogWarning($"InteractableManager: Cannot spawn bee tree at invalid position ({gridPosition.x}, {gridPosition.y}).");
+			return null;
+		}
+
+		// Check if there's already an interactable at this position
+		if (HasInteractableAtPosition(gridPosition))
+		{
+			Debug.LogWarning($"InteractableManager: Cannot spawn bee tree at ({gridPosition.x}, {gridPosition.y}) - an interactable already exists there.");
+			return null;
+		}
+
+		GameObject beeTreeObj = Instantiate(_beeTreePrefab, _interactableParent);
+		BeeTree beeTree = beeTreeObj.GetComponent<BeeTree>();
+
+		if (beeTree == null)
+		{
+			Debug.LogError("InteractableManager: BeeTree prefab does not have a BeeTree component!");
+			Destroy(beeTreeObj);
+			return null;
+		}
+
+		beeTree.Initialize(gridPosition);
+		_beeTrees.Add(beeTree);
+		_allInteractables.Add(beeTree);
+
+		return beeTree;
+	}
+
+	/// <summary>
+	/// Spawns bee trees from level data.
+	/// </summary>
+	public void SpawnBeeTreesFromLevelData(List<(int x, int y)> beeTrees)
+	{
+		if (beeTrees == null)
+		{
+			return;
+		}
+
+		foreach (var (x, y) in beeTrees)
+		{
+			Vector2Int gridPos = new Vector2Int(x, y);
+			if (EnvironmentManager.Instance != null && EnvironmentManager.Instance.IsValidPosition(gridPos))
+			{
+				SpawnBeeTree(gridPos);
+			}
+			else
+			{
+				Debug.LogWarning($"InteractableManager: BeeTree at ({x}, {y}) is out of bounds!");
+			}
+		}
+	}
+
+	/// <summary>
+	/// Gets the bee tree at the specified grid position, if any.
+	/// </summary>
+	public BeeTree GetBeeTreeAtPosition(Vector2Int gridPosition)
+	{
+		for (int i = _beeTrees.Count - 1; i >= 0; i--)
+		{
+			if (_beeTrees[i] == null)
+			{
+				_beeTrees.RemoveAt(i);
+				continue;
+			}
+
+			if (_beeTrees[i].GridPosition == gridPosition)
+			{
+				return _beeTrees[i];
+			}
+		}
+
+		return null;
+	}
+
+	/// <summary>
+	/// Removes a bee tree from the bee trees list. Called when a bee tree is destroyed.
+	/// </summary>
+	public void RemoveBeeTree(BeeTree beeTree)
+	{
+		if (beeTree != null && _beeTrees != null)
+		{
+			_beeTrees.Remove(beeTree);
+			_allInteractables.Remove(beeTree);
+		}
+	}
     
 	/// <summary>
 	/// Registers any existing controllable animals that are currently on dens.
@@ -900,6 +1019,9 @@ public class InteractableManager : Singleton<InteractableManager>
 					break;
 				case InteractableType.Tree:
 					SpawnTree(gridPos);
+					break;
+				case InteractableType.BeeTree:
+					SpawnBeeTree(gridPos);
 					break;
 				case InteractableType.PredatorDen:
 					// Predator dens are handled by PredatorAnimal.SpawnPredatorDensFromLevelData
