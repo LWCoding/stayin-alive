@@ -891,14 +891,24 @@ MonoBehaviour:
   _predatorNames:
   - Coyote
   - Hawk
-  _rabbitSpawnerCount: 4
-  _foodItemName: Worm
-  _foodItemCount: 5
-  _bushCount: 8
-  _grassCount: 32
-  _treeCount: 3
-  _stickItemName: Sticks
-  _stickCount: 5
+  _interactableSpawnConfigs:
+  - interactableType: 1
+    count: 6
+    predatorType: 
+  - interactableType: 4
+    count: 8
+    predatorType: 
+  - interactableType: 5
+    count: 30
+    predatorType: 
+  - interactableType: 6
+    count: 3
+    predatorType: 
+  _itemSpawnConfigs:
+  - itemType: 2
+    count: 6
+  - itemType: 3
+    count: 6
 --- !u!1 &480649642 stripped
 GameObject:
   m_CorrespondingSourceObject: {fileID: 7651025922902602317, guid: 18142a8288a9a4033a51e9219bb3def1, type: 3}

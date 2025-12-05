@@ -863,5 +863,50 @@ public class InteractableManager : Singleton<InteractableManager>
 		}
 		}
 	}
+
+	/// <summary>
+	/// Spawns interactables from the Interactables list in level data.
+	/// </summary>
+	public void SpawnInteractablesFromLevelData(List<InteractableData> interactables)
+	{
+		if (interactables == null)
+		{
+			return;
+		}
+
+		foreach (var interactableData in interactables)
+		{
+			Vector2Int gridPos = new Vector2Int(interactableData.X, interactableData.Y);
+			
+			if (EnvironmentManager.Instance != null && !EnvironmentManager.Instance.IsValidPosition(gridPos))
+			{
+				Debug.LogWarning($"InteractableManager: Interactable at ({interactableData.X}, {interactableData.Y}) is out of bounds!");
+				continue;
+			}
+
+			switch (interactableData.Type)
+			{
+				case InteractableType.Den:
+					SpawnDen(gridPos);
+					break;
+				case InteractableType.RabbitSpawner:
+					SpawnRabbitSpawner(gridPos);
+					break;
+				case InteractableType.Bush:
+					SpawnBush(gridPos);
+					break;
+				case InteractableType.Grass:
+					SpawnGrass(gridPos);
+					break;
+				case InteractableType.Tree:
+					SpawnTree(gridPos);
+					break;
+				case InteractableType.PredatorDen:
+					// Predator dens are handled by PredatorAnimal.SpawnPredatorDensFromLevelData
+					// This method is kept for now but won't spawn predator dens here
+					break;
+			}
+		}
+	}
 }
 

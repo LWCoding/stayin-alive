@@ -10037,20 +10037,30 @@ MonoBehaviour:
   _grassThreshold: 0.7
   _obstacleThreshold: 0.85
   _perlinSeed: 0
-  _proceduralRabbitSpawnerCount: 4
-  _proceduralBushCount: 8
-  _proceduralGrassCount: 24
-  _proceduralTreeCount: 3
-  _proceduralStickCount: 6
-  _proceduralFoodCount: 8
+  _proceduralInteractableSpawnConfigs:
+  - interactableType: 1
+    count: 6
+    predatorType: 
+  - interactableType: 5
+    count: 30
+    predatorType: 
+  - interactableType: 6
+    count: 4
+    predatorType: 
+  - interactableType: 4
+    count: 8
+    predatorType: 
+  _proceduralItemSpawnConfigs:
+  - itemType: 2
+    count: 6
+  - itemType: 3
+    count: 6
   _proceduralPredatorPatchCount: 2
   _proceduralPredatorsPerPatch: 2
   _proceduralPredatorPatchRadius: 3
   _proceduralPredatorNames:
   - Coyote
   - Hawk
-  _proceduralFoodItemName: Worm
-  _proceduralStickItemName: Sticks
   _denPosition: {x: 2, y: 2}
   _controllableAnimalName: KangarooRat
   _controllableAnimalPosition: {x: 2, y: 2}
@@ -10081,15 +10091,15 @@ MonoBehaviour:
   - {x: 44, y: 4}
   _treePositions: []
   _itemPlacements:
-  - itemName: Worm
+  - itemType: 2
     position: {x: 25, y: 3}
-  - itemName: Sticks
+  - itemType: 3
     position: {x: 36, y: 2}
-  - itemName: Sticks
+  - itemType: 3
     position: {x: 37, y: 2}
-  - itemName: Sticks
+  - itemType: 3
     position: {x: 36, y: 3}
-  - itemName: Sticks
+  - itemType: 3
     position: {x: 37, y: 3}
 --- !u!1 &1680720528
 GameObject:

@@ -59,23 +59,11 @@ public class TutorialLevelLoader : MonoBehaviour
     [SerializeField] private int _perlinSeed = 0;
     
     [Header("Procedural Spawn Settings")]
-    [Tooltip("Number of rabbit spawners to spawn in procedural area")]
-    [SerializeField] private int _proceduralRabbitSpawnerCount = 2;
+    [Tooltip("List of interactables to spawn randomly in procedural area")]
+    [SerializeField] private List<InteractableSpawnConfig> _proceduralInteractableSpawnConfigs = new List<InteractableSpawnConfig>();
     
-    [Tooltip("Number of bushes to spawn in procedural area")]
-    [SerializeField] private int _proceduralBushCount = 5;
-    
-    [Tooltip("Number of grass interactables to spawn in procedural area")]
-    [SerializeField] private int _proceduralGrassCount = 5;
-    
-    [Tooltip("Number of trees to spawn in procedural area")]
-    [SerializeField] private int _proceduralTreeCount = 2;
-    
-    [Tooltip("Number of sticks to spawn in procedural area")]
-    [SerializeField] private int _proceduralStickCount = 3;
-    
-    [Tooltip("Number of food items to spawn in procedural area")]
-    [SerializeField] private int _proceduralFoodCount = 5;
+    [Tooltip("List of items to spawn randomly in procedural area")]
+    [SerializeField] private List<ItemSpawnConfig> _proceduralItemSpawnConfigs = new List<ItemSpawnConfig>();
     
     [Tooltip("Number of predator patches to spawn in procedural area")]
     [SerializeField] private int _proceduralPredatorPatchCount = 1;
@@ -86,14 +74,33 @@ public class TutorialLevelLoader : MonoBehaviour
     [Tooltip("Radius of predator patches in procedural area")]
     [SerializeField] private int _proceduralPredatorPatchRadius = 3;
     
-    [Tooltip("Names of predator animals for procedural area (e.g., 'Wolf', 'Hawk')")]
+    [Tooltip("Names of predator animals for procedural area")]
     [SerializeField] private string[] _proceduralPredatorNames = new string[] { "Wolf", "Hawk" };
-    
-    [Tooltip("Name of food item to spawn in procedural area")]
-    [SerializeField] private string _proceduralFoodItemName = "Food";
-    
-    [Tooltip("Name of sticks item to spawn in procedural area")]
-    [SerializeField] private string _proceduralStickItemName = "Sticks";
+
+	[System.Serializable]
+	public struct InteractableSpawnConfig
+	{
+		[Tooltip("Type of interactable to spawn")]
+		public InteractableType interactableType;
+		
+		[Tooltip("Number of this interactable type to spawn")]
+		[Min(0)]
+		public int count;
+		
+		[Tooltip("Predator type (only used for PredatorDen)")]
+		public string predatorType;
+	}
+
+	[System.Serializable]
+	public struct ItemSpawnConfig
+	{
+		[Tooltip("Type of item to spawn")]
+		public ItemType itemType;
+		
+		[Tooltip("Number of this item type to spawn")]
+		[Min(0)]
+		public int count;
+	}
 
     [System.Serializable]
     public class TilePlacement
@@ -187,8 +194,8 @@ public class TutorialLevelLoader : MonoBehaviour
     [System.Serializable]
     public class ItemPlacement
     {
-        [Tooltip("Name of the item (e.g., 'Food')")]
-        public string itemName = "Food";
+        [Tooltip("Type of item")]
+        public ItemType itemType = ItemType.Grass;
         
         [Tooltip("Grid position (x, y)")]
         public Vector2Int position = Vector2Int.zero;
@@ -230,12 +237,7 @@ public class TutorialLevelLoader : MonoBehaviour
         if (InteractableManager.Instance != null)
         {
             InteractableManager.Instance.ClearAllInteractables();
-            InteractableManager.Instance.SpawnDensFromLevelData(levelData.Dens);
-            InteractableManager.Instance.SpawnRabbitSpawnersFromLevelData(levelData.RabbitSpawners);
-            InteractableManager.Instance.SpawnWormSpawnersFromLevelData(levelData.WormSpawners);
-            InteractableManager.Instance.SpawnBushesFromLevelData(levelData.Bushes);
-            InteractableManager.Instance.SpawnGrassesFromLevelData(levelData.Grasses);
-            InteractableManager.Instance.SpawnTreesFromLevelData(levelData.Trees);
+            InteractableManager.Instance.SpawnInteractablesFromLevelData(levelData.Interactables);
         }
         else
         {
@@ -268,8 +270,19 @@ public class TutorialLevelLoader : MonoBehaviour
 			PredatorAnimal.SetInteractableParent(InteractableManager.Instance.InteractableParent);
 		}
 		
-		// Spawn predator dens from level data
-		PredatorAnimal.SpawnPredatorDensFromLevelData(levelData.PredatorDens);
+		// Extract and spawn predator dens from Interactables list
+		if (levelData.Interactables != null)
+		{
+			List<(int x, int y, string predatorType)> predatorDens = new List<(int x, int y, string predatorType)>();
+			foreach (var interactable in levelData.Interactables)
+			{
+				if (interactable.Type == InteractableType.PredatorDen)
+				{
+					predatorDens.Add((interactable.X, interactable.Y, interactable.PredatorType));
+				}
+			}
+			PredatorAnimal.SpawnPredatorDensFromLevelData(predatorDens);
+		}
 
         // Spawn items using ItemManager
         if (ItemManager.Instance != null)
@@ -280,24 +293,16 @@ public class TutorialLevelLoader : MonoBehaviour
             // Spawn items from level data
             if (levelData.Items != null)
             {
-                foreach (var (itemName, x, y) in levelData.Items)
+                foreach (var (itemType, x, y) in levelData.Items)
                 {
                     Vector2Int gridPos = new Vector2Int(x, y);
                     if (EnvironmentManager.Instance != null && EnvironmentManager.Instance.IsValidPosition(gridPos))
                     {
-                        // Convert string to ItemType enum
-                        if (System.Enum.TryParse<ItemType>(itemName, out ItemType itemType))
-                        {
-                            ItemManager.Instance.SpawnItem(itemType, gridPos);
-                        }
-                        else
-                        {
-                            Debug.LogWarning($"TutorialLevelLoader: Could not parse item name '{itemName}' as ItemType. Skipping item at ({x}, {y}).");
-                        }
+                        ItemManager.Instance.SpawnItem(itemType, gridPos);
                     }
                     else
                     {
-                        Debug.LogWarning($"TutorialLevelLoader: Item '{itemName}' at ({x}, {y}) is out of bounds!");
+                        Debug.LogWarning($"TutorialLevelLoader: Item '{itemType}' at ({x}, {y}) is out of bounds!");
                     }
                 }
             }
@@ -334,21 +339,8 @@ public class TutorialLevelLoader : MonoBehaviour
         // Set virtual camera to follow the controllable animal
         SetupCameraFollow();
 
-		// Count interactables by type for debug log
-		int densCount = 0, rabbitSpawnersCount = 0, predatorDensCount = 0, bushesCount = 0, grassesCount = 0, treesCount = 0;
-		foreach (var interactable in levelData.Interactables)
-		{
-			switch (interactable.Type)
-			{
-				case InteractableType.Den: densCount++; break;
-				case InteractableType.RabbitSpawner: rabbitSpawnersCount++; break;
-				case InteractableType.PredatorDen: predatorDensCount++; break;
-				case InteractableType.Bush: bushesCount++; break;
-				case InteractableType.Grass: grassesCount++; break;
-				case InteractableType.Tree: treesCount++; break;
-			}
-		}
-		Debug.Log($"TutorialLevelLoader: Successfully loaded tutorial level with {levelData.Tiles.Count} tiles, {levelData.Animals.Count} animals, {levelData.Items.Count} items, {levelData.Interactables.Count} interactables ({densCount} dens, {rabbitSpawnersCount} rabbit spawners, {predatorDensCount} predator dens, {bushesCount} bushes, {grassesCount} grasses, {treesCount} trees)");
+		int interactableCount = levelData.Interactables != null ? levelData.Interactables.Count : 0;
+		Debug.Log($"TutorialLevelLoader: Successfully loaded tutorial level with {levelData.Tiles.Count} tiles, {levelData.Animals.Count} animals, {levelData.Items.Count} items, and {interactableCount} interactables");
     }
 
     /// <summary>
@@ -502,21 +494,9 @@ public class TutorialLevelLoader : MonoBehaviour
 
         // Initialize lists BEFORE any spawns are added
         levelData.Animals = new List<(string animalName, int x, int y, int count)>();
-        levelData.Items = new List<(string itemName, int x, int y)>();
+        levelData.Items = new List<(ItemType itemType, int x, int y)>();
         levelData.Interactables = new List<InteractableData>();
         levelData.FoodCount = 0;
-        
-        // Initialize legacy lists for backward compatibility
-        levelData.Dens = new List<(int x, int y)>();
-        levelData.RabbitSpawners = new List<(int x, int y)>();
-        levelData.PredatorDens = new List<(int x, int y, string predatorType)>();
-        levelData.Bushes = new List<(int x, int y)>();
-        levelData.Grasses = new List<(int x, int y)>();
-        levelData.Trees = new List<(int x, int y)>();
-        levelData.WormSpawners = new List<(int x, int y)>();
-        
-        // Generate worm spawners near water tiles (before other spawns to avoid conflicts)
-        GenerateWormSpawnersNearWater(levelData);
         
         // Generate spawns in procedural area (after lists are initialized)
         if (_proceduralYThreshold >= 0)
@@ -527,7 +507,6 @@ public class TutorialLevelLoader : MonoBehaviour
         // Place den
         if (IsValidGridPosition(_denPosition.x, _denPosition.y))
         {
-            levelData.Dens.Add((_denPosition.x, _denPosition.y));
             levelData.Interactables.Add(new InteractableData(InteractableType.Den, _denPosition.x, _denPosition.y));
         }
         else
@@ -572,7 +551,6 @@ public class TutorialLevelLoader : MonoBehaviour
             {
                 if (!string.IsNullOrEmpty(placement.predatorType))
                 {
-                    levelData.PredatorDens.Add((placement.position.x, placement.position.y, placement.predatorType));
                     levelData.Interactables.Add(new InteractableData(InteractableType.PredatorDen, placement.position.x, placement.position.y, placement.predatorType));
                 }
                 else
@@ -604,7 +582,6 @@ public class TutorialLevelLoader : MonoBehaviour
         {
             if (IsValidGridPosition(pos.x, pos.y))
             {
-                levelData.RabbitSpawners.Add((pos.x, pos.y));
                 levelData.Interactables.Add(new InteractableData(InteractableType.RabbitSpawner, pos.x, pos.y));
             }
             else
@@ -618,7 +595,6 @@ public class TutorialLevelLoader : MonoBehaviour
         {
             if (IsValidGridPosition(pos.x, pos.y))
             {
-                levelData.Bushes.Add((pos.x, pos.y));
                 levelData.Interactables.Add(new InteractableData(InteractableType.Bush, pos.x, pos.y));
             }
             else
@@ -632,7 +608,6 @@ public class TutorialLevelLoader : MonoBehaviour
         {
             if (IsValidGridPosition(pos.x, pos.y))
             {
-                levelData.Grasses.Add((pos.x, pos.y));
                 levelData.Interactables.Add(new InteractableData(InteractableType.Grass, pos.x, pos.y));
             }
             else
@@ -646,7 +621,6 @@ public class TutorialLevelLoader : MonoBehaviour
         {
             if (IsValidGridPosition(pos.x, pos.y))
             {
-                levelData.Trees.Add((pos.x, pos.y));
                 levelData.Interactables.Add(new InteractableData(InteractableType.Tree, pos.x, pos.y));
             }
             else
@@ -660,18 +634,13 @@ public class TutorialLevelLoader : MonoBehaviour
         {
             if (IsValidGridPosition(placement.position.x, placement.position.y))
             {
-                if (!string.IsNullOrEmpty(placement.itemName))
-                {
-                    levelData.Items.Add((placement.itemName, placement.position.x, placement.position.y));
-                    if (placement.itemName == "Food")
-                    {
-                        levelData.FoodCount++;
-                    }
-                }
-                else
-                {
-                    Debug.LogWarning($"TutorialLevelLoader: Item placement at ({placement.position.x}, {placement.position.y}) has empty name. Skipping.");
-                }
+                levelData.Items.Add((placement.itemType, placement.position.x, placement.position.y));
+                
+                // Note: Food items are tracked separately - if you have a Food item type, uncomment this
+                // if (placement.itemType == ItemType.Food)
+                // {
+                //     levelData.FoodCount++;
+                // }
             }
             else
             {
@@ -683,119 +652,153 @@ public class TutorialLevelLoader : MonoBehaviour
         return levelData;
     }
 
+
     /// <summary>
-    /// Generates worm spawners near water tiles that border non-water tiles.
+    /// Gets the tile type at a specific position from level data.
     /// </summary>
-    private void GenerateWormSpawnersNearWater(LevelData levelData)
+    private TileType GetTileTypeAt(LevelData levelData, int x, int y)
     {
-        List<Vector2Int> candidatePositions = new List<Vector2Int>();
-        
-        // Find all water tiles that border non-water tiles (Grass or Empty)
-        for (int y = 0; y < _levelHeight; y++)
+        foreach (var (tx, ty, tt) in levelData.Tiles)
         {
-            for (int x = 0; x < _levelWidth; x++)
+            if (tx == x && ty == y)
             {
-                // Get tile type at this position
-                TileType currentTileType = TileType.Empty;
-                foreach (var (tx, ty, tt) in levelData.Tiles)
-                {
-                    if (tx == x && ty == y)
-                    {
-                        currentTileType = tt;
-                        break;
-                    }
-                }
-                
-                // Only consider water tiles
-                if (currentTileType != TileType.Water)
-                    continue;
-                
-                // Check if this water tile borders a non-water tile (Grass or Empty)
-                bool bordersNonWater = false;
-                Vector2Int[] neighbors = new Vector2Int[]
-                {
-                    new Vector2Int(x - 1, y), // Left
-                    new Vector2Int(x + 1, y), // Right
-                    new Vector2Int(x, y - 1), // Down
-                    new Vector2Int(x, y + 1)  // Up
-                };
-                
-                foreach (Vector2Int neighbor in neighbors)
-                {
-                    if (neighbor.x < 0 || neighbor.x >= _levelWidth || neighbor.y < 0 || neighbor.y >= _levelHeight)
-                        continue;
-                    
-                    // Get neighbor tile type
-                    TileType neighborType = TileType.Empty;
-                    foreach (var (tx, ty, tt) in levelData.Tiles)
-                    {
-                        if (tx == neighbor.x && ty == neighbor.y)
-                        {
-                            neighborType = tt;
-                            break;
-                        }
-                    }
-                    
-                    // Check if neighbor is a non-water, non-obstacle tile
-                    if (neighborType == TileType.Grass || neighborType == TileType.Empty)
-                    {
-                        bordersNonWater = true;
-                        break;
-                    }
-                }
-                
-                if (bordersNonWater)
-                {
-                    candidatePositions.Add(new Vector2Int(x, y));
-                }
+                return tt;
             }
         }
-        
-        // Spawn worm spawners at candidate positions with chance and distance checks
-        List<Vector2Int> spawnedPositions = new List<Vector2Int>();
-        
-        foreach (Vector2Int candidatePos in candidatePositions)
+        return TileType.Empty;
+    }
+
+    /// <summary>
+    /// Checks if a position is already occupied by an interactable or item.
+    /// </summary>
+    private bool IsOccupied(Vector2Int pos, LevelData levelData)
+    {
+        foreach (var interactable in levelData.Interactables)
         {
-            // Check spawn chance
-            if (Random.Range(0f, 1f) > Globals.WormSpawnerSpawnChance)
-                continue;
-            
-            // Check minimum distance from other worm spawners
-            bool tooClose = false;
-            foreach (Vector2Int spawnedPos in spawnedPositions)
-            {
-                int distance = Mathf.Abs(candidatePos.x - spawnedPos.x) + Mathf.Abs(candidatePos.y - spawnedPos.y);
-                if (distance < Globals.WormSpawnerMinDistance)
-                {
-                    tooClose = true;
-                    break;
-                }
-            }
-            
-            if (tooClose)
-                continue;
-            
-            // Check if position is already occupied by an interactable
-            bool isOccupied = false;
-            foreach (var interactable in levelData.Interactables)
-            {
-                if (interactable.X == candidatePos.x && interactable.Y == candidatePos.y)
-                {
-                    isOccupied = true;
-                    break;
-                }
-            }
-            
-            if (isOccupied)
-                continue;
-            
-            // Spawn worm spawner at this position
-            levelData.WormSpawners.Add((candidatePos.x, candidatePos.y));
-            levelData.Interactables.Add(new InteractableData(InteractableType.WormSpawner, candidatePos.x, candidatePos.y));
-            spawnedPositions.Add(candidatePos);
+            if (interactable.X == pos.x && interactable.Y == pos.y)
+                return true;
         }
-        
-        Debug.Log($"TutorialLevelLoader: Generated {spawnedPositions.Count} worm spawners near water tiles");
+        foreach (var (_, ix, iy) in levelData.Items)
+        {
+            if (ix == pos.x && iy == pos.y)
+                return true;
+        }
+        return false;
+    }
+
+    /// <summary>
+    /// Spawns interactables based on the procedural spawn configuration list.
+    /// </summary>
+    private void SpawnProceduralInteractablesFromConfig(LevelData levelData, List<Vector2Int> proceduralPositions, List<Vector2Int> proceduralGrassPositions)
+    {
+        foreach (var config in _proceduralInteractableSpawnConfigs)
+        {
+            if (config.count <= 0)
+                continue;
+
+            // Determine if this interactable requires grass tiles
+            bool requiresGrass = config.interactableType == InteractableType.Bush ||
+                                 config.interactableType == InteractableType.Grass ||
+                                 config.interactableType == InteractableType.Tree;
+
+            // Use appropriate position list
+            List<Vector2Int> validPositions = requiresGrass 
+                ? new List<Vector2Int>(proceduralGrassPositions) 
+                : new List<Vector2Int>(proceduralPositions);
+
+            // Filter out occupied positions
+            validPositions.RemoveAll(pos => IsOccupied(pos, levelData));
+
+            if (validPositions.Count == 0)
+            {
+                Debug.LogWarning($"TutorialLevelLoader: No valid positions available for spawning {config.interactableType} in procedural area!");
+                continue;
+            }
+
+            // Spawn the interactables
+            int spawned = 0;
+            int attempts = 0;
+            int maxAttempts = validPositions.Count * 2;
+
+            while (spawned < config.count && validPositions.Count > 0 && attempts < maxAttempts)
+            {
+                attempts++;
+                int index = Random.Range(0, validPositions.Count);
+                Vector2Int spawnPos = validPositions[index];
+
+                // Add to Interactables list
+                levelData.Interactables.Add(new InteractableData(config.interactableType, spawnPos.x, spawnPos.y, config.predatorType));
+
+                spawned++;
+                validPositions.RemoveAt(index);
+                proceduralPositions.Remove(spawnPos);
+                proceduralGrassPositions.Remove(spawnPos);
+            }
+
+            if (spawned < config.count)
+            {
+                Debug.LogWarning($"TutorialLevelLoader: Only spawned {spawned} of {config.count} {config.interactableType} interactables in procedural area!");
+            }
+        }
+    }
+
+    /// <summary>
+    /// Spawns items based on the procedural spawn configuration list.
+    /// </summary>
+    private void SpawnProceduralItemsFromConfig(LevelData levelData, List<Vector2Int> proceduralPositions, List<Vector2Int> proceduralGrassPositions)
+    {
+        foreach (var config in _proceduralItemSpawnConfigs)
+        {
+            if (config.count <= 0)
+                continue;
+
+            // Determine if this item requires grass tiles (e.g., Sticks)
+            bool requiresGrass = config.itemType == ItemType.Sticks;
+
+            // Use appropriate position list
+            List<Vector2Int> validPositions = requiresGrass 
+                ? new List<Vector2Int>(proceduralGrassPositions) 
+                : new List<Vector2Int>(proceduralPositions);
+
+            // Filter out occupied positions
+            validPositions.RemoveAll(pos => IsOccupied(pos, levelData));
+
+            if (validPositions.Count == 0)
+            {
+                Debug.LogWarning($"TutorialLevelLoader: No valid positions available for spawning {config.itemType} items in procedural area!");
+                continue;
+            }
+
+            // Spawn the items
+            int spawned = 0;
+            int attempts = 0;
+            int maxAttempts = validPositions.Count * 2;
+
+            while (spawned < config.count && validPositions.Count > 0 && attempts < maxAttempts)
+            {
+                attempts++;
+                int index = Random.Range(0, validPositions.Count);
+                Vector2Int spawnPos = validPositions[index];
+
+                levelData.Items.Add((config.itemType, spawnPos.x, spawnPos.y));
+                
+                // Note: Food items are tracked separately - if you have a Food item type, uncomment this
+                // if (config.itemType == ItemType.Food)
+                // {
+                //     levelData.FoodCount++;
+                // }
+
+                spawned++;
+                validPositions.RemoveAt(index);
+                proceduralPositions.Remove(spawnPos);
+                proceduralGrassPositions.Remove(spawnPos);
+            }
+
+            if (spawned < config.count)
+            {
+                Debug.LogWarning($"TutorialLevelLoader: Only spawned {spawned} of {config.count} {config.itemType} items in procedural area!");
+            }
+        }
     }
 
     /// <summary>
@@ -840,131 +843,11 @@ public class TutorialLevelLoader : MonoBehaviour
         
         Debug.Log($"TutorialLevelLoader: Found {proceduralPositions.Count} walkable positions in procedural area ({proceduralGrassPositions.Count} grass tiles)");
         
-        // Helper to check if position is already occupied
-        bool IsOccupied(Vector2Int pos)
-        {
-            foreach (var interactable in levelData.Interactables)
-            {
-                if (interactable.X == pos.x && interactable.Y == pos.y)
-                    return true;
-            }
-            foreach (var (_, ix, iy) in levelData.Items)
-            {
-                if (ix == pos.x && iy == pos.y)
-                    return true;
-            }
-            return false;
-        }
+        // Spawn interactables from config list
+        SpawnProceduralInteractablesFromConfig(levelData, proceduralPositions, proceduralGrassPositions);
         
-        // Spawn rabbit spawners
-        for (int i = 0; i < _proceduralRabbitSpawnerCount && proceduralPositions.Count > 0; i++)
-        {
-            int attempts = 0;
-            while (attempts < 100 && proceduralPositions.Count > 0)
-            {
-                int index = Random.Range(0, proceduralPositions.Count);
-                Vector2Int pos = proceduralPositions[index];
-                attempts++;
-                
-                if (!IsOccupied(pos))
-                {
-                    levelData.RabbitSpawners.Add((pos.x, pos.y));
-                    levelData.Interactables.Add(new InteractableData(InteractableType.RabbitSpawner, pos.x, pos.y));
-                    proceduralPositions.RemoveAt(index);
-                    break;
-                }
-            }
-        }
-        
-        // Spawn bushes on grass tiles
-        List<Vector2Int> bushPositions = new List<Vector2Int>(proceduralGrassPositions);
-        for (int i = 0; i < _proceduralBushCount && bushPositions.Count > 0; i++)
-        {
-            int attempts = 0;
-            while (attempts < 100 && bushPositions.Count > 0)
-            {
-                int index = Random.Range(0, bushPositions.Count);
-                Vector2Int pos = bushPositions[index];
-                attempts++;
-                
-                if (!IsOccupied(pos))
-                {
-                    levelData.Bushes.Add((pos.x, pos.y));
-                    levelData.Interactables.Add(new InteractableData(InteractableType.Bush, pos.x, pos.y));
-                    bushPositions.RemoveAt(index);
-                    proceduralPositions.Remove(pos);
-                    break;
-                }
-            }
-        }
-        
-        // Spawn grass interactables on grass tiles
-        List<Vector2Int> grassIntPositions = new List<Vector2Int>(proceduralGrassPositions);
-        for (int i = 0; i < _proceduralGrassCount && grassIntPositions.Count > 0; i++)
-        {
-            int attempts = 0;
-            while (attempts < 100 && grassIntPositions.Count > 0)
-            {
-                int index = Random.Range(0, grassIntPositions.Count);
-                Vector2Int pos = grassIntPositions[index];
-                attempts++;
-                
-                if (!IsOccupied(pos))
-                {
-                    levelData.Grasses.Add((pos.x, pos.y));
-                    levelData.Interactables.Add(new InteractableData(InteractableType.Grass, pos.x, pos.y));
-                    grassIntPositions.RemoveAt(index);
-                    proceduralPositions.Remove(pos);
-                    break;
-                }
-            }
-        }
-        
-        // Spawn trees on grass tiles
-        List<Vector2Int> treePositions = new List<Vector2Int>(proceduralGrassPositions);
-        for (int i = 0; i < _proceduralTreeCount && treePositions.Count > 0; i++)
-        {
-            int attempts = 0;
-            while (attempts < 100 && treePositions.Count > 0)
-            {
-                int index = Random.Range(0, treePositions.Count);
-                Vector2Int pos = treePositions[index];
-                attempts++;
-                
-                if (!IsOccupied(pos))
-                {
-                    levelData.Trees.Add((pos.x, pos.y));
-                    levelData.Interactables.Add(new InteractableData(InteractableType.Tree, pos.x, pos.y));
-                    treePositions.RemoveAt(index);
-                    proceduralPositions.Remove(pos);
-                    break;
-                }
-            }
-        }
-        
-        // Spawn sticks on grass tiles
-        if (!string.IsNullOrEmpty(_proceduralStickItemName))
-        {
-            List<Vector2Int> stickPositions = new List<Vector2Int>(proceduralGrassPositions);
-            for (int i = 0; i < _proceduralStickCount && stickPositions.Count > 0; i++)
-            {
-                int attempts = 0;
-                while (attempts < 100 && stickPositions.Count > 0)
-                {
-                    int index = Random.Range(0, stickPositions.Count);
-                    Vector2Int pos = stickPositions[index];
-                    attempts++;
-                    
-                    if (!IsOccupied(pos))
-                    {
-                        levelData.Items.Add((_proceduralStickItemName, pos.x, pos.y));
-                        stickPositions.RemoveAt(index);
-                        proceduralPositions.Remove(pos);
-                        break;
-                    }
-                }
-            }
-        }
+        // Spawn items from config list
+        SpawnProceduralItemsFromConfig(levelData, proceduralPositions, proceduralGrassPositions);
         
         // Spawn predator patches with dens
         if (_proceduralPredatorNames != null && _proceduralPredatorNames.Length > 0)
@@ -995,7 +878,7 @@ public class TutorialLevelLoader : MonoBehaviour
                     int index = Random.Range(0, proceduralPositions.Count);
                     Vector2Int pos = proceduralPositions[index];
                     
-                    if (!IsOccupied(pos))
+                    if (!IsOccupied(pos, levelData))
                     {
                         patchCenter = pos;
                         foundCenter = true;
@@ -1012,7 +895,6 @@ public class TutorialLevelLoader : MonoBehaviour
                     : _proceduralPredatorNames[Random.Range(0, _proceduralPredatorNames.Length)];
                 
                 // Spawn predator den
-                levelData.PredatorDens.Add((patchCenter.x, patchCenter.y, patchPredatorType));
                 levelData.Interactables.Add(new InteractableData(InteractableType.PredatorDen, patchCenter.x, patchCenter.y, patchPredatorType));
                 proceduralPositions.Remove(patchCenter);
                 
@@ -1046,25 +928,19 @@ public class TutorialLevelLoader : MonoBehaviour
             
             // Log which predator types were spawned
             var spawnedTypes = new System.Collections.Generic.HashSet<string>();
-            foreach (var (_, _, predType) in levelData.PredatorDens)
+            int predatorDenCount = 0;
+            foreach (var interactable in levelData.Interactables)
             {
-                spawnedTypes.Add(predType);
+                if (interactable.Type == InteractableType.PredatorDen)
+                {
+                    predatorDenCount++;
+                    if (!string.IsNullOrEmpty(interactable.PredatorType))
+                    {
+                        spawnedTypes.Add(interactable.PredatorType);
+                    }
+                }
             }
-            Debug.Log($"TutorialLevelLoader: Spawned {levelData.PredatorDens.Count} predator patches. Types: {string.Join(", ", spawnedTypes)}");
-        }
-        
-        // Spawn food items
-        if (!string.IsNullOrEmpty(_proceduralFoodItemName))
-        {
-            for (int i = 0; i < _proceduralFoodCount && proceduralPositions.Count > 0; i++)
-            {
-                int index = Random.Range(0, proceduralPositions.Count);
-                Vector2Int pos = proceduralPositions[index];
-                
-                levelData.Items.Add((_proceduralFoodItemName, pos.x, pos.y));
-                levelData.FoodCount++;
-                proceduralPositions.RemoveAt(index);
-            }
+            Debug.Log($"TutorialLevelLoader: Spawned {predatorDenCount} predator patches. Types: {string.Join(", ", spawnedTypes)}");
         }
         
         Debug.Log($"TutorialLevelLoader: Spawned procedural content above Y={_proceduralYThreshold}");
