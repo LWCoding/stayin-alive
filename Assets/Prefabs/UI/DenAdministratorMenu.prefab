@@ -316,7 +316,7 @@ GameObject:
   - component: {fileID: 4551400202929617718}
   - component: {fileID: 2580462261808565969}
   m_Layer: 5
-  m_Name: UI_E
+  m_Name: UI_X
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -338,8 +338,8 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 1, y: 0.5}
   m_AnchorMax: {x: 1, y: 0.5}
-  m_AnchoredPosition: {x: -130, y: 0}
-  m_SizeDelta: {x: 50, y: 50}
+  m_AnchoredPosition: {x: -110, y: 0}
+  m_SizeDelta: {x: 100, y: 100}
   m_Pivot: {x: 1, y: 0.5}
 --- !u!222 &4551400202929617718
 CanvasRenderer:
@@ -369,7 +369,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_Sprite: {fileID: -121144227, guid: 5d8ae12165a1f1c488941e503e8db2ad, type: 3}
+  m_Sprite: {fileID: 21300000, guid: 40c4ce6813046384fa93762c66808c77, type: 3}
   m_Type: 0
   m_PreserveAspect: 0
   m_FillCenter: 1
@@ -561,7 +561,7 @@ GameObject:
   m_Component:
   - component: {fileID: 8911758975317384150}
   m_Layer: 5
-  m_Name: E to Close
+  m_Name: X to Close
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0

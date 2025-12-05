@@ -92,13 +92,6 @@ public class DenAdministrator : MonoBehaviour {
           DenSystemManager.Instance.OpenPanel();
         }
       }
-      else {
-        // Don't allow closing panel if tutorial UI is active
-        if (TutorialManager.Instance != null && TutorialManager.Instance.IsDenUITutorialActive) {
-          return;
-        }
-        DenSystemManager.Instance.ClosePanel();
-      }
     }
 
     if (Input.GetKeyDown(KeyCode.Z)) {
@@ -106,7 +99,17 @@ public class DenAdministrator : MonoBehaviour {
     }
 
     if (Input.GetKeyDown(KeyCode.X)) {
-      DenSystemManager.Instance.TransferOtherItemToPlayerByIndex();
+      // If panel is open, close it. Otherwise, transfer other items.
+      if (DenSystemManager.Instance.PanelOpen) {
+        // Don't allow closing panel if tutorial UI is active
+        if (TutorialManager.Instance != null && TutorialManager.Instance.IsDenUITutorialActive) {
+          return;
+        }
+        DenSystemManager.Instance.ClosePanel();
+      }
+      else {
+        DenSystemManager.Instance.TransferOtherItemToPlayerByIndex();
+      }
     }
 
     if (Input.GetKeyDown(KeyCode.C)) {

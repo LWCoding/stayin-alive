@@ -24,8 +24,8 @@ public class KnowledgeMenuGuiController : MonoBehaviour
 
     private void Update()
     {
-        // Close panel with E key when visible
-        if (Input.GetKeyDown(KeyCode.E))
+        // Close panel with X key when visible
+        if (Input.GetKeyDown(KeyCode.X))
         {
             if (IsVisible())
             {
