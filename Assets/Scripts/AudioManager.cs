@@ -27,6 +27,7 @@ public class AudioManager : Singleton<AudioManager>
         FullInventory = 14, 
         Planting = 15,  
         Hover = 16,
+        NewKnowledgeDiscovered = 17,
     }
 
     public enum MusicType
