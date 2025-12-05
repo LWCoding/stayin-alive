@@ -1796,7 +1796,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 34646ea0de313664aa74bc4e06e5df15, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _turnsPerSeason: 100
+  _turnsPerSeason: 150
   _progressBarImage: {fileID: 1622132781}
   _seasonImage: {fileID: 1166810994}
   _seasonText: {fileID: 940832583}
