@@ -635,12 +635,7 @@ public class KangRatWorker : WorkerAnimal
 		{
 			return false;
 		}
-
-		// if (!DenSystemManager.Instance.SpendFoodFromDen(1))
-		// {
-		// 	return false;
-		// }
-
+    
     int hungerRestoredResult = DenSystemManager.Instance.SpendFoodFromDen();
     
 

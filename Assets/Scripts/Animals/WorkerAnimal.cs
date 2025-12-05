@@ -83,6 +83,15 @@ public class WorkerAnimal : PreyAnimal
           if (workerItems[i] != null) {
             if (workerItems[i] is FoodItem) {
               foodCount++;
+              
+              // Workers have a chance to deposit extra food based on number of assigned workers
+              float rng = Random.Range(0f, 1f);
+              if (rng <= WorkerManager.Instance.CurrentWorkerBonusFoodDropRate) {
+                Item duplicatedItem = ItemManager.Instance.CreateItemForStorage(workerItems[i].ItemType);
+                DenSystemManager.Instance.AddItemToDenInventory(duplicatedItem);
+                foodCount++;
+              }
+              
             }
             
             else {
@@ -90,8 +99,6 @@ public class WorkerAnimal : PreyAnimal
             }
             
             DenSystemManager.Instance.AddItemToDenInventory(workerItems[i]);
-            
-            // workerItems[i].DestroyItem();
           }
         }
 
