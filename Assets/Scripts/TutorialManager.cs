@@ -310,6 +310,14 @@ public class TutorialManager : Singleton<TutorialManager>
             TimeManager.Instance?.Pause();
         }
         
+        // Show sticks explanation when player moves beyond X threshold
+        if (!_sticksExplanationShown && _sticksExplanationUI != null && player.GridPosition.x >= _sticksExplanationXThreshold)
+        {
+            _sticksExplanationUI.SetActive(true);
+            _sticksExplanationShown = true;
+            TimeManager.Instance?.Pause();
+        }
+        
         // Show rabbits and dens explanation when player moves beyond X threshold
         if (!_rabbitsAndDensExplanationShown && _rabbitsAndDensExplanationUI != null && player.GridPosition.x >= _rabbitsAndDensExplanationXThreshold)
         {
