@@ -118,15 +118,15 @@ public class DenAdministrator : MonoBehaviour {
   }
   
   public void PurchaseWorker() {
-    int currentWorkerPrice = DenSystemManager.Instance.GetCurrentWorkerPrice();
+    int currentWorkerPrice = WorkerManager.Instance.CurrentWorkerPrice;
     if (DenSystemManager.Instance.FoodInDen < currentWorkerPrice) {
       Debug.Log("Not Enough Food To Make Worker");
       return;
     }
-
-    bool success = DenSystemManager.Instance.CreateWorker();
-
-    if (!success) {
+    
+    WorkerManager.WorkerOperationResult result = WorkerManager.Instance.CreateWorker();
+    
+    if (result != WorkerManager.WorkerOperationResult.WORKER_CREATED) {
       return;
     }
     

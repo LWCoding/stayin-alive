@@ -149,7 +149,7 @@ public class ProceduralLevelLoader : MonoBehaviour
                 {
                     for (int i = 0; i < _controllableAnimalCount; i++)
                     {
-                        DenSystemManager.Instance.CreateWorkerAtPosition(player.GridPosition);
+                        WorkerManager.Instance.CreateWorker(player.GridPosition);
                     }
                 }
             }

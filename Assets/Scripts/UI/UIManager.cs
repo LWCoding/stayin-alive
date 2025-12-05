@@ -284,7 +284,7 @@ public class UIManager : Singleton<UIManager>
         }
         
         // Update the text with the formatted string
-        _mvpProgressText.text = $"<size=36>MVP:</size>\n{DenSystemManager.Instance.CurrentMvpPopulation}/{Globals.MvpWorkerGoal}";
+        _mvpProgressText.text = $"<size=36>MVP:</size>\n{WorkerManager.Instance.CurrentMvpPopulation}/{Globals.MvpWorkerGoal}";
     }
     
     /// <summary>

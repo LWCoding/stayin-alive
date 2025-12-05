@@ -31,6 +31,8 @@ public class GameManager : Singleton<GameManager>
     private bool _hasWon = false;
     private bool _hasLost = false;
     
+    public bool HasWon => _hasWon;
+    
     protected override void Awake()
     {
         base.Awake();

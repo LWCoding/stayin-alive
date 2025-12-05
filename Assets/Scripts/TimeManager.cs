@@ -204,7 +204,7 @@ public class TimeManager : Singleton<TimeManager>
 			}
 
 			// Skip unassigned workers - they should not execute any logic until assigned to a den
-			if (DenSystemManager.Instance != null && DenSystemManager.Instance.IsUnassignedWorker(animal))
+			if (WorkerManager.Instance != null && WorkerManager.Instance.GetWorkerAssignmentStatus(animal) == WorkerManager.WorkerAssignmentStatus.UNASSIGNED)
 			{
 				continue;
 			}

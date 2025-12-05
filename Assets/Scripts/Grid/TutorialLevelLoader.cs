@@ -254,7 +254,7 @@ public class TutorialLevelLoader : MonoBehaviour
             {
                 for (int i = 0; i < _controllableAnimalCount; i++)
                 {
-                    DenSystemManager.Instance.CreateWorkerAtPosition(_controllableAnimalPosition);
+                    WorkerManager.Instance.CreateWorker(_controllableAnimalPosition);
                 }
             }
         }

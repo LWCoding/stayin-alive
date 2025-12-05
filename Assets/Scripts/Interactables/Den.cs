@@ -31,13 +31,19 @@ public class Den : Interactable, IHideable
 
     private List<Animal> denWorkers = new List<Animal>();
 
-    public void AddWorker(Animal animal) {
+    public int DenId => GridPosition.x * 10000 + GridPosition.y;
+    
+    // Returns true if added properly, false if the den is full
+    public bool AddWorker(Animal animal) {
       // Only add if not at capacity
       if (denWorkers.Count < Globals.MaxWorkersPerDen) {
         denWorkers.Add(animal);
-      } else {
-        Debug.LogWarning($"Den at ({GridPosition.x}, {GridPosition.y}) is at maximum capacity ({Globals.MaxWorkersPerDen} workers).");
+        return true;
       }
+
+      Debug.LogWarning($"Den at ({GridPosition.x}, {GridPosition.y}) is at maximum capacity ({Globals.MaxWorkersPerDen} workers).");
+
+      return false;
     }
 
     public void RemoveWorker(Animal animal) {

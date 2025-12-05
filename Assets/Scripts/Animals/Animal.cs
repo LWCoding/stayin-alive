@@ -275,10 +275,10 @@ public class Animal : MonoBehaviour
         UpdateCountText();
         UpdateFollowers(oldCount, _animalCount);
         
-        if (IsControllable && DenSystemManager.Instance != null)
+        if (IsControllable && DenSystemManager.Instance != null && WorkerManager.Instance != null)
         {
-            bool hadFollowersAvailable = DenSystemManager.Instance.GetUnassignedWorkerCount() > 0;
-            bool consumedWorker = DenSystemManager.Instance.TryConsumeUnassignedWorkerForPlayerDamage();
+            bool hadFollowersAvailable = WorkerManager.Instance.CurrentUnassignedPopulation > 0;
+            bool consumedWorker = WorkerManager.Instance.TryConsumeUnassignedWorkerForPlayerDamage();
             if (hadFollowersAvailable && !consumedWorker)
             {
                 Debug.LogWarning("ControllableAnimal took damage but no unassigned worker could be consumed. MVP may be out of sync.");
@@ -874,12 +874,13 @@ public class Animal : MonoBehaviour
     public virtual void Die()
     {
         // If this animal is a worker, notify the DenSystemManager to clean up
-        if (DenSystemManager.Instance != null)
+        if (WorkerManager.Instance != null && WorkerManager.Instance.GetWorkerAssignmentStatus(this) != WorkerManager.WorkerAssignmentStatus.ERROR)
         {
-            DenSystemManager.Instance.OnWorkerDeath(this);
+            WorkerManager.Instance.OnWorkerDeath(this);
+            return;
         }
         
-        Destroy(gameObject);
+        Destroy(gameObject); // I think this should get called within OnWorkerDeath
     }
 
     /// <summary>

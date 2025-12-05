@@ -231,7 +231,7 @@ public class AnimalManager : Singleton<AnimalManager>
             }
 
             // Skip unassigned workers - they should not cause collision reverts
-            if (DenSystemManager.Instance != null && DenSystemManager.Instance.IsUnassignedWorker(other))
+            if (WorkerManager.Instance != null && WorkerManager.Instance.GetWorkerAssignmentStatus(other) == WorkerManager.WorkerAssignmentStatus.UNASSIGNED)
             {
                 continue;
             }
@@ -278,7 +278,7 @@ public class AnimalManager : Singleton<AnimalManager>
             }
 
             // Skip unassigned workers - they should not block movement
-            if (DenSystemManager.Instance != null && DenSystemManager.Instance.IsUnassignedWorker(other))
+            if (WorkerManager.Instance != null && WorkerManager.Instance.GetWorkerAssignmentStatus(other) == WorkerManager.WorkerAssignmentStatus.UNASSIGNED)
             {
                 continue;
             }
@@ -323,7 +323,7 @@ public class AnimalManager : Singleton<AnimalManager>
             }
 
             // Skip unassigned workers - they should not block movement
-            if (DenSystemManager.Instance != null && DenSystemManager.Instance.IsUnassignedWorker(other))
+            if (WorkerManager.Instance != null && WorkerManager.Instance.GetWorkerAssignmentStatus(other) == WorkerManager.WorkerAssignmentStatus.UNASSIGNED)
             {
                 continue;
             }

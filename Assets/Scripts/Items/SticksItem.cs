@@ -38,14 +38,7 @@ public class SticksItem : Item
     {
         return Mathf.Max(0, GetNextDenStickCost() - currentStickCount);
     }
-
-    private static void AdvanceCostProgression()
-    {
-        if (DenSystemManager.Instance != null)
-        {
-            DenSystemManager.Instance.IncrementDensBuiltWithSticks();
-        }
-    }
+    
     /// <summary>
     /// When sticks are used, it places a den on the player's current tile.
     /// Returns true if the den was successfully placed (item is consumed), false otherwise.
@@ -119,8 +112,6 @@ public class SticksItem : Item
             // Den was already spawned, so we can't easily undo it. This is an error state.
             return false;
         }
-        
-        AdvanceCostProgression();
         
         // Notify that a den was built by player
         InteractableManager.Instance.NotifyDenBuiltByPlayer(newDen);

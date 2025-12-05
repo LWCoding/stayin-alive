@@ -126,14 +126,15 @@ public class DenAdminMenuGuiController : MonoBehaviour {
     }
 
     workerIcons = new List<WorkerIconGuiController>();
-    foreach (Animal worker in DenSystemManager.Instance.WorkersToDens.Keys.ToList()) {
+    // TODO: (leythtoubassy) fix this loop to only loop over current admin den workers
+    foreach (Animal worker in WorkerManager.Instance.AllWorkers) {
       RectTransform workerIconParent = unassignedWorkers;
-      if (DenSystemManager.Instance.WorkersToDens[worker] ==
+      if (WorkerManager.Instance.WorkersToDens[worker] ==
           DenSystemManager.Instance.CurrentAdminDen.GetDenInfo().denId) {
         workerIconParent = currentDenWorkers;
       }
-      else if (DenSystemManager.Instance.WorkersToDens[worker] !=
-          DenSystemManager.Instance.UNASSIGNED_DEN_ID) {
+      else if (WorkerManager.Instance.WorkersToDens[worker] !=
+          WorkerManager.UNASSIGNED_DEN_ID) {
         continue;
       }
       
@@ -159,7 +160,7 @@ public class DenAdminMenuGuiController : MonoBehaviour {
     }
     
     // Get the current dynamic worker price
-    int currentWorkerPrice = DenSystemManager.Instance.GetCurrentWorkerPrice();
+    int currentWorkerPrice = WorkerManager.Instance.CurrentWorkerPrice;
     
     // Update button text with dynamic cost using {0} placeholder
     TextMeshProUGUI buttonText = purchaseWorkerButton.GetComponentInChildren<TextMeshProUGUI>();
@@ -171,7 +172,7 @@ public class DenAdminMenuGuiController : MonoBehaviour {
     // Only check if player can afford - allow breeding even if den is full (workers go to unassigned pool)
     // JUST KIDDING! Do NOT allow if den is full
     bool canAfford = DenSystemManager.Instance.FoodInDen >= currentWorkerPrice;
-    bool hasRoom = DenSystemManager.Instance.HaveRoomToCreateWorker();
+    bool hasRoom = WorkerManager.Instance.HaveRoomToCreateWorker();
     if (!hasRoom) {
       buttonText.text = denFullButtonText.Replace("\\n", "\n");
     }

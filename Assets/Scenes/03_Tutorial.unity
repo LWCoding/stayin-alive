@@ -8326,6 +8326,7 @@ Transform:
   - {fileID: 1724762253}
   - {fileID: 1685899307}
   - {fileID: 1487268836}
+  - {fileID: 2051561358}
   - {fileID: 1260482465}
   - {fileID: 381710278}
   - {fileID: 593811969}
@@ -9184,11 +9185,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 0965700abd4664d749401a06167996c0, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  denPrice: 1
-  workerPrice: 1
   workerAnimalData: {fileID: 11400000, guid: ab461c77659a78c4abbf1422e72cee7f, type: 2}
   startingDenFood: 0
-  UNASSIGNED_DEN_ID: -1
   denAdminMenu: {fileID: 2028220995}
   logHolder: {fileID: 2028220993}
 --- !u!1 &1497158782
@@ -12610,6 +12608,51 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 2050971479}
   m_CullTransparentMesh: 1
+--- !u!1 &2051561357
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 2051561358}
+  - component: {fileID: 2051561359}
+  m_Layer: 0
+  m_Name: WorkerManager
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &2051561358
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2051561357}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 1312731903}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &2051561359
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2051561357}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 10eb3afd003c04f58880f8670c6c4145, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  workerAnimalData: {fileID: 11400000, guid: ab461c77659a78c4abbf1422e72cee7f, type: 2}
 --- !u!1 &2087523914
 GameObject:
   m_ObjectHideFlags: 0

@@ -38,7 +38,7 @@ public class WorkerIconGuiController : MonoBehaviour, IPointerEnterHandler, IPoi
 
   private void TextInit() {
     arrowText.color = Color.clear;
-    if (DenSystemManager.Instance.WorkersToDens[animal] == -1) {
+    if (WorkerManager.Instance.WorkersToDens[animal] == WorkerManager.UNASSIGNED_DEN_ID) {
       arrowText.text = unassignedDenText;
       return;
     }
@@ -57,8 +57,8 @@ public class WorkerIconGuiController : MonoBehaviour, IPointerEnterHandler, IPoi
 
   public void TransferWorker() {
     if (arrowText.text == unassignedDenText) {
-      bool success = DenSystemManager.Instance.AssignWorker(animal, DenSystemManager.Instance.CurrentAdminDen.GetDenInfo().denId);
-      if (!success) {
+      WorkerManager.WorkerOperationResult result = WorkerManager.Instance.Assign(animal, DenSystemManager.Instance.CurrentAdminDen.GetDenInfo().denId);
+      if (result != WorkerManager.WorkerOperationResult.WORKER_ASSIGNED) {
         // Spawn FadeText message if assignment failed (likely due to not enough space)
         if (ParticleManager.Instance != null) {
           RectTransform workerIconRect = GetComponent<RectTransform>();
@@ -71,7 +71,15 @@ public class WorkerIconGuiController : MonoBehaviour, IPointerEnterHandler, IPoi
     }
 
     else if (arrowText.text == currentDenText) {
-      DenSystemManager.Instance.UnassignWorker(animal);
+      WorkerManager.WorkerOperationResult result = WorkerManager.Instance.Unassign(animal);
+      if (result != WorkerManager.WorkerOperationResult.WORKER_UNASSIGNED) {
+        if (ParticleManager.Instance != null) {
+          RectTransform workerIconRect = GetComponent<RectTransform>();
+          if (workerIconRect != null) {
+            ParticleManager.Instance.SpawnFadeTextAtRectTransform("You have too many followers", workerIconRect);
+          }
+        }
+      }
       InitializeWorkerIcon(animal);
     }
     

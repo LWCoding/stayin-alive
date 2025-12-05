@@ -151,10 +151,9 @@ public class ControllableAnimal : Animal
     /// </summary>
     public void UpdateFollowerCount() {
         if (DenSystemManager.Instance != null) {
-            int unassignedCount = DenSystemManager.Instance.GetUnassignedWorkerCount();
-            int newCount = unassignedCount + 1;
+            int unassignedCount = WorkerManager.Instance.CurrentUnassignedPopulation;
+            int newCount = unassignedCount + WorkerManager.PLAYER_MVP_CONTRIBUTION;
             SetAnimalCount(newCount);
-            DenSystemManager.Instance.InitializeMvpPopulationFromFollowerCount(newCount);
         }
     }
 
