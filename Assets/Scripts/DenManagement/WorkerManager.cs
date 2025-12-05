@@ -142,6 +142,7 @@ public class WorkerManager : Singleton<WorkerManager> {
         if (CurrentMvpPopulation >= Globals.MvpWorkerGoal && GameManager.Instance != null) {
           GameManager.Instance.TriggerWin();
         }
+        denSystemManager.WorkerCreatedInvoke();
         return WorkerOperationResult.WORKER_CREATED;
     }
     

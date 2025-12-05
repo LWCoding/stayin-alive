@@ -40,6 +40,10 @@ public class DenSystemManager : Singleton<DenSystemManager> {
   {
     OnPlayerTeleported?.Invoke();
   }
+
+  public void WorkerCreatedInvoke() {
+    OnWorkerCreated?.Invoke();
+  }
   
   public struct DenInformation {
     public int denId;
