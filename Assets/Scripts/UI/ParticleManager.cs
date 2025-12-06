@@ -20,8 +20,17 @@ public class ParticleManager : Singleton<ParticleManager>
     [Tooltip("Default upward movement distance for FadeText (in UI units)")]
     [SerializeField] private float defaultFadeTextMovementDistance = 100f;
     
+    [Header("Pooling Settings")]
+    [Tooltip("Initial pool size for FadeText particles. Pre-pooled at game start.")]
+    [SerializeField] private int initialPoolSize = 10;
+    
+    [Tooltip("Maximum pool size. If exceeded, particles will be destroyed instead of pooled.")]
+    [SerializeField] private int maxPoolSize = 30;
+    
     private Transform particleParent;
     private Canvas targetCanvas;
+    private Queue<FadeText> fadeTextPool = new Queue<FadeText>();
+    private int activeParticleCount = 0;
     
     protected override void Awake()
     {
@@ -49,6 +58,121 @@ public class ParticleManager : Singleton<ParticleManager>
         particleParent = parentObj.transform;
     }
     
+    private void Start()
+    {
+        // Pre-pool particles at game start/level loading
+        PrePoolParticles();
+    }
+    
+    /// <summary>
+    /// Pre-pools FadeText particles at game start to avoid runtime instantiation.
+    /// </summary>
+    private void PrePoolParticles()
+    {
+        if (fadeTextPrefab == null)
+        {
+            Debug.LogWarning("ParticleManager: Cannot pre-pool - fadeTextPrefab is not assigned. Particles will be created on-demand.");
+            return;
+        }
+        
+        for (int i = 0; i < initialPoolSize; i++)
+        {
+            GameObject fadeTextObj = Instantiate(fadeTextPrefab, particleParent);
+            fadeTextObj.SetActive(false);
+            
+            FadeText fadeText = fadeTextObj.GetComponent<FadeText>();
+            if (fadeText == null)
+            {
+                fadeText = fadeTextObj.AddComponent<FadeText>();
+            }
+            
+            fadeText.ResetForPool();
+            fadeTextPool.Enqueue(fadeText);
+        }
+        
+        Debug.Log($"ParticleManager: Pre-pooled {initialPoolSize} FadeText particles.");
+    }
+    
+    /// <summary>
+    /// Gets a FadeText from the pool, or creates a new one if pool is empty.
+    /// </summary>
+    private FadeText GetFadeTextFromPool()
+    {
+        FadeText fadeText = null;
+        
+        // Try to get from pool
+        while (fadeTextPool.Count > 0)
+        {
+            fadeText = fadeTextPool.Dequeue();
+            if (fadeText != null && fadeText.gameObject != null)
+            {
+                break;
+            }
+            fadeText = null;
+        }
+        
+        // If pool is empty, create new one
+        if (fadeText == null)
+        {
+            if (fadeTextPrefab != null)
+            {
+                GameObject fadeTextObj = Instantiate(fadeTextPrefab, particleParent);
+                fadeText = fadeTextObj.GetComponent<FadeText>();
+                if (fadeText == null)
+                {
+                    fadeText = fadeTextObj.AddComponent<FadeText>();
+                }
+            }
+            else
+            {
+                // Fallback: create manually if no prefab
+                GameObject fadeTextObj = new GameObject("FadeText");
+                fadeTextObj.transform.SetParent(particleParent, false);
+                
+                RectTransform rectTransform = fadeTextObj.AddComponent<RectTransform>();
+                rectTransform.sizeDelta = new Vector2(200f, 50f);
+                
+                TextMeshProUGUI textMeshPro = fadeTextObj.AddComponent<TextMeshProUGUI>();
+                textMeshPro.fontSize = 36f;
+                textMeshPro.alignment = TMPro.TextAlignmentOptions.Center;
+                textMeshPro.color = Color.white;
+                
+                fadeText = fadeTextObj.AddComponent<FadeText>();
+            }
+        }
+        
+        activeParticleCount++;
+        return fadeText;
+    }
+    
+    /// <summary>
+    /// Returns a FadeText to the pool for reuse.
+    /// </summary>
+    private void ReturnFadeTextToPool(FadeText fadeText)
+    {
+        if (fadeText == null || fadeText.gameObject == null)
+        {
+            return;
+        }
+        
+        // Reset the particle
+        fadeText.ResetForPool();
+        fadeText.gameObject.SetActive(false);
+        
+        // Return to pool if under max size
+        if (fadeTextPool.Count < maxPoolSize)
+        {
+            fadeTextPool.Enqueue(fadeText);
+        }
+        else
+        {
+            // Pool is full, destroy the particle
+            Destroy(fadeText.gameObject);
+        }
+        
+        activeParticleCount--;
+    }
+    
     /// <summary>
     /// Spawns a FadeText at the specified UI position (in screen space coordinates).
     /// </summary>
@@ -65,26 +189,12 @@ public class ParticleManager : Singleton<ParticleManager>
             return null;
         }
         
-        // Create FadeText GameObject
-        GameObject fadeTextObj;
-        if (fadeTextPrefab != null)
+        // Get FadeText from pool
+        FadeText fadeText = GetFadeTextFromPool();
+        if (fadeText == null)
         {
-            fadeTextObj = Instantiate(fadeTextPrefab, particleParent);
-        }
-        else
-        {
-            fadeTextObj = new GameObject("FadeText");
-            fadeTextObj.transform.SetParent(particleParent, false);
-            
-            // Add RectTransform
-            RectTransform rectTransform = fadeTextObj.AddComponent<RectTransform>();
-            rectTransform.sizeDelta = new Vector2(200f, 50f); // Default size
-            
-            // Add TextMeshProUGUI component
-            TextMeshProUGUI textMeshPro = fadeTextObj.AddComponent<TextMeshProUGUI>();
-            textMeshPro.fontSize = 36f;
-            textMeshPro.alignment = TMPro.TextAlignmentOptions.Center;
-            textMeshPro.color = Color.white;
+            Debug.LogError("ParticleManager: Failed to get FadeText from pool!");
+            return null;
         }
         
         // Convert screen position to canvas position
@@ -92,23 +202,16 @@ public class ParticleManager : Singleton<ParticleManager>
         Vector2 canvasPosition = ScreenToCanvasPosition(screenPosition, canvasRect);
         
         // Set position
-        RectTransform fadeTextRect = fadeTextObj.GetComponent<RectTransform>();
+        RectTransform fadeTextRect = fadeText.GetComponent<RectTransform>();
         if (fadeTextRect != null)
         {
             fadeTextRect.anchoredPosition = canvasPosition;
         }
         
-        // Get or add FadeText component
-        FadeText fadeText = fadeTextObj.GetComponent<FadeText>();
-        if (fadeText == null)
-        {
-            fadeText = fadeTextObj.AddComponent<FadeText>();
-        }
-        
-        // Initialize with parameters
+        // Initialize with parameters and callback to return to pool
         float animDuration = duration ?? defaultFadeTextDuration;
         float movementDistance = upwardMovementDistance ?? defaultFadeTextMovementDistance;
-        fadeText.Initialize(text, animDuration, movementDistance);
+        fadeText.Initialize(text, animDuration, movementDistance, ReturnFadeTextToPool);
         
         return fadeText;
     }

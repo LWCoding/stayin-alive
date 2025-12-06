@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using UnityEngine;
 using TMPro;
@@ -24,13 +25,18 @@ public class FadeText : MonoBehaviour
     private Color startColor;
     private Coroutine animationCoroutine;
     
+    // Pooling support
+    private System.Action<FadeText> onAnimationComplete;
+    private bool isPooled = false;
+    
     /// <summary>
     /// Initializes the FadeText with custom settings and starts the animation.
     /// </summary>
     /// <param name="text">The text to display</param>
     /// <param name="duration">Duration of the animation in seconds</param>
     /// <param name="upwardMovementDistance">Distance to move upwards during animation</param>
-    public void Initialize(string text, float duration = 2f, float upwardMovementDistance = 100f)
+    /// <param name="onComplete">Callback when animation completes (for pooling)</param>
+    public void Initialize(string text, float duration = 2f, float upwardMovementDistance = 100f, System.Action<FadeText> onComplete = null)
     {
         // Get or add TextMeshProUGUI component
         textMeshPro = GetComponent<TextMeshProUGUI>();
@@ -55,12 +61,46 @@ public class FadeText : MonoBehaviour
         startPosition = rectTransform.anchoredPosition;
         startColor = textMeshPro.color;
         
+        // Store callback for pooling
+        onAnimationComplete = onComplete;
+        isPooled = onComplete != null;
+        
+        // Ensure object is active
+        gameObject.SetActive(true);
+        
         // Start animation
         if (animationCoroutine != null)
         {
             StopCoroutine(animationCoroutine);
         }
         animationCoroutine = StartCoroutine(AnimateCoroutine());
+    }
+    
+    /// <summary>
+    /// Resets the FadeText to its initial state for reuse in the pool.
+    /// </summary>
+    public void ResetForPool()
+    {
+        // Stop any running animation
+        if (animationCoroutine != null)
+        {
+            StopCoroutine(animationCoroutine);
+            animationCoroutine = null;
+        }
+        
+        // Reset components if they exist
+        if (textMeshPro != null)
+        {
+            textMeshPro.color = new Color(textMeshPro.color.r, textMeshPro.color.g, textMeshPro.color.b, 1f);
+        }
+        
+        if (rectTransform != null)
+        {
+            rectTransform.anchoredPosition = Vector3.zero;
+        }
+        
+        onAnimationComplete = null;
+        isPooled = false;
     }
     
     private IEnumerator AnimateCoroutine()
@@ -91,8 +131,15 @@ public class FadeText : MonoBehaviour
         textMeshPro.color = finalColor;
         rectTransform.anchoredPosition = endPosition;
         
-        // Destroy when animation completes
-        Destroy(gameObject);
+        // Return to pool or destroy
+        if (isPooled && onAnimationComplete != null)
+        {
+            onAnimationComplete(this);
+        }
+        else
+        {
+            Destroy(gameObject);
+        }
     }
     
     private void OnDestroy()
