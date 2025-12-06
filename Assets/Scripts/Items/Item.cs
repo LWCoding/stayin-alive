@@ -110,6 +110,13 @@ public abstract class Item : MonoBehaviour, IItem
     private void Start()
     {
         SubscribeToTimeManager();
+        
+        // Initial check for player position
+        _isPlayerOnTile = IsPlayerOnSameTile();
+        if (_interactionIndicator != null)
+        {
+            _interactionIndicator.SetActive(_isPlayerOnTile);
+        }
     }
     
     private void SubscribeToTimeManager()
@@ -126,13 +133,13 @@ public abstract class Item : MonoBehaviour, IItem
     }
     
     /// <summary>
-    /// Called when a turn advances (after all animals have moved).
-    /// Checks if the player is on the same tile, updates the interaction indicator,
-    /// and handles E key press for item pickup.
+    /// Called when a turn advances (after player moves and all animals have moved).
+    /// Checks if the player is on the same tile and updates the interaction indicator.
+    /// Player movement happens before turn advancement, so this is safe from race conditions.
     /// </summary>
     private void OnTurnAdvanced(int turnCount)
     {
-        // Check if player is on the same tile
+        // Check if player is on the same tile after turn advancement (player moves first)
         _isPlayerOnTile = IsPlayerOnSameTile();
         
         // Show/hide interaction indicator
@@ -144,6 +151,7 @@ public abstract class Item : MonoBehaviour, IItem
 
     private void Update() 
     {
+        // Only check input - player position is updated on turn advancement to prevent race conditions
         // If player is on the same tile and E key is pressed, attempt pickup
         if (_isPlayerOnTile && Input.GetKeyDown(KeyCode.E))
         {

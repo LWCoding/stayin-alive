@@ -23,6 +23,9 @@ public class WorkerAnimal : PreyAnimal
         {
             // OnFoodConsumed += OnAnimalFoodConsumed;
         }
+        
+        // Subscribe to turn advancement to check if worker should deposit items
+        SubscribeToTurnEvents();
     }
 
     private void OnDisable()
@@ -32,11 +35,45 @@ public class WorkerAnimal : PreyAnimal
         {
             // OnFoodConsumed -= OnAnimalFoodConsumed;
         }
+        
+        // Unsubscribe from turn events
+        UnsubscribeFromTurnEvents();
     }
 
-    private void Update()
+    private void SubscribeToTurnEvents()
     {
+        if (TimeManager.Instance != null)
+        {
+            TimeManager.Instance.OnTurnAdvanced += OnTurnAdvanced;
+        }
+    }
+
+    private void UnsubscribeFromTurnEvents()
+    {
+        if (TimeManager.Instance != null)
+        {
+            TimeManager.Instance.OnTurnAdvanced -= OnTurnAdvanced;
+        }
+    }
+
+    private void OnTurnAdvanced(int turnCount)
+    {
+        // Check if worker should deposit items at home after turn advancement
+        // This happens after player moves and all animals have taken their turn
         TryDepositAtHome();
+    }
+    
+    public override void SetGridPosition(Vector2Int gridPosition)
+    {
+        Vector2Int previousPosition = GridPosition;
+        base.SetGridPosition(gridPosition);
+        
+        // Check if worker arrived at home after position change
+        // This handles cases where worker moves directly to home position
+        if (previousPosition != gridPosition)
+        {
+            TryDepositAtHome();
+        }
     }
     
 

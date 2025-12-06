@@ -164,19 +164,18 @@ public class Grass : Interactable
 		CalculateNextSpawnTime();
 		CalculateNextSpreadTime();
 		UpdateSprite();
-	}
-
-	private void Update()
-	{
-		// Check if player is on the same tile
+		
+		// Initial check for player position
 		_isPlayerOnTile = IsPlayerOnSameTile();
-
-		// Show/hide interaction indicator
 		if (_interactionIndicator != null)
 		{
 			_interactionIndicator.SetActive(_isPlayerOnTile);
 		}
+	}
 
+	private void Update()
+	{
+		// Only check input - player position is updated on turn advancement to prevent race conditions
 		// If player is on the same tile and E key is pressed, attempt harvest
 		if (_isPlayerOnTile && Input.GetKeyDown(KeyCode.E))
 		{
@@ -298,6 +297,15 @@ public class Grass : Interactable
 
 	private void HandleTurnAdvanced(int currentTurn)
 	{
+		// Update player position check after turn advancement (player moves first, then turn advances)
+		_isPlayerOnTile = IsPlayerOnSameTile();
+
+		// Show/hide interaction indicator
+		if (_interactionIndicator != null)
+		{
+			_interactionIndicator.SetActive(_isPlayerOnTile);
+		}
+		
 		if (!_initialized || _averageTurnsBetweenSpawns <= 0)
 		{
 			return;

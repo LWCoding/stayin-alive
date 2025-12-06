@@ -94,13 +94,55 @@ public class UIManager : Singleton<UIManager>
 
     private void Start() {
       KnowledgeManager.Instance.OnNewKnowledgeFlagChange += SetKnowledgeNotif;
+      
+      // Subscribe to turn advancement to update UI after player moves
+      if (TimeManager.Instance != null)
+      {
+        TimeManager.Instance.OnTurnAdvanced += OnTurnAdvanced;
+      }
+      
+      // Subscribe to events that change MVP population or FoodInDen
+      if (DenSystemManager.Instance != null)
+      {
+        DenSystemManager.Instance.OnWorkerCreated += UpdateMvpProgress;
+        DenSystemManager.Instance.OnWorkerAssigned += UpdateMvpProgress;
+        DenSystemManager.Instance.OnDenInventoryChanged += UpdatePointsDisplay;
+      }
+      
+      // Initial updates
+      UpdateMvpProgress();
+      UpdatePointsDisplay();
+    }
+    
+    private void OnDestroy()
+    {
+      // Unsubscribe from events
+      if (TimeManager.Instance != null)
+      {
+        TimeManager.Instance.OnTurnAdvanced -= OnTurnAdvanced;
+      }
+      
+      if (DenSystemManager.Instance != null)
+      {
+        DenSystemManager.Instance.OnWorkerCreated -= UpdateMvpProgress;
+        DenSystemManager.Instance.OnWorkerAssigned -= UpdateMvpProgress;
+        DenSystemManager.Instance.OnDenInventoryChanged -= UpdatePointsDisplay;
+      }
+    }
+    
+    /// <summary>
+    /// Called when a turn advances (after player moves and all animals have taken their turn).
+    /// Updates UI values that might have changed during the turn.
+    /// </summary>
+    private void OnTurnAdvanced(int turnCount)
+    {
+      // Update UI after player moves - ensures player movement completes first
+      UpdateMvpProgress();
+      UpdatePointsDisplay();
     }
 
     private void Update()
     {
-        UpdateMvpProgress();
-        UpdatePointsDisplay();
-        
         // Open knowledge panel with K key
         if (Input.GetKeyDown(KeyCode.K))
         {
