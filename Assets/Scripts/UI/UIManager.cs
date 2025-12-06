@@ -101,12 +101,11 @@ public class UIManager : Singleton<UIManager>
         TimeManager.Instance.OnTurnAdvanced += OnTurnAdvanced;
       }
       
-      // Subscribe to events that change MVP population or FoodInDen
+      // Subscribe to events that change MVP population
       if (DenSystemManager.Instance != null)
       {
         DenSystemManager.Instance.OnWorkerCreated += UpdateMvpProgress;
         DenSystemManager.Instance.OnWorkerAssigned += UpdateMvpProgress;
-        DenSystemManager.Instance.OnDenInventoryChanged += UpdatePointsDisplay;
       }
       
       // Initial updates
@@ -126,7 +125,6 @@ public class UIManager : Singleton<UIManager>
       {
         DenSystemManager.Instance.OnWorkerCreated -= UpdateMvpProgress;
         DenSystemManager.Instance.OnWorkerAssigned -= UpdateMvpProgress;
-        DenSystemManager.Instance.OnDenInventoryChanged -= UpdatePointsDisplay;
       }
     }
     

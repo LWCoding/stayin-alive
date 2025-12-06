@@ -45,36 +45,9 @@ public class ItemPanelGuiController : MonoBehaviour {
       ItemPanelType.OTHER_ITEMS => DenSystemManager.Instance.OtherItemsInDen,
       _ => new List<Item>()
     };
-    
-    // Subscribe to inventory change events instead of checking every frame
-    if (DenSystemManager.Instance != null)
-    {
-      DenSystemManager.Instance.OnDenInventoryChanged += UpdateItemUI;
-    }
-    
-    // Initial update
-    UpdateItemUI();
-  }
-  
-  private void OnDestroy()
-  {
-    // Unsubscribe from events
-    if (DenSystemManager.Instance != null)
-    {
-      DenSystemManager.Instance.OnDenInventoryChanged -= UpdateItemUI;
-    }
   }
 
-  /// <summary>
-  /// Updates the item panel UI when items change in the den inventory.
-  /// Called via event subscription instead of every frame.
-  /// </summary>
-  private void UpdateItemUI() {
-    if (items == null)
-    {
-      return;
-    }
-    
+  private void Update() {
     itemPanelCountTMP.text = items.Count.ToString();
     
     foreach (Item item in items) {
