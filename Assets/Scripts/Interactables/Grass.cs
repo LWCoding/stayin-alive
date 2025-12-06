@@ -324,7 +324,12 @@ public class Grass : Interactable
 		// Handle spreading when grass is fully grown
 		if (_currentState == GrassState.Full)
 		{
-			_turnsSinceLastSpread++;
+			// Only tick the timer if the season multiplier is greater than 0
+			float seasonMultiplier = GetSeasonMultiplier();
+			if (seasonMultiplier > 0f)
+			{
+				_turnsSinceLastSpread++;
+			}
 			if (_turnsSinceLastSpread >= _turnsUntilNextSpread)
 			{
 				TrySpreadToAdjacentTiles();
@@ -346,7 +351,12 @@ public class Grass : Interactable
 			return;
 		}
 
-		_turnsSinceLastSpawn++;
+		// Only tick the growth timer if the combined multiplier is greater than 0
+		float combinedMultiplier = GetSeasonMultiplier() * _currentWaterProximityMultiplier * _beeTreeProximityMultiplier;
+		if (combinedMultiplier > 0f)
+		{
+			_turnsSinceLastSpawn++;
+		}
 
 		if (_turnsSinceLastSpawn < _turnsUntilNextSpawn)
 		{
@@ -372,7 +382,14 @@ public class Grass : Interactable
 		
 		// Combine season multiplier, water proximity multiplier, and bee tree proximity multiplier: higher multiplier = fewer turns (faster growth)
 		float combinedMultiplier = seasonMultiplier * _currentWaterProximityMultiplier * _beeTreeProximityMultiplier;
-		float adjustedTurns = _averageTurnsBetweenSpawns / Mathf.Max(0.01f, combinedMultiplier) * randomFactor;
+		
+		// Prevent division by zero, but allow normal calculation (timer won't tick if multiplier is 0)
+		if (combinedMultiplier <= 0f)
+		{
+			combinedMultiplier = 1f; // Use 1f to calculate normally, but timer won't advance
+		}
+		
+		float adjustedTurns = _averageTurnsBetweenSpawns / combinedMultiplier * randomFactor;
 		_turnsUntilNextSpawn = Mathf.Max(1, Mathf.RoundToInt(adjustedTurns));
 	}
 
@@ -615,8 +632,11 @@ public class Grass : Interactable
 		float variance = Mathf.Clamp01(_spreadVariance);
 		float randomFactor = variance > 0f ? Random.Range(1f - variance, 1f + variance) : 1f;
 		
+		// Prevent division by zero, but allow normal calculation (timer won't tick if multiplier is 0)
+		float effectiveMultiplier = seasonMultiplier <= 0f ? 1f : seasonMultiplier;
+		
 		// Divide by multiplier: higher multiplier = fewer turns (faster spread)
-		float adjustedTurns = _averageTurnsBetweenSpreads / Mathf.Max(0.01f, seasonMultiplier) * randomFactor;
+		float adjustedTurns = _averageTurnsBetweenSpreads / effectiveMultiplier * randomFactor;
 		_turnsUntilNextSpread = Mathf.Max(1, Mathf.RoundToInt(adjustedTurns));
 	}
 
