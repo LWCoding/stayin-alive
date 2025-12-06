@@ -116,6 +116,12 @@ public class EnvironmentManager : Singleton<EnvironmentManager>
     /// </summary>
     public void SetTileType(int x, int y, TileType type)
     {
+        if (_grid == null)
+        {
+            Debug.LogWarning("EnvironmentManager: Cannot set tile type - grid is not initialized.");
+            return;
+        }
+        
         if (IsValidPosition(x, y))
         {
             _grid[x, y].TileType = type;
@@ -136,6 +142,11 @@ public class EnvironmentManager : Singleton<EnvironmentManager>
     /// </summary>
     public TileType GetTileType(int x, int y)
     {
+        if (_grid == null)
+        {
+            return TileType.Empty;
+        }
+        
         if (IsValidPosition(x, y))
         {
             return _grid[x, y].TileType;
@@ -290,6 +301,13 @@ public class EnvironmentManager : Singleton<EnvironmentManager>
     /// </summary>
     public void ClearGrid()
     {
+        // Check if grid is initialized before accessing it
+        if (_grid == null)
+        {
+            Debug.LogWarning("EnvironmentManager: Cannot clear grid - grid is not initialized.");
+            return;
+        }
+        
         for (int x = 0; x < _gridWidth; x++)
         {
             for (int y = 0; y < _gridHeight; y++)

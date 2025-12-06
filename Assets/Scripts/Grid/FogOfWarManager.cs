@@ -167,7 +167,7 @@ public class FogOfWarManager : Singleton<FogOfWarManager>
         // Update fog tilemap: remove darkness from revealed tiles
         foreach (Vector2Int position in tilesToReveal)
         {
-            if (IsValidPosition(position))
+            if (_revealedTiles != null && IsValidPosition(position))
             {
                 _revealedTiles[position.x, position.y] = true;
                 Vector3Int tilePosition = new Vector3Int(position.x, position.y, 0);
@@ -214,6 +214,12 @@ public class FogOfWarManager : Singleton<FogOfWarManager>
     /// </summary>
     public void RevealTile(Vector2Int position)
     {
+        if (_revealedTiles == null)
+        {
+            Debug.LogWarning("FogOfWarManager: Cannot reveal tile - fog of war not initialized.");
+            return;
+        }
+        
         if (!IsValidPosition(position))
         {
             return;
@@ -234,6 +240,12 @@ public class FogOfWarManager : Singleton<FogOfWarManager>
     /// </summary>
     public void HideTile(Vector2Int position)
     {
+        if (_revealedTiles == null)
+        {
+            Debug.LogWarning("FogOfWarManager: Cannot hide tile - fog of war not initialized.");
+            return;
+        }
+        
         if (!IsValidPosition(position))
         {
             return;
@@ -254,6 +266,11 @@ public class FogOfWarManager : Singleton<FogOfWarManager>
     /// </summary>
     public bool IsTileRevealed(Vector2Int position)
     {
+        if (_revealedTiles == null)
+        {
+            return false;
+        }
+        
         if (!IsValidPosition(position))
         {
             return false;
