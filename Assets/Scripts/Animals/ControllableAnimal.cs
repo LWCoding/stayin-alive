@@ -102,6 +102,42 @@ public class ControllableAnimal : Animal
     /// </summary>
     public override bool IsControllable => true;
 
+    /// <summary>
+    /// Override to allow sharing tiles with workers when the player is in a den or entering a den.
+    /// This allows workers to enter/leave the den even when the player is occupying the den tile.
+    /// </summary>
+    public override bool CanShareTileWithOtherAnimal(Animal other, Vector2Int position)
+    {
+        // Allow sharing with workers when the player is in a den or when moving onto a den
+        if (other != null && InteractableManager.Instance != null)
+        {
+            // Check if the position is a den
+            Den denAtPosition = InteractableManager.Instance.GetDenAtPosition(position);
+            if (denAtPosition != null)
+            {
+                // Allow sharing if the other animal is a worker whose home is this den
+                // Workers can share tiles with the player when entering/leaving their home den
+                if (other.HomeHideable != null && ReferenceEquals(other.HomeHideable, denAtPosition))
+                {
+                    return true;
+                }
+            }
+            
+            // Also allow sharing if the player is currently in a den (any den)
+            // This ensures workers can always enter/leave dens when the player is inside
+            if (CurrentHideable is Den)
+            {
+                // Only allow sharing with workers (animals that have a home hideable)
+                if (other.HomeHideable != null)
+                {
+                    return true;
+                }
+            }
+        }
+        
+        return base.CanShareTileWithOtherAnimal(other, position);
+    }
+
     public override void TakeTurn()
     {
         // Controllable animals don't move automatically - they move when the player presses keys
@@ -201,6 +237,17 @@ public class ControllableAnimal : Animal
             if (newHideable != null && newHideable != previousHideable)
             {
                 newHideable.OnAnimalEnter(this);
+                
+                // When entering a den, ensure the player's grid position matches the den's position
+                // This prevents issues where the player might be slightly off-position
+                if (newHideable is Den den)
+                {
+                    if (GridPosition != den.GridPosition)
+                    {
+                        // Force the grid position to match the den's position
+                        base.SetGridPosition(den.GridPosition);
+                    }
+                }
             }
         }
         
