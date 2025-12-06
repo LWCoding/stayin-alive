@@ -62,6 +62,23 @@ public class InteractableManager : Singleton<InteractableManager>
 	[Tooltip("Prefab to use when spawning grass patches. Must have a GrassPatch component.")]
 	[SerializeField] private GameObject _grassPatchPrefab;
     
+    [Header("Pooling Settings")]
+    [Tooltip("Initial pool size for each interactable type. Pre-pooled at game start.")]
+    [SerializeField] private int initialPoolSizePerType = 10;
+    
+    [Tooltip("Maximum pool size per type. If exceeded, objects will be destroyed instead of pooled.")]
+    [SerializeField] private int maxPoolSizePerType = 25;
+    
+    // Pools for each interactable type
+    private Queue<Den> _denPool = new Queue<Den>();
+    private Queue<RabbitSpawner> _rabbitSpawnerPool = new Queue<RabbitSpawner>();
+    private Queue<WormSpawner> _wormSpawnerPool = new Queue<WormSpawner>();
+    private Queue<Bush> _bushPool = new Queue<Bush>();
+    private Queue<Grass> _grassPool = new Queue<Grass>();
+    private Queue<Tree> _treePool = new Queue<Tree>();
+    private Queue<BeeTree> _beeTreePool = new Queue<BeeTree>();
+    private Queue<GrassPatch> _grassPatchPool = new Queue<GrassPatch>();
+    
     private List<Interactable> _allInteractables = new List<Interactable>();
     private List<Den> _dens = new List<Den>();
 	private List<RabbitSpawner> _rabbitSpawners = new List<RabbitSpawner>();
@@ -121,6 +138,160 @@ public class InteractableManager : Singleton<InteractableManager>
     protected override void Awake()
     {
         base.Awake();
+    }
+    
+    private void Start()
+    {
+        // Pre-pool interactables at game start/level loading
+        PrePoolInteractables();
+    }
+    
+    /// <summary>
+    /// Pre-pools all interactable types at game start to avoid runtime instantiation.
+    /// </summary>
+    private void PrePoolInteractables()
+    {
+        PrePoolType(_denPrefab, _denPool, initialPoolSizePerType, "Den");
+        PrePoolType(_rabbitSpawnerPrefab, _rabbitSpawnerPool, initialPoolSizePerType, "RabbitSpawner");
+        PrePoolType(_wormSpawnerPrefab, _wormSpawnerPool, initialPoolSizePerType, "WormSpawner");
+        PrePoolType(_bushPrefab, _bushPool, initialPoolSizePerType, "Bush");
+        PrePoolType(_grassPrefab, _grassPool, initialPoolSizePerType, "Grass");
+        PrePoolType(_treePrefab, _treePool, initialPoolSizePerType, "Tree");
+        PrePoolType(_beeTreePrefab, _beeTreePool, initialPoolSizePerType, "BeeTree");
+        PrePoolType(_grassPatchPrefab, _grassPatchPool, initialPoolSizePerType, "GrassPatch");
+        
+        Debug.Log($"InteractableManager: Pre-pooled {initialPoolSizePerType} of each interactable type.");
+    }
+    
+    /// <summary>
+    /// Generic method to pre-pool a specific type of interactable.
+    /// </summary>
+    private void PrePoolType<T>(GameObject prefab, Queue<T> pool, int count, string typeName) where T : Interactable
+    {
+        if (prefab == null)
+        {
+            Debug.LogWarning($"InteractableManager: Cannot pre-pool {typeName} - prefab is not assigned.");
+            return;
+        }
+        
+        for (int i = 0; i < count; i++)
+        {
+            GameObject obj = Instantiate(prefab, _interactableParent);
+            obj.SetActive(false);
+            
+            T interactable = obj.GetComponent<T>();
+            if (interactable == null)
+            {
+                Debug.LogError($"InteractableManager: {typeName} prefab does not have a {typeof(T).Name} component!");
+                Destroy(obj);
+                continue;
+            }
+            
+            pool.Enqueue(interactable);
+        }
+    }
+    
+    /// <summary>
+    /// Gets an interactable from the pool, or creates a new one if pool is empty.
+    /// </summary>
+    private T GetFromPool<T>(GameObject prefab, Queue<T> pool, string typeName) where T : Interactable
+    {
+        T interactable = null;
+        
+        // Try to get from pool
+        while (pool.Count > 0)
+        {
+            interactable = pool.Dequeue();
+            if (interactable != null && interactable.gameObject != null)
+            {
+                break;
+            }
+            interactable = null;
+        }
+        
+        // If pool is empty, create new one
+        if (interactable == null)
+        {
+            if (prefab == null)
+            {
+                Debug.LogError($"InteractableManager: {typeName} prefab is not assigned!");
+                return null;
+            }
+            
+            GameObject obj = Instantiate(prefab, _interactableParent);
+            interactable = obj.GetComponent<T>();
+            if (interactable == null)
+            {
+                Debug.LogError($"InteractableManager: {typeName} prefab does not have a {typeof(T).Name} component!");
+                Destroy(obj);
+                return null;
+            }
+        }
+        
+        interactable.gameObject.SetActive(true);
+        return interactable;
+    }
+    
+    /// <summary>
+    /// Returns an interactable to the pool for reuse.
+    /// </summary>
+    private void ReturnToPool<T>(T interactable, Queue<T> pool, int maxPoolSize) where T : Interactable
+    {
+        if (interactable == null || interactable.gameObject == null)
+        {
+            return;
+        }
+        
+        // Remove from tracking lists directly (to avoid circular calls)
+        _allInteractables.Remove(interactable);
+        
+        // Remove from specific type lists
+        if (interactable is Den den)
+        {
+            _dens.Remove(den);
+        }
+        else if (interactable is RabbitSpawner rabbitSpawner)
+        {
+            _rabbitSpawners.Remove(rabbitSpawner);
+        }
+        else if (interactable is WormSpawner wormSpawner)
+        {
+            _wormSpawners.Remove(wormSpawner);
+        }
+        else if (interactable is Bush bush)
+        {
+            _bushes.Remove(bush);
+        }
+        else if (interactable is Grass grass)
+        {
+            _grasses.Remove(grass);
+        }
+        else if (interactable is Tree tree)
+        {
+            _trees.Remove(tree);
+        }
+        else if (interactable is BeeTree beeTree)
+        {
+            _beeTrees.Remove(beeTree);
+        }
+        else if (interactable is GrassPatch grassPatch)
+        {
+            _grassPatches.Remove(grassPatch);
+        }
+        
+        // Deactivate and reset
+        interactable.gameObject.SetActive(false);
+        
+        // Return to pool if under max size
+        if (pool.Count < maxPoolSize)
+        {
+            pool.Enqueue(interactable);
+        }
+        else
+        {
+            // Pool is full, destroy the object
+            Destroy(interactable.gameObject);
+        }
     }
 
 	/// <summary>
@@ -283,16 +454,86 @@ public class InteractableManager : Singleton<InteractableManager>
     
     /// <summary>
     /// Clears all interactables from the scene.
+    /// Returns them to the pool instead of destroying them.
     /// </summary>
     public void ClearAllInteractables()
     {
-        foreach (Interactable interactable in _allInteractables)
+        // Create copies of lists to avoid modification during iteration
+        List<Den> densCopy = new List<Den>(_dens);
+        List<RabbitSpawner> rabbitSpawnersCopy = new List<RabbitSpawner>(_rabbitSpawners);
+        List<WormSpawner> wormSpawnersCopy = new List<WormSpawner>(_wormSpawners);
+        List<Bush> bushesCopy = new List<Bush>(_bushes);
+        List<Grass> grassesCopy = new List<Grass>(_grasses);
+        List<Tree> treesCopy = new List<Tree>(_trees);
+        List<BeeTree> beeTreesCopy = new List<BeeTree>(_beeTrees);
+        List<GrassPatch> grassPatchesCopy = new List<GrassPatch>(_grassPatches);
+        
+        // Return all interactables to their respective pools
+        foreach (Den den in densCopy)
         {
-            if (interactable != null)
+            if (den != null)
             {
-                Destroy(interactable.gameObject);
+                ReturnToPool(den, _denPool, maxPoolSizePerType);
             }
         }
+        
+        foreach (RabbitSpawner spawner in rabbitSpawnersCopy)
+        {
+            if (spawner != null)
+            {
+                ReturnToPool(spawner, _rabbitSpawnerPool, maxPoolSizePerType);
+            }
+        }
+        
+        foreach (WormSpawner spawner in wormSpawnersCopy)
+        {
+            if (spawner != null)
+            {
+                ReturnToPool(spawner, _wormSpawnerPool, maxPoolSizePerType);
+            }
+        }
+        
+        foreach (Bush bush in bushesCopy)
+        {
+            if (bush != null)
+            {
+                ReturnToPool(bush, _bushPool, maxPoolSizePerType);
+            }
+        }
+        
+        foreach (Grass grass in grassesCopy)
+        {
+            if (grass != null)
+            {
+                ReturnToPool(grass, _grassPool, maxPoolSizePerType);
+            }
+        }
+        
+        foreach (Tree tree in treesCopy)
+        {
+            if (tree != null)
+            {
+                ReturnToPool(tree, _treePool, maxPoolSizePerType);
+            }
+        }
+        
+        foreach (BeeTree beeTree in beeTreesCopy)
+        {
+            if (beeTree != null)
+            {
+                ReturnToPool(beeTree, _beeTreePool, maxPoolSizePerType);
+            }
+        }
+        
+        foreach (GrassPatch grassPatch in grassPatchesCopy)
+        {
+            if (grassPatch != null)
+            {
+                ReturnToPool(grassPatch, _grassPatchPool, maxPoolSizePerType);
+            }
+        }
+        
+        // Clear tracking lists (ReturnToPool already handles this, but clear to be safe)
         _allInteractables.Clear();
         _dens.Clear();
 		_rabbitSpawners.Clear();
@@ -337,14 +578,11 @@ public class InteractableManager : Singleton<InteractableManager>
             return null;
         }
         
-        // Instantiate the den prefab
-        GameObject denObj = Instantiate(_denPrefab, _interactableParent);
-        Den den = denObj.GetComponent<Den>();
+        // Get den from pool
+        Den den = GetFromPool(_denPrefab, _denPool, "Den");
         
         if (den == null)
         {
-            Debug.LogError("InteractableManager: Den prefab does not have a Den component!");
-            Destroy(denObj);
             return null;
         }
         
@@ -406,13 +644,11 @@ public class InteractableManager : Singleton<InteractableManager>
 			return null;
 		}
 
-		GameObject spawnerObj = Instantiate(_rabbitSpawnerPrefab, _interactableParent);
-		RabbitSpawner spawner = spawnerObj.GetComponent<RabbitSpawner>();
+		// Get rabbit spawner from pool
+		RabbitSpawner spawner = GetFromPool(_rabbitSpawnerPrefab, _rabbitSpawnerPool, "RabbitSpawner");
 
 		if (spawner == null)
 		{
-			Debug.LogError("InteractableManager: Rabbit spawner prefab does not have a RabbitSpawner component!");
-			Destroy(spawnerObj);
 			return null;
 		}
 
@@ -498,25 +734,25 @@ public class InteractableManager : Singleton<InteractableManager>
     
     /// <summary>
     /// Removes a den from the dens list. Called when a den is destroyed.
+    /// Returns the den to the pool if possible.
     /// </summary>
     public void RemoveDen(Den den)
     {
         if (den != null && _dens != null)
         {
-            _dens.Remove(den);
-            _allInteractables.Remove(den);
+            ReturnToPool(den, _denPool, maxPoolSizePerType);
         }
     }
 
 	/// <summary>
 	/// Removes a rabbit spawner from the spawner list. Called when a spawner is destroyed.
+	/// Returns the spawner to the pool if possible.
 	/// </summary>
 	public void RemoveRabbitSpawner(RabbitSpawner spawner)
 	{
 		if (spawner != null && _rabbitSpawners != null)
 		{
-			_rabbitSpawners.Remove(spawner);
-			_allInteractables.Remove(spawner);
+			ReturnToPool(spawner, _rabbitSpawnerPool, maxPoolSizePerType);
 		}
 	}
 
@@ -595,13 +831,11 @@ public class InteractableManager : Singleton<InteractableManager>
 			return null;
 		}
 
-		GameObject spawnerObj = Instantiate(_wormSpawnerPrefab, _interactableParent);
-		WormSpawner spawner = spawnerObj.GetComponent<WormSpawner>();
+		// Get worm spawner from pool
+		WormSpawner spawner = GetFromPool(_wormSpawnerPrefab, _wormSpawnerPool, "WormSpawner");
 
 		if (spawner == null)
 		{
-			Debug.LogError("InteractableManager: Worm spawner prefab does not have a WormSpawner component!");
-			Destroy(spawnerObj);
 			return null;
 		}
 
@@ -660,13 +894,13 @@ public class InteractableManager : Singleton<InteractableManager>
 
 	/// <summary>
 	/// Removes a worm spawner from the spawner list. Called when a spawner is destroyed.
+	/// Returns the spawner to the pool if possible.
 	/// </summary>
 	public void RemoveWormSpawner(WormSpawner spawner)
 	{
 		if (spawner != null && _wormSpawners != null)
 		{
-			_wormSpawners.Remove(spawner);
-			_allInteractables.Remove(spawner);
+			ReturnToPool(spawner, _wormSpawnerPool, maxPoolSizePerType);
 		}
 	}
 
@@ -695,13 +929,11 @@ public class InteractableManager : Singleton<InteractableManager>
 			return null;
 		}
 
-		GameObject bushObj = Instantiate(_bushPrefab, _interactableParent);
-		Bush bush = bushObj.GetComponent<Bush>();
+		// Get bush from pool
+		Bush bush = GetFromPool(_bushPrefab, _bushPool, "Bush");
 
 		if (bush == null)
 		{
-			Debug.LogError("InteractableManager: Bush prefab does not have a Bush component!");
-			Destroy(bushObj);
 			return null;
 		}
 
@@ -760,13 +992,13 @@ public class InteractableManager : Singleton<InteractableManager>
 
 	/// <summary>
 	/// Removes a bush from the bushes list. Called when a bush is destroyed.
+	/// Returns the bush to the pool if possible.
 	/// </summary>
 	public void RemoveBush(Bush bush)
 	{
 		if (bush != null && _bushes != null)
 		{
-			_bushes.Remove(bush);
-			_allInteractables.Remove(bush);
+			ReturnToPool(bush, _bushPool, maxPoolSizePerType);
 		}
 	}
 
@@ -795,13 +1027,11 @@ public class InteractableManager : Singleton<InteractableManager>
 			return null;
 		}
 
-		GameObject grassObj = Instantiate(_grassPrefab, _interactableParent);
-		Grass grass = grassObj.GetComponent<Grass>();
+		// Get grass from pool
+		Grass grass = GetFromPool(_grassPrefab, _grassPool, "Grass");
 
 		if (grass == null)
 		{
-			Debug.LogError("InteractableManager: Grass prefab does not have a Grass component!");
-			Destroy(grassObj);
 			return null;
 		}
 
@@ -860,13 +1090,13 @@ public class InteractableManager : Singleton<InteractableManager>
 
 	/// <summary>
 	/// Removes a grass interactable from the grasses list. Called when a grass is destroyed.
+	/// Returns the grass to the pool if possible.
 	/// </summary>
 	public void RemoveGrass(Grass grass)
 	{
 		if (grass != null && _grasses != null)
 		{
-			_grasses.Remove(grass);
-			_allInteractables.Remove(grass);
+			ReturnToPool(grass, _grassPool, maxPoolSizePerType);
 		}
 	}
 
@@ -911,13 +1141,11 @@ public class InteractableManager : Singleton<InteractableManager>
 			return null;
 		}
 
-		GameObject treeObj = Instantiate(_treePrefab, _interactableParent);
-		Tree tree = treeObj.GetComponent<Tree>();
+		// Get tree from pool
+		Tree tree = GetFromPool(_treePrefab, _treePool, "Tree");
 
 		if (tree == null)
 		{
-			Debug.LogError("InteractableManager: Tree prefab does not have a Tree component!");
-			Destroy(treeObj);
 			return null;
 		}
 
@@ -976,13 +1204,13 @@ public class InteractableManager : Singleton<InteractableManager>
 
 	/// <summary>
 	/// Removes a tree from the trees list. Called when a tree is destroyed.
+	/// Returns the tree to the pool if possible.
 	/// </summary>
 	public void RemoveTree(Tree tree)
 	{
 		if (tree != null && _trees != null)
 		{
-			_trees.Remove(tree);
-			_allInteractables.Remove(tree);
+			ReturnToPool(tree, _treePool, maxPoolSizePerType);
 		}
 	}
 
@@ -1018,13 +1246,11 @@ public class InteractableManager : Singleton<InteractableManager>
 			return null;
 		}
 
-		GameObject beeTreeObj = Instantiate(_beeTreePrefab, _interactableParent);
-		BeeTree beeTree = beeTreeObj.GetComponent<BeeTree>();
+		// Get bee tree from pool
+		BeeTree beeTree = GetFromPool(_beeTreePrefab, _beeTreePool, "BeeTree");
 
 		if (beeTree == null)
 		{
-			Debug.LogError("InteractableManager: BeeTree prefab does not have a BeeTree component!");
-			Destroy(beeTreeObj);
 			return null;
 		}
 
@@ -1083,13 +1309,13 @@ public class InteractableManager : Singleton<InteractableManager>
 
 	/// <summary>
 	/// Removes a bee tree from the bee trees list. Called when a bee tree is destroyed.
+	/// Returns the bee tree to the pool if possible.
 	/// </summary>
 	public void RemoveBeeTree(BeeTree beeTree)
 	{
 		if (beeTree != null && _beeTrees != null)
 		{
-			_beeTrees.Remove(beeTree);
-			_allInteractables.Remove(beeTree);
+			ReturnToPool(beeTree, _beeTreePool, maxPoolSizePerType);
 		}
 	}
 
@@ -1118,13 +1344,11 @@ public class InteractableManager : Singleton<InteractableManager>
 			return null;
 		}
 
-		GameObject grassPatchObj = Instantiate(_grassPatchPrefab, _interactableParent);
-		GrassPatch grassPatch = grassPatchObj.GetComponent<GrassPatch>();
+		// Get grass patch from pool
+		GrassPatch grassPatch = GetFromPool(_grassPatchPrefab, _grassPatchPool, "GrassPatch");
 
 		if (grassPatch == null)
 		{
-			Debug.LogError("InteractableManager: GrassPatch prefab does not have a GrassPatch component!");
-			Destroy(grassPatchObj);
 			return null;
 		}
 
@@ -1186,13 +1410,13 @@ public class InteractableManager : Singleton<InteractableManager>
 
 	/// <summary>
 	/// Removes a grass patch from the grass patches list. Called when a grass patch is destroyed.
+	/// Returns the grass patch to the pool if possible.
 	/// </summary>
 	public void RemoveGrassPatch(GrassPatch grassPatch)
 	{
 		if (grassPatch != null && _grassPatches != null)
 		{
-			_grassPatches.Remove(grassPatch);
-			_allInteractables.Remove(grassPatch);
+			ReturnToPool(grassPatch, _grassPatchPool, maxPoolSizePerType);
 		}
 	}
     
