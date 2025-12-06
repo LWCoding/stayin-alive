@@ -20,6 +20,9 @@ public class FogOfWarManager : Singleton<FogOfWarManager>
     private bool[,] _revealedTiles;
     private int _gridWidth;
     private int _gridHeight;
+    
+    // Reusable HashSet to avoid allocations in UpdateFogOfWar
+    private HashSet<Vector2Int> _tilesToRevealCache = new HashSet<Vector2Int>();
 
     protected override void Awake()
     {
@@ -146,7 +149,9 @@ public class FogOfWarManager : Singleton<FogOfWarManager>
         }
 
         List<Animal> animals = AnimalManager.Instance.GetAllAnimals();
-        HashSet<Vector2Int> tilesToReveal = new HashSet<Vector2Int>();
+        
+        // Reuse HashSet to avoid allocations
+        _tilesToRevealCache.Clear();
 
         // Collect all tiles that should be revealed
         foreach (Animal animal in animals)
@@ -161,11 +166,11 @@ public class FogOfWarManager : Singleton<FogOfWarManager>
             Vector2Int animalPosition = animal.GridPosition;
 
             // Reveal tiles in radius around the animal
-            RevealTilesInRadius(animalPosition, radius, tilesToReveal);
+            RevealTilesInRadius(animalPosition, radius, _tilesToRevealCache);
         }
 
         // Update fog tilemap: remove darkness from revealed tiles
-        foreach (Vector2Int position in tilesToReveal)
+        foreach (Vector2Int position in _tilesToRevealCache)
         {
             if (_revealedTiles != null && IsValidPosition(position))
             {
@@ -181,14 +186,15 @@ public class FogOfWarManager : Singleton<FogOfWarManager>
     /// </summary>
     private void RevealTilesInRadius(Vector2Int center, int radius, HashSet<Vector2Int> revealedTiles)
     {
-        // Use a circular radius check
+        // Use a circular radius check with squared distance to avoid expensive Sqrt calculation
+        int radiusSquared = radius * radius;
         for (int x = -radius; x <= radius; x++)
         {
             for (int y = -radius; y <= radius; y++)
             {
-                // Check if tile is within circular radius
-                float distance = Mathf.Sqrt(x * x + y * y);
-                if (distance <= radius)
+                // Check if tile is within circular radius using squared distance (avoids Sqrt)
+                int distanceSquared = x * x + y * y;
+                if (distanceSquared <= radiusSquared)
                 {
                     Vector2Int tilePos = center + new Vector2Int(x, y);
                     if (IsValidPosition(tilePos))
