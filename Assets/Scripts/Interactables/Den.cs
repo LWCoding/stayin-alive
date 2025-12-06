@@ -19,7 +19,7 @@ public class Den : Interactable, IHideable
     [SerializeField]
     private Camera denCamera;
     
-    private RenderTexture renderTexture;
+    private static RenderTexture renderTexture;
     
     public RenderTexture DenRenderTexture => renderTexture;
     
@@ -32,6 +32,14 @@ public class Den : Interactable, IHideable
     private List<Animal> denWorkers = new List<Animal>();
 
     public int DenId => GridPosition.x * 10000 + GridPosition.y;
+
+    public void GiveRenderTexture() {
+      denCamera.enabled = true;
+    }
+
+    public void TakeRenderTexture() {
+      denCamera.enabled = false;
+    }
     
     // Returns true if added properly, false if the den is full
     public bool AddWorker(Animal animal) {
@@ -79,9 +87,12 @@ public class Den : Interactable, IHideable
         {
             _eToManageObject.SetActive(false);
         }
-        
-        renderTexture = new RenderTexture(720, 720, 16, RenderTextureFormat.ARGB32);
-        renderTexture.Create();
+
+        // Set up the static, universal render texture for den specific mini maps
+        if (renderTexture == null) {
+          renderTexture = new RenderTexture(720, 720, 16, RenderTextureFormat.ARGB32);
+          renderTexture.Create();
+        }
         denCamera.targetTexture = renderTexture;
     }
     

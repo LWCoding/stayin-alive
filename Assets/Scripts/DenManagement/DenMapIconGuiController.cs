@@ -53,9 +53,11 @@ public class DenMapIconGuiController : MonoBehaviour, IPointerEnterHandler, IPoi
   private void SetDenImage() {
     if (denInfo.denId == DenSystemManager.Instance.CurrentAdminDen?.GetDenInfo().denId) {
       icon.sprite = inhabitedDenSprite;
+      denInfo.denObject.GiveRenderTexture();
       return;
     }
     icon.sprite = emptyDenSprite;
+    denInfo.denObject.TakeRenderTexture();
   }
 
   private void SetPosition() {
