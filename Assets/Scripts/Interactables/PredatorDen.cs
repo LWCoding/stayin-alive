@@ -30,6 +30,10 @@ public class PredatorDen : Interactable
         }
     }
     
+    public override string GetKnowledgeTitle() {
+      return "PredatorDen";
+    }
+    
     /// <summary>
     /// Initializes the predator den at the specified grid position.
     /// </summary>

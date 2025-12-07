@@ -34,6 +34,10 @@ public class Tree : Interactable
 	// Track all sticks spawned by this tree
 	private List<Item> _spawnedSticks = new List<Item>();
 
+  public override string GetKnowledgeTitle() {
+    return "Tree";
+  }
+  
 	private void OnEnable()
 	{
 		SubscribeToTurnEvents();

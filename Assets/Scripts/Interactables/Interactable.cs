@@ -6,6 +6,8 @@ using UnityEngine;
 /// </summary>
 public abstract class Interactable : MonoBehaviour
 {
+    public abstract string GetKnowledgeTitle();
+  
     [Header("Interactable Settings")]
     [HideInInspector]
     protected Vector2Int _gridPosition;
@@ -20,5 +22,7 @@ public abstract class Interactable : MonoBehaviour
     /// Must be implemented by derived classes.
     /// </summary>
     public abstract void Initialize(Vector2Int gridPosition);
+
+    
 }
 

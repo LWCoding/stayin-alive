@@ -36,6 +36,10 @@ public class Bush : Interactable, IHideable
         }
     }
 
+    public override string GetKnowledgeTitle() {
+      return "Bush";
+    }
+    
     private void OnDestroy()
     {
         if (InteractableManager.Instance != null)

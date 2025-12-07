@@ -41,6 +41,10 @@ public class RabbitSpawner : Interactable, IHideable
 	// Track turns since extinction (increments when _attachedRabbitCount is 0)
 	private int _turnsSinceExtinction = 0;
 
+  public override string GetKnowledgeTitle() {
+    return "RabbitDen";
+  }
+  
 	private void Start()
 	{
 		EnsureInitializationFromWorld();

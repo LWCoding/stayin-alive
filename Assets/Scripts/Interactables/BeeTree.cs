@@ -28,6 +28,10 @@ public class BeeTree : Interactable
     private bool _grassSpawned = false;
     private bool _isInitialized = false;
 
+    public override string GetKnowledgeTitle() {
+      return "BeeTree";
+    }
+    
     private void Start()
     {
         // Only spawn bees if already initialized (for manually placed trees in scene)

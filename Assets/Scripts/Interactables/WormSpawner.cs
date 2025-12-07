@@ -32,6 +32,10 @@ public class WormSpawner : Interactable
 	// Track all worms spawned by this spawner
 	private List<Item> _spawnedWorms = new List<Item>();
 
+  public override string GetKnowledgeTitle() {
+    return "WormSpawner";
+  }
+  
 	private void OnEnable()
 	{
 		SubscribeToTurnEvents();

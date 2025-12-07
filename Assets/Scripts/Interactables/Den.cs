@@ -40,6 +40,10 @@ public class Den : Interactable, IHideable
     public void TakeRenderTexture() {
       denCamera.enabled = false;
     }
+
+    public override string GetKnowledgeTitle() {
+      return "Den";
+    }
     
     // Returns true if added properly, false if the den is full
     public bool AddWorker(Animal animal) {

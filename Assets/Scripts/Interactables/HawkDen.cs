@@ -34,6 +34,10 @@ public class HawkDen : PredatorDen
 	// Track all sticks spawned by this den
 	private List<Item> _spawnedSticks = new List<Item>();
 
+  public override string GetKnowledgeTitle() {
+    return "HawkDen";
+  }
+  
 	private void OnEnable()
 	{
 		SubscribeToTurnEvents();

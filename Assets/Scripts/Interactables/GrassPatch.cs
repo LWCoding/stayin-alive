@@ -17,7 +17,11 @@ public class GrassPatch : Interactable
     /// Gets the size of this grass patch (width and height in grid tiles).
     /// </summary>
     public int PatchSize => _patchSize;
-    
+
+    public override string GetKnowledgeTitle() {
+      return "GrassPatch";
+    }
+
     /// <summary>
     /// Gets all grid positions occupied by this grass patch.
     /// </summary>

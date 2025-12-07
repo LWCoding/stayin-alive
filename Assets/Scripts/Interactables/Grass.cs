@@ -47,8 +47,13 @@ public class Grass : Interactable
 
 	public const float SEED_DROP_RATE_FULL = 0.15f;  // Chance to drop from full layer to growing layer
 	public const float SEED_DROP_RATE_GROWING = 0.3f;  // Chance to drop from growing layer to destroyed layer
-  	public const ItemType SEED_ITEM_TYPE = ItemType.GrassSeeds;
+  public const ItemType SEED_ITEM_TYPE = ItemType.GrassSeeds;
 
+
+  public override string GetKnowledgeTitle() {
+    return "GrassInteractable";
+  }
+    
 	private enum GrassState
 	{
 		Growing,  // Growing state (after first harvest)
