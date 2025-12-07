@@ -177,6 +177,7 @@ public class InteractableManager : Singleton<InteractableManager>
         for (int i = 0; i < count; i++)
         {
             GameObject obj = Instantiate(prefab, _interactableParent);
+            InteractableKnowledgeGranterFactory.Instance.CreateInteractableKnowledgeGranter(obj);
             obj.SetActive(false);
             
             T interactable = obj.GetComponent<T>();

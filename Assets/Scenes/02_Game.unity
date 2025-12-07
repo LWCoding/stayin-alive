@@ -683,6 +683,8 @@ MonoBehaviour:
   fadeTextPrefab: {fileID: 1318133717439653167, guid: 4cb15682f777a4542aa68bf535de5385, type: 3}
   defaultFadeTextDuration: 2
   defaultFadeTextMovementDistance: 100
+  initialPoolSize: 10
+  maxPoolSize: 30
 --- !u!1839735485 &191479704 stripped
 Tilemap:
   m_CorrespondingSourceObject: {fileID: 3853635146165357295, guid: 1703a028b2e717140907d35b4308e737, type: 3}
@@ -2128,6 +2130,7 @@ GameObject:
   m_Component:
   - component: {fileID: 1901845580}
   - component: {fileID: 1901845581}
+  - component: {fileID: 1901845582}
   m_Layer: 0
   m_Name: InteractableManager
   m_TagString: Untagged
@@ -2171,6 +2174,21 @@ MonoBehaviour:
   _treePrefab: {fileID: 4490760952198988224, guid: d9f4efb632b17fc439a76d78be9f4060, type: 3}
   _beeTreePrefab: {fileID: 2353448005261710028, guid: ca9885285364a2345b91588d996398b9, type: 3}
   _grassPatchPrefab: {fileID: 7470162807929425548, guid: cbe59190e678d2045ab1da2e3beb350e, type: 3}
+  initialPoolSizePerType: 10
+  maxPoolSizePerType: 25
+--- !u!114 &1901845582
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1901845579}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e11830110060345f6859b90bf6a76739, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  granterPrefab: {fileID: 6589672147477265195, guid: f424fc60a1fc240b5b18359e07d75c91, type: 3}
 --- !u!1 &1972867175
 GameObject:
   m_ObjectHideFlags: 0

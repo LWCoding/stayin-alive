@@ -6,9 +6,16 @@ using UnityEngine;
 public class InteractableKnowledgeGranter : MonoBehaviour {
   private Interactable interactable;
 
-  // private void OnTriggerEnter2D(Collider2D other) {
-  //   if (other.gameObject.tag == "Player") {
-  //     
-  //   }
-  // }
+  private void Start() {
+    interactable = GetComponentInParent<Interactable>();
+  }
+
+  private void OnTriggerEnter2D(Collider2D other) {
+    if (interactable == null) {
+      interactable = GetComponentInParent<Interactable>();
+    }
+    if (other.gameObject.CompareTag("Player")) {
+      KnowledgeManager.Instance.LearnKnowledgeData(interactable.GetKnowledgeTitle());
+    }
+  }
 }
