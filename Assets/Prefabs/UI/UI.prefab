@@ -319,7 +319,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 1}
   m_AnchorMax: {x: 0, y: 1}
-  m_AnchoredPosition: {x: -14.999939, y: 14.999756}
+  m_AnchoredPosition: {x: -15, y: 14.999756}
   m_SizeDelta: {x: 665, y: 275}
   m_Pivot: {x: 0, y: 1}
 --- !u!222 &6049568077652208119
@@ -3189,7 +3189,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 1, y: 1}
   m_AnchorMax: {x: 1, y: 1}
-  m_AnchoredPosition: {x: 14.999939, y: 14.999756}
+  m_AnchoredPosition: {x: 15, y: 14.999756}
   m_SizeDelta: {x: 200, y: 275}
   m_Pivot: {x: 1, y: 1}
 --- !u!222 &5607715369363275546
@@ -4476,27 +4476,27 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 3218765409383957039, guid: 41066fd52d5460c409bed4831559a961, type: 3}
       propertyPath: m_AnchorMax.x
-      value: 1
+      value: 0.5
       objectReference: {fileID: 0}
     - target: {fileID: 3218765409383957039, guid: 41066fd52d5460c409bed4831559a961, type: 3}
       propertyPath: m_AnchorMax.y
-      value: 1
+      value: 0.5
       objectReference: {fileID: 0}
     - target: {fileID: 3218765409383957039, guid: 41066fd52d5460c409bed4831559a961, type: 3}
       propertyPath: m_AnchorMin.x
-      value: 0
+      value: 0.5
       objectReference: {fileID: 0}
     - target: {fileID: 3218765409383957039, guid: 41066fd52d5460c409bed4831559a961, type: 3}
       propertyPath: m_AnchorMin.y
-      value: 0
+      value: 0.5
       objectReference: {fileID: 0}
     - target: {fileID: 3218765409383957039, guid: 41066fd52d5460c409bed4831559a961, type: 3}
       propertyPath: m_SizeDelta.x
-      value: 0
+      value: 1920
       objectReference: {fileID: 0}
     - target: {fileID: 3218765409383957039, guid: 41066fd52d5460c409bed4831559a961, type: 3}
       propertyPath: m_SizeDelta.y
-      value: 0
+      value: 1080
       objectReference: {fileID: 0}
     - target: {fileID: 3218765409383957039, guid: 41066fd52d5460c409bed4831559a961, type: 3}
       propertyPath: m_LocalPosition.x
@@ -4624,7 +4624,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 7270563615182057910, guid: 41066fd52d5460c409bed4831559a961, type: 3}
       propertyPath: m_Value
-      value: 0
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 7718118139025962031, guid: 41066fd52d5460c409bed4831559a961, type: 3}
       propertyPath: m_SortingLayer

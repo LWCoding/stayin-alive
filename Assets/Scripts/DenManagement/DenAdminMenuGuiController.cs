@@ -75,6 +75,8 @@ public class DenAdminMenuGuiController : MonoBehaviour {
   
   private ToggleClock mapToggleClock;
   public ToggleClock MapToggleClock => mapToggleClock;
+  
+  private RectTransform rectTransform;
 
   public void UpdateGui() {
     UpdateDenMapIcons();
@@ -88,6 +90,7 @@ public class DenAdminMenuGuiController : MonoBehaviour {
     mapToggleClock = gameObject.AddComponent<ToggleClock>();
     mapDenMapIcons = new List<DenMapIconGuiController>();
     workerIcons = new List<WorkerIconGuiController>();
+    rectTransform = GetComponent<RectTransform>();
     
     Hide();
     
@@ -98,14 +101,14 @@ public class DenAdminMenuGuiController : MonoBehaviour {
   }
 
   public void Show() {
-    transform.localPosition = Vector3.zero;
+    rectTransform.anchoredPosition = Vector3.zero;
     visibilityController.alpha = 1;
     visibilityController.interactable = true;
     UpdateGui();
   }
 
   public void Hide() {
-    transform.localPosition = Vector3.one * 10000;
+    rectTransform.anchoredPosition = Vector3.one * 10000;
     visibilityController.alpha = 0;
     visibilityController.interactable = false;
   }
