@@ -78,6 +78,7 @@ public class TutorialManager : Singleton<TutorialManager>
     private bool _workersExplanationShown = false;
     private bool _workerLogExplanationShown = false;
     private bool _hasAssignedWorker = false;
+    private GameObject _tutorialLogEntry = null;
     private bool _knowledgeExplanationShown = false;
     private bool _hasOpenedKnowledgeUI = false;
     private bool _goalExplanationShown = false;
@@ -589,9 +590,36 @@ public class TutorialManager : Singleton<TutorialManager>
             _workerLogExplanationShown = true;
             
             // Spawn a log entry showing that a worker deposited something
+            // Store reference and stop its fade coroutine so it persists until tutorial advances
             if (DenSystemManager.Instance != null && DenSystemManager.Instance.LogHolder != null)
             {
-                DenSystemManager.Instance.LogHolder.SpawnLog(LogEntryGuiController.DenLogType.ADD_FOOD, 1);
+                // Get the log holder transform to find the newly spawned log
+                UnityEngine.UI.VerticalLayoutGroup logContainer = DenSystemManager.Instance.LogHolder.GetComponentInChildren<UnityEngine.UI.VerticalLayoutGroup>();
+                if (logContainer != null)
+                {
+                    Transform logHolder = logContainer.transform;
+                    int startChildCount = logHolder.childCount;
+                    
+                    // Spawn the logs
+                    DenSystemManager.Instance.LogHolder.SpawnLog(LogEntryGuiController.DenLogType.ADD_FOOD, 1);
+                    
+                    // Get the newly spawned log and stop its fade coroutine
+                    if (logHolder.childCount > startChildCount)
+                    {
+                        _tutorialLogEntry = logHolder.GetChild(logHolder.childCount - 1).gameObject;
+                        // Stop the fade coroutine so it doesn't disappear
+                        LogEntryGuiController logController = _tutorialLogEntry.GetComponent<LogEntryGuiController>();
+                        if (logController != null)
+                        {
+                            // Stop all coroutines on the log entry to prevent it from fading out
+                            MonoBehaviour logMonoBehaviour = logController as MonoBehaviour;
+                            if (logMonoBehaviour != null)
+                            {
+                                logMonoBehaviour.StopAllCoroutines();
+                            }
+                        }
+                    }
+                }
             }
             
             TimeManager.Instance?.Pause();
@@ -665,6 +693,14 @@ public class TutorialManager : Singleton<TutorialManager>
         if (_workerLogExplanationShown && _workerLogExplanationUI != null && _workerLogExplanationUI.activeSelf)
         {
             _workerLogExplanationUI.SetActive(false);
+            
+            // Destroy tutorial log entry now that section is complete
+            if (_tutorialLogEntry != null)
+            {
+                Destroy(_tutorialLogEntry);
+                _tutorialLogEntry = null;
+            }
+            
             TimeManager.Instance?.Resume();
             return;
         }
