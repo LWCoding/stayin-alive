@@ -36,8 +36,12 @@ public class TutorialManager : Singleton<TutorialManager>
     [SerializeField] private GameObject _workersExplanationUI;
     [Tooltip("UI object that explains the game goal and win condition")]
     [SerializeField] private GameObject _goalExplanationUI;
+    [Tooltip("UI object that explains the knowledge system")]
+    [SerializeField] private GameObject _knowledgeExplanationUI;
     [Tooltip("Final tutorial blocker shown after goal explanation")]
     [SerializeField] private GameObject _endBlockerUI;
+    [Tooltip("Knowledge UI CanvasGroup that should be hidden during tutorial and shown when knowledge explanation appears")]
+    [SerializeField] private CanvasGroup _knowledgeUICanvasGroup;
     
     [Header("Tutorial Triggers")]
     [Tooltip("Player cannot move past this X value until they pick up grass")]
@@ -50,6 +54,8 @@ public class TutorialManager : Singleton<TutorialManager>
     [SerializeField] private float _sticksExplanationXThreshold;
     [Tooltip("Player X position threshold for showing rabbits and dens explanation")]
     [SerializeField] private float _rabbitsAndDensExplanationXThreshold;
+    [Tooltip("Player Y position threshold for showing knowledge explanation")]
+    [SerializeField] private float _knowledgeExplanationYThreshold;
     [Tooltip("Player Y position threshold for showing goal explanation")]
     [SerializeField] private float _goalExplanationYThreshold;
 
@@ -68,6 +74,8 @@ public class TutorialManager : Singleton<TutorialManager>
     private bool _breedExplanationShown = false;
     private bool _denInventoryExplanationShown = false;
     private bool _workersExplanationShown = false;
+    private bool _knowledgeExplanationShown = false;
+    private bool _hasOpenedKnowledgeUI = false;
     private bool _goalExplanationShown = false;
     private bool _endBlockerShown = false;
     private bool _hasEatenFood = false;
@@ -76,6 +84,7 @@ public class TutorialManager : Singleton<TutorialManager>
     
     public bool IsDenManagementUnlocked => _denManagementUnlocked;
     public bool IsHungerEnabled => _hungerEnabled;
+    public bool ShouldShowKnowledgeUI => _knowledgeExplanationShown;
     
     /// <summary>
     /// Returns true if any den UI tutorial blocker is currently active.
@@ -197,10 +206,24 @@ public class TutorialManager : Singleton<TutorialManager>
             _goalExplanationUI.SetActive(false);
         }
         
+        // Hide knowledge explanation at start
+        if (_knowledgeExplanationUI != null)
+        {
+            _knowledgeExplanationUI.SetActive(false);
+        }
+        
         // Hide end blocker at start
         if (_endBlockerUI != null)
         {
             _endBlockerUI.SetActive(false);
+        }
+        
+        // Hide knowledge UI CanvasGroup at start
+        if (_knowledgeUICanvasGroup != null)
+        {
+            _knowledgeUICanvasGroup.alpha = 0f;
+            _knowledgeUICanvasGroup.interactable = false;
+            _knowledgeUICanvasGroup.blocksRaycasts = false;
         }
     }
     
@@ -249,6 +272,26 @@ public class TutorialManager : Singleton<TutorialManager>
             DenSystemManager.Instance.OnItemsDeposited += OnItemsDeposited;
             DenSystemManager.Instance.OnWorkerCreated += OnWorkerCreated;
             DenSystemManager.Instance.OnWorkerAssigned += OnWorkerAssigned;
+        }
+    }
+    
+    private void Update()
+    {
+        // Check if knowledge UI has been opened during tutorial
+        if (_knowledgeExplanationShown && !_hasOpenedKnowledgeUI)
+        {
+            KnowledgeMenuGuiController knowledgeController = FindObjectOfType<KnowledgeMenuGuiController>();
+            if (knowledgeController != null && knowledgeController.IsVisible())
+            {
+                _hasOpenedKnowledgeUI = true;
+                
+                // Dismiss the knowledge explanation popup
+                if (_knowledgeExplanationUI != null && _knowledgeExplanationUI.activeSelf)
+                {
+                    _knowledgeExplanationUI.SetActive(false);
+                    TimeManager.Instance?.Resume();
+                }
+            }
         }
     }
     
@@ -326,8 +369,25 @@ public class TutorialManager : Singleton<TutorialManager>
             TimeManager.Instance?.Pause();
         }
         
-        // Show goal explanation when player moves beyond Y threshold
-        if (!_goalExplanationShown && _goalExplanationUI != null && player.GridPosition.y >= _goalExplanationYThreshold)
+        // Show knowledge explanation when player moves beyond Y threshold
+        if (!_knowledgeExplanationShown && _knowledgeExplanationUI != null && player.GridPosition.y >= _knowledgeExplanationYThreshold)
+        {
+            _knowledgeExplanationUI.SetActive(true);
+            _knowledgeExplanationShown = true;
+            
+            // Show knowledge UI CanvasGroup when knowledge explanation appears
+            if (_knowledgeUICanvasGroup != null)
+            {
+                _knowledgeUICanvasGroup.alpha = 1f;
+                _knowledgeUICanvasGroup.interactable = true;
+                _knowledgeUICanvasGroup.blocksRaycasts = true;
+            }
+            
+            TimeManager.Instance?.Pause();
+        }
+        
+        // Show goal explanation when player moves beyond Y threshold (only after knowledge explanation is completed)
+        if (!_goalExplanationShown && _goalExplanationUI != null && player.GridPosition.y >= _goalExplanationYThreshold && _hasOpenedKnowledgeUI)
         {
             // Show MVP container
             ShowMVPContainer();

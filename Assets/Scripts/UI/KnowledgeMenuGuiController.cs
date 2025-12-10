@@ -63,6 +63,13 @@ public class KnowledgeMenuGuiController : MonoBehaviour
     {
         Debug.Log($"KnowledgeMenuGuiController: Show() called. GameObject active: {gameObject.activeInHierarchy}, activeSelf: {gameObject.activeSelf}");
         
+        // Don't show knowledge UI during tutorial (it will be shown at the end)
+        if (TutorialManager.Instance != null && !TutorialManager.Instance.ShouldShowKnowledgeUI)
+        {
+            Debug.Log("KnowledgeMenuGuiController: In tutorial, not showing knowledge UI yet.");
+            return;
+        }
+        
         // Ensure GameObject is active
         if (!gameObject.activeInHierarchy)
         {

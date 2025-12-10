@@ -103,7 +103,11 @@ public class KnowledgeManager : Singleton<KnowledgeManager> {
         KnowledgeData data = GetKnowledgeDataByTitle(title);
         _learnedKnowledgeDataDictionary[title] = data;
         OnNewKnowledgeFlagChange?.Invoke(true);
-        AudioManager.Instance?.PlaySFX(AudioManager.SFXType.NewKnowledgeDiscovered);
+        // Don't play sound during tutorial
+        if (TutorialManager.Instance == null)
+        {
+          AudioManager.Instance?.PlaySFX(AudioManager.SFXType.NewKnowledgeDiscovered);
+        }
         return KnowledgeOperationResult.KNOWLEDGE_LEARNED;
 
       case KnowledgeOperationResult.KNOWLEDGE_LEARNED:
