@@ -15,3 +15,4 @@ MonoBehaviour:
   sprite: {fileID: 21300000, guid: b337508bc7977ab449161ffb33d25126, type: 3}
   title: HawkDen
   description: From its branches they launch their hunts.
+  knowledgeCategory: 2

@@ -17,4 +17,6 @@ public class KnowledgeData : ScriptableObject
     [Tooltip("Description text explaining this knowledge")]
     [TextArea(3, 10)]
     public string description;
+    
+    public KnowledgeManager.KnowledgeCategory knowledgeCategory;
 }

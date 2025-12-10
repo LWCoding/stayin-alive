@@ -1,7 +1,11 @@
 using System.Collections.Generic;
+using TMPro;
 using UnityEngine;
+using UnityEngine.Serialization;
 using UnityEngine.UI;
+using static KnowledgeManager.KnowledgeCategory;
 using UnityEngine.UIElements;
+using Button = UnityEngine.UI.Button;
 using Image = UnityEngine.UI.Image;
 
 /// <summary>
@@ -20,10 +24,40 @@ public class KnowledgeMenuGuiController : MonoBehaviour
     [SerializeField]
     private CanvasGroup visibilityController;
 
+    [FormerlySerializedAs("contentParent")]
     [SerializeField]
-    [Tooltip("The content parent transform for the scroll view where knowledge items will be instantiated")]
-    private RectTransform contentParent;
+    [Tooltip("The content parent transform for the scroll view where item knowledge will be instantiated")]
+    private RectTransform contentParentItem;
+    
+    [SerializeField]
+    [Tooltip("The content parent transform for the scroll view where animal knowledge will be instantiated")]
+    private RectTransform contentParentAnimal;
 
+    [SerializeField]
+    [Tooltip("The content parent transform for the scroll view where world knowledge will be instantiated")]
+    private RectTransform contentParentWorld;
+    
+    [SerializeField]
+    private CanvasGroup itemVisibilityController;
+    
+    [SerializeField]
+    private CanvasGroup animalVisibilityController;
+    
+    [SerializeField]
+    private CanvasGroup worldVisibilityController;
+
+    [SerializeField] 
+    private Button itemButton;
+    
+    [SerializeField]
+    private Button animalButton;
+    
+    [SerializeField]
+    private Button worldButton;
+    
+    [SerializeField]
+    private TextMeshProUGUI headerText;
+    
     [Header("Prefabs")]
     [SerializeField]
     [Tooltip("Prefab to use when spawning knowledge items. Must have a KnowledgeItem component.")]
@@ -39,10 +73,37 @@ public class KnowledgeMenuGuiController : MonoBehaviour
     
     [SerializeField]
     private Image bottomGradient;
+    
+    private KnowledgeManager.KnowledgeCategory knowledgeCategory;
 
+    private void setKnowledgeCategory(KnowledgeManager.KnowledgeCategory kc)
+    {
+      knowledgeCategory = kc;
+    }
+
+    private void setCategoryItem()
+    {
+      setKnowledgeCategory(ITEM);
+    }
+
+    private void setCategoryAnimal()
+    {
+      setKnowledgeCategory(ANIMAL);
+    }
+    
+    private void setCategoryWorld()
+    {
+      setKnowledgeCategory(WORLD);
+    }
+    
     public void Start()
     {
         knowledgeItems = new List<KnowledgeItem>();
+        
+        itemButton.onClick.AddListener(setCategoryItem);
+        animalButton.onClick.AddListener(setCategoryAnimal);
+        worldButton.onClick.AddListener(setCategoryWorld);
+        
         InitializeKnowledgeItems();
         Hide();
     }
@@ -61,14 +122,45 @@ public class KnowledgeMenuGuiController : MonoBehaviour
         bottomGradient.color = new Color(bottomGradient.color.r, bottomGradient.color.g, bottomGradient.color.b, 0f);
         topGradient.color = new Color(topGradient.color.r, topGradient.color.g, topGradient.color.b, 0f);
 
-        if (scroll.verticalNormalizedPosition >= 0.05f)
+        // if (scroll.verticalNormalizedPosition >= 0.05f)
+        // {
+        //     bottomGradient.color = new Color(bottomGradient.color.r, bottomGradient.color.g, bottomGradient.color.b, 1f);
+        // }
+        //
+        // if (scroll.verticalNormalizedPosition <= 0.95f)
+        // {
+        //     topGradient.color = new Color(topGradient.color.r, topGradient.color.g, topGradient.color.b, 1f);
+        // }
+
+        switch (knowledgeCategory)
         {
-            bottomGradient.color = new Color(bottomGradient.color.r, bottomGradient.color.g, bottomGradient.color.b, 1f);
-        }
-        
-        if (scroll.verticalNormalizedPosition <= 0.95f)
-        {
-            topGradient.color = new Color(topGradient.color.r, topGradient.color.g, topGradient.color.b, 1f);
+          case ITEM:
+            itemButton.targetGraphic.color = Color.magenta;
+            animalButton.targetGraphic.color = Color.white;
+            worldButton.targetGraphic.color = Color.white;
+            
+            itemVisibilityController.alpha = 1f;
+            animalVisibilityController.alpha = 0f;
+            worldVisibilityController.alpha = 0f;
+            break;
+          case ANIMAL:
+            itemButton.targetGraphic.color = Color.white;
+            animalButton.targetGraphic.color = Color.magenta;
+            worldButton.targetGraphic.color = Color.white;
+            
+            itemVisibilityController.alpha = 0f;
+            animalVisibilityController.alpha = 1f;
+            worldVisibilityController.alpha = 0f;
+            break;
+          case WORLD:
+            itemButton.targetGraphic.color = Color.white;
+            animalButton.targetGraphic.color = Color.white;
+            worldButton.targetGraphic.color = Color.magenta;
+            
+            itemVisibilityController.alpha = 0f;
+            animalVisibilityController.alpha = 0f;
+            worldVisibilityController.alpha = 1f;
+            break;
         }
         
         
@@ -162,7 +254,7 @@ public class KnowledgeMenuGuiController : MonoBehaviour
       knowledgeItems = new List<KnowledgeItem>();
 
       // Validate required references
-      if (contentParent == null)
+      if (contentParentItem == null)
       {
         Debug.LogWarning("KnowledgeMenuGuiController: contentParent is not assigned!");
         return;
@@ -179,8 +271,15 @@ public class KnowledgeMenuGuiController : MonoBehaviour
 
       // Instantiate a knowledge item for each piece of knowledge
       foreach (KnowledgeData knowledge in knowledgeList)
-      {
-        GameObject knowledgeItemObj = Instantiate(knowledgeItemPrefab, contentParent);
+      { 
+        RectTransform knowledgeParent = knowledge.knowledgeCategory switch
+        {
+          ITEM => contentParentItem,
+          ANIMAL => contentParentAnimal,
+          WORLD => contentParentWorld,
+          _ => null
+        };
+        GameObject knowledgeItemObj = Instantiate(knowledgeItemPrefab, knowledgeParent);
         KnowledgeItem knowledgeItem = knowledgeItemObj.GetComponent<KnowledgeItem>();
             
         if (knowledgeItem != null)

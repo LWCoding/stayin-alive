@@ -16,3 +16,4 @@ MonoBehaviour:
   title: BeeTree
   description: A hive humming with purpose. Buzzing workers, nearby plants touched
     by their pollination grow faster.
+  knowledgeCategory: 2

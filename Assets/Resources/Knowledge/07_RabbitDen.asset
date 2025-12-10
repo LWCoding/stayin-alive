@@ -15,3 +15,4 @@ MonoBehaviour:
   sprite: {fileID: 21300000, guid: e64aebaa138b59e4185fec6920ce2fcc, type: 3}
   title: RabbitDen
   description: A mere distraction. The rabbits from within take our grass unreservedly.
+  knowledgeCategory: 2

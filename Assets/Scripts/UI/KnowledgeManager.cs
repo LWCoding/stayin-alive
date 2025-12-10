@@ -15,6 +15,13 @@ public class KnowledgeManager : Singleton<KnowledgeManager> {
     KNOWLEDGE_ALREADY_LEARNED
   }
 
+  public enum KnowledgeCategory
+  {
+    ITEM,
+    ANIMAL,
+    WORLD,
+  }
+  
   public event Action<bool> OnNewKnowledgeFlagChange;
 
   public void InvokeOnNewKnowledgeFlagChange(bool flag) {
