@@ -34,6 +34,8 @@ public class TutorialManager : Singleton<TutorialManager>
     [SerializeField] private GameObject _denInventoryExplanationUI;
     [Tooltip("UI object that explains assigned and unassigned workers")]
     [SerializeField] private GameObject _workersExplanationUI;
+    [Tooltip("UI object that explains the worker log system")]
+    [SerializeField] private GameObject _workerLogExplanationUI;
     [Tooltip("UI object that explains the game goal and win condition")]
     [SerializeField] private GameObject _goalExplanationUI;
     [Tooltip("UI object that explains the knowledge system")]
@@ -74,6 +76,8 @@ public class TutorialManager : Singleton<TutorialManager>
     private bool _breedExplanationShown = false;
     private bool _denInventoryExplanationShown = false;
     private bool _workersExplanationShown = false;
+    private bool _workerLogExplanationShown = false;
+    private bool _hasAssignedWorker = false;
     private bool _knowledgeExplanationShown = false;
     private bool _hasOpenedKnowledgeUI = false;
     private bool _goalExplanationShown = false;
@@ -200,6 +204,12 @@ public class TutorialManager : Singleton<TutorialManager>
             _workersExplanationUI.SetActive(false);
         }
         
+        // Hide worker log explanation at start
+        if (_workerLogExplanationUI != null)
+        {
+            _workerLogExplanationUI.SetActive(false);
+        }
+        
         // Hide goal explanation at start
         if (_goalExplanationUI != null)
         {
@@ -268,6 +278,7 @@ public class TutorialManager : Singleton<TutorialManager>
         if (DenSystemManager.Instance != null)
         {
             DenSystemManager.Instance.OnPanelOpened += OnDenPanelOpened;
+            DenSystemManager.Instance.OnPanelClosed += OnDenPanelClosed;
             DenSystemManager.Instance.OnPlayerTeleported += OnPlayerTeleported;
             DenSystemManager.Instance.OnItemsDeposited += OnItemsDeposited;
             DenSystemManager.Instance.OnWorkerCreated += OnWorkerCreated;
@@ -331,6 +342,7 @@ public class TutorialManager : Singleton<TutorialManager>
         if (DenSystemManager.Instance != null)
         {
             DenSystemManager.Instance.OnPanelOpened -= OnDenPanelOpened;
+            DenSystemManager.Instance.OnPanelClosed -= OnDenPanelClosed;
             DenSystemManager.Instance.OnPlayerTeleported -= OnPlayerTeleported;
             DenSystemManager.Instance.OnItemsDeposited -= OnItemsDeposited;
             DenSystemManager.Instance.OnWorkerCreated -= OnWorkerCreated;
@@ -555,11 +567,34 @@ public class TutorialManager : Singleton<TutorialManager>
     /// </summary>
     private void OnWorkerAssigned()
     {
+        _hasAssignedWorker = true;
+        
         // Close workers explanation when player assigns a worker
         if (_workersExplanationShown && _workersExplanationUI != null && _workersExplanationUI.activeSelf)
         {
             _workersExplanationUI.SetActive(false);
-            // Time stays paused - den panel is still open, tutorial complete
+            // Time stays paused - den panel is still open
+        }
+    }
+    
+    /// <summary>
+    /// Called when the den panel is closed.
+    /// </summary>
+    private void OnDenPanelClosed()
+    {
+        // Show worker log explanation after player exits den with assigned worker
+        if (_hasAssignedWorker && !_workerLogExplanationShown && _workerLogExplanationUI != null)
+        {
+            _workerLogExplanationUI.SetActive(true);
+            _workerLogExplanationShown = true;
+            
+            // Spawn a log entry showing that a worker deposited something
+            if (DenSystemManager.Instance != null && DenSystemManager.Instance.LogHolder != null)
+            {
+                DenSystemManager.Instance.LogHolder.SpawnLog(LogEntryGuiController.DenLogType.ADD_FOOD, 1);
+            }
+            
+            TimeManager.Instance?.Pause();
         }
     }
     
@@ -622,6 +657,14 @@ public class TutorialManager : Singleton<TutorialManager>
         if (_rabbitsAndDensExplanationShown && _rabbitsAndDensExplanationUI != null && _rabbitsAndDensExplanationUI.activeSelf)
         {
             _rabbitsAndDensExplanationUI.SetActive(false);
+            TimeManager.Instance?.Resume();
+            return;
+        }
+        
+        // Close worker log explanation if shown
+        if (_workerLogExplanationShown && _workerLogExplanationUI != null && _workerLogExplanationUI.activeSelf)
+        {
+            _workerLogExplanationUI.SetActive(false);
             TimeManager.Instance?.Resume();
             return;
         }

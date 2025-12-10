@@ -13,6 +13,11 @@ public class DenSystemManager : Singleton<DenSystemManager> {
   public event Action OnPanelOpened;
   
   /// <summary>
+  /// Event fired when the den management panel is closed.
+  /// </summary>
+  public event Action OnPanelClosed;
+  
+  /// <summary>
   /// Event fired when the player teleports between dens.
   /// </summary>
   public event Action OnPlayerTeleported;
@@ -310,6 +315,9 @@ public class DenSystemManager : Singleton<DenSystemManager> {
     Debug.LogWarning("Panel Closed");
     validTeleports.Clear();
     TimeManager.Instance.Resume();
+    
+    // Fire event for panel closed
+    OnPanelClosed?.Invoke();
   }
 
   public List<Den> GetDenList() {
