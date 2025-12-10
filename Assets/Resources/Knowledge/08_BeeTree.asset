@@ -15,4 +15,4 @@ MonoBehaviour:
   sprite: {fileID: 21300000, guid: 7639acef8ff9e7d4591ed75f3859a02f, type: 3}
   title: BeeTree
   description: A hive humming with purpose. Buzzing workers, nearby plants touched
-    by their pollination grow faster. Stay respectful, they sting when disturbed.
+    by their pollination grow faster.

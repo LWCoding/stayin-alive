@@ -14,4 +14,4 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   sprite: {fileID: 21300000, guid: b7447f2e21783fd4b8514fd37df44e90, type: 3}
   title: Bush
-  description: A brief place of shelter
+  description: A brief place of shelter.
