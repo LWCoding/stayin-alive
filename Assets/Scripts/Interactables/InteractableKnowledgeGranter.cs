@@ -3,19 +3,34 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class InteractableKnowledgeGranter : MonoBehaviour {
+public class InteractableOrAnimalKnowledgeGranter : MonoBehaviour {
   private Interactable interactable;
+  private Animal animal;
 
   private void Start() {
     interactable = GetComponentInParent<Interactable>();
+    animal = GetComponentInParent<Animal>();
   }
 
   private void OnTriggerEnter2D(Collider2D other) {
-    if (interactable == null) {
+    if (interactable == null && animal == null) {
       interactable = GetComponentInParent<Interactable>();
+      if (interactable == null)
+      {
+        animal = GetComponentInParent<Animal>();
+      }
     }
     if (other.gameObject.CompareTag("Player")) {
-      KnowledgeManager.Instance.LearnKnowledgeData(interactable.GetKnowledgeTitle());
+      if (interactable != null)
+      {
+        KnowledgeManager.Instance.LearnKnowledgeData(interactable.GetKnowledgeTitle());
+      }
+
+      if (animal != null)
+      {
+        KnowledgeManager.Instance.LearnKnowledgeData(animal.AnimalData.KnowledgeTitle);
+      }
+      
     }
   }
 }

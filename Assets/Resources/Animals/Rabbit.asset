@@ -20,5 +20,6 @@ MonoBehaviour:
   maxHunger: 100
   hungerThreshold: 70
   criticalHungerThreshold: 40
+  KnowledgeTitle: Rabbit
   dyingSFX: 6
   chasingSFX: 0

@@ -36,6 +36,8 @@ public class AnimalData : ScriptableObject
     
     [Tooltip("Critical hunger threshold (for prey animals). Below this value, the animal will seek food even when it's dangerous. Set to 0 if not applicable.")]
     public int criticalHungerThreshold = 20;
+
+    public string KnowledgeTitle;
     
     [Header("Audio")]
     [Tooltip("Sound to play when this animal dies (AudioManager SFX type).")]

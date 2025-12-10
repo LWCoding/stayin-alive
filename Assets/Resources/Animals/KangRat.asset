@@ -20,5 +20,6 @@ MonoBehaviour:
   maxHunger: 150
   hungerThreshold: 0
   criticalHungerThreshold: 0
+  KnowledgeTitle: KangRat
   dyingSFX: 5
   chasingSFX: 0

@@ -376,6 +376,7 @@ public class AnimalManager : Singleton<AnimalManager>
 
         // Instantiate the animal using the prefab from AnimalData
         GameObject animalObj = Instantiate(animalData.prefab, _animalParent);
+        InteractableKnowledgeGranterFactory.Instance.CreateInteractableKnowledgeGranter(animalObj);
         Animal animal = animalObj.GetComponent<Animal>();
         
         if (animal == null)

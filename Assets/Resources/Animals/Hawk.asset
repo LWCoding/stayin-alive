@@ -20,5 +20,6 @@ MonoBehaviour:
   maxHunger: 200
   hungerThreshold: 170
   criticalHungerThreshold: 100
+  KnowledgeTitle: Hawk
   dyingSFX: 0
   chasingSFX: 1

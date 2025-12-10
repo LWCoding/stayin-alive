@@ -20,5 +20,6 @@ MonoBehaviour:
   maxHunger: 120
   hungerThreshold: 100
   criticalHungerThreshold: 40
+  KnowledgeTitle: WorkerRat
   dyingSFX: 5
   chasingSFX: 0
