@@ -108,6 +108,17 @@ public class TutorialManager : Singleton<TutorialManager>
     }
     
     /// <summary>
+    /// Returns true if the worker log explanation tutorial is currently active.
+    /// </summary>
+    public bool IsWorkerLogExplanationActive
+    {
+        get
+        {
+            return _workerLogExplanationUI != null && _workerLogExplanationUI.activeSelf;
+        }
+    }
+    
+    /// <summary>
     /// Checks if the player can move to a specific position based on tutorial constraints.
     /// Returns false if the position would exceed the thresholds without meeting the conditions.
     /// </summary>

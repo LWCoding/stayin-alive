@@ -98,6 +98,12 @@ public class DenAdministrator : MonoBehaviour {
             return;
           }
         }
+        
+        // Don't allow opening panel if worker log explanation is showing
+        if (TutorialManager.Instance != null && TutorialManager.Instance.IsWorkerLogExplanationActive) {
+          return;
+        }
+        
         DenSystemManager.Instance.OpenPanel();
       }
       // If panel is closed and player is not in den, transfer items
