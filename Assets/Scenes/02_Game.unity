@@ -760,10 +760,10 @@ MonoBehaviour:
     count: 6
     predatorType: 
   - interactableType: 4
-    count: 8
+    count: 12
     predatorType: 
   - interactableType: 5
-    count: 16
+    count: 20
     predatorType: 
   - interactableType: 6
     count: 3
