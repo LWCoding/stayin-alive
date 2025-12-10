@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using JetBrains.Annotations;
 using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
@@ -39,7 +40,7 @@ public class ParticleManager : Singleton<ParticleManager>
         // Find or create canvas
         if (targetCanvas == null)
         {
-            targetCanvas = FindObjectOfType<Canvas>();
+            targetCanvas = UIManager.Instance.GetRootCanvas();
             if (targetCanvas == null)
             {
                 Debug.LogError("ParticleManager: No Canvas found! Please assign a Canvas in the Inspector.");
@@ -181,7 +182,7 @@ public class ParticleManager : Singleton<ParticleManager>
     /// <param name="duration">Duration of the fade animation (uses default if null)</param>
     /// <param name="upwardMovementDistance">Distance to move upwards (uses default if null)</param>
     /// <returns>The spawned FadeText component, or null if spawning failed</returns>
-    public FadeText SpawnFadeText(string text, Vector2 screenPosition, float? duration = null, float? upwardMovementDistance = null)
+    public FadeText SpawnFadeText(string text, Vector2 screenPosition, float? duration = null, float? upwardMovementDistance = null, RectTransform canvasRectTransform = null)
     {
         if (targetCanvas == null)
         {
@@ -198,14 +199,15 @@ public class ParticleManager : Singleton<ParticleManager>
         }
         
         // Convert screen position to canvas position
-        RectTransform canvasRect = targetCanvas.GetComponent<RectTransform>();
+        RectTransform canvasRect = canvasRectTransform == null ? targetCanvas.GetComponent<RectTransform>() : canvasRectTransform;
         Vector2 canvasPosition = ScreenToCanvasPosition(screenPosition, canvasRect);
+        canvasPosition = canvasRect.position + new Vector3(canvasRect.rect.center.x, canvasRect.rect.center.y, 0f);
         
         // Set position
         RectTransform fadeTextRect = fadeText.GetComponent<RectTransform>();
         if (fadeTextRect != null)
         {
-            fadeTextRect.anchoredPosition = canvasPosition;
+            fadeTextRect.position = canvasPosition;
         }
         
         // Initialize with parameters and callback to return to pool
@@ -238,7 +240,7 @@ public class ParticleManager : Singleton<ParticleManager>
         targetRectTransform.GetWorldCorners(worldCorners);
         Vector2 centerScreenPos = RectTransformUtility.WorldToScreenPoint(null, (worldCorners[0] + worldCorners[2]) * 0.5f);
         
-        return SpawnFadeText(text, centerScreenPos, duration, upwardMovementDistance);
+        return SpawnFadeText(text, centerScreenPos, duration, upwardMovementDistance, targetRectTransform);
     }
     
     /// <summary>

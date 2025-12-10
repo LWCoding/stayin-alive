@@ -3335,6 +3335,10 @@ PrefabInstance:
       propertyPath: m_AnchoredPosition.y
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 8146392384354045253, guid: 18142a8288a9a4033a51e9219bb3def1, type: 3}
+      propertyPath: m_Name
+      value: ExclaimIconDO_NOT_RENAME
+      objectReference: {fileID: 0}
     - target: {fileID: 8260014377161040907, guid: 18142a8288a9a4033a51e9219bb3def1, type: 3}
       propertyPath: m_AnchorMax.y
       value: 0

@@ -71,6 +71,11 @@ public class UIManager : Singleton<UIManager>
 
     public ControllableAnimal TrackedAnimal => _trackedAnimal;
 
+    public Canvas GetRootCanvas()
+    {
+      return GetComponent<Canvas>();
+    }
+    
     protected override void Awake()
     {
         base.Awake();
