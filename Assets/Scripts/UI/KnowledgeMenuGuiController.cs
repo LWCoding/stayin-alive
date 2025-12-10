@@ -1,6 +1,8 @@
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
+using UnityEngine.UIElements;
+using Image = UnityEngine.UI.Image;
 
 /// <summary>
 /// Manages the knowledge panel UI elements and their display logic.
@@ -28,6 +30,15 @@ public class KnowledgeMenuGuiController : MonoBehaviour
     private GameObject knowledgeItemPrefab;
 
     private List<KnowledgeItem> knowledgeItems = new List<KnowledgeItem>();
+    
+    [SerializeField]
+    private ScrollRect scroll;
+
+    [SerializeField] 
+    private Image topGradient;
+    
+    [SerializeField]
+    private Image bottomGradient;
 
     public void Start()
     {
@@ -46,6 +57,21 @@ public class KnowledgeMenuGuiController : MonoBehaviour
                 Hide();
             }
         }
+        
+        bottomGradient.color = new Color(bottomGradient.color.r, bottomGradient.color.g, bottomGradient.color.b, 0f);
+        topGradient.color = new Color(topGradient.color.r, topGradient.color.g, topGradient.color.b, 0f);
+
+        if (scroll.verticalNormalizedPosition >= 0.05f)
+        {
+            bottomGradient.color = new Color(bottomGradient.color.r, bottomGradient.color.g, bottomGradient.color.b, 1f);
+        }
+        
+        if (scroll.verticalNormalizedPosition <= 0.95f)
+        {
+            topGradient.color = new Color(topGradient.color.r, topGradient.color.g, topGradient.color.b, 1f);
+        }
+        
+        
     }
 
     /// <summary>
