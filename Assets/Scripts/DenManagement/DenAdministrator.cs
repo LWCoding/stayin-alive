@@ -80,26 +80,7 @@ public class DenAdministrator : MonoBehaviour {
 
   private void Update() {
     if (Input.GetKeyDown(KeyCode.E)) {
-      // Only allow opening panel if player is inside a den
-      if (!DenSystemManager.Instance.PanelOpen) {
-        if (playerAnimal.CurrentDen != null) {
-          // In tutorial, require 1 den built (not counting starting den) before allowing panel to open
-          if (TutorialManager.Instance != null && DenSystemManager.Instance != null) {
-            if (DenSystemManager.Instance.DensBuiltWithSticks < 1) {
-              return;
-            }
-          }
-          DenSystemManager.Instance.OpenPanel();
-        }
-      }
-    }
-
-    if (Input.GetKeyDown(KeyCode.Z)) {
-      DenSystemManager.Instance.TransferFoodItemToPlayerByIndex();
-    }
-
-    if (Input.GetKeyDown(KeyCode.X)) {
-      // If panel is open, close it. Otherwise, transfer other items.
+      // If panel is open, close it
       if (DenSystemManager.Instance.PanelOpen) {
         // Don't allow closing panel if tutorial UI is active
         if (TutorialManager.Instance != null && TutorialManager.Instance.IsDenUITutorialActive) {
@@ -107,9 +88,26 @@ public class DenAdministrator : MonoBehaviour {
         }
         DenSystemManager.Instance.ClosePanel();
       }
+      // Otherwise, try to open panel if player is inside a den
+      else if (playerAnimal.CurrentDen != null) {
+        // In tutorial, require 1 den built (not counting starting den) before allowing panel to open
+        if (TutorialManager.Instance != null && DenSystemManager.Instance != null) {
+          if (DenSystemManager.Instance.DensBuiltWithSticks < 1) {
+            // In tutorial and haven't built den yet, transfer items instead
+            DenSystemManager.Instance.TransferOtherItemToPlayerByIndex();
+            return;
+          }
+        }
+        DenSystemManager.Instance.OpenPanel();
+      }
+      // If panel is closed and player is not in den, transfer items
       else {
         DenSystemManager.Instance.TransferOtherItemToPlayerByIndex();
       }
+    }
+
+    if (Input.GetKeyDown(KeyCode.Z)) {
+      DenSystemManager.Instance.TransferFoodItemToPlayerByIndex();
     }
 
     if (Input.GetKeyDown(KeyCode.C)) {
