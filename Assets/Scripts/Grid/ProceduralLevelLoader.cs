@@ -365,9 +365,119 @@ public class ProceduralLevelLoader : MonoBehaviour
     }
 
     /// <summary>
+    /// Determines the player spawn position early so multi-tile interactables can check distance from it.
+    /// </summary>
+    private Vector2Int? DeterminePlayerSpawnPosition(LevelData levelData, List<Vector2Int> spawnPositions, List<Vector2Int> walkablePositions)
+    {
+        if (string.IsNullOrEmpty(_controllableAnimalName) || spawnPositions.Count == 0)
+        {
+            return null;
+        }
+
+        const int MIN_DISTANCE_FROM_SPAWNERS = 10;
+        Vector2Int controllablePos = Vector2Int.zero;
+        bool foundValidPosition = false;
+        int playerAttempts = 0;
+        int maxPlayerAttempts = spawnPositions.Count * 3;
+        
+        // Try to find a position at least 10 tiles away from all rabbit spawners and predator dens
+        // Note: At this point, interactables list may be empty or only contain config-based interactables
+        // Predator dens will be added later, so we check those when they're added
+        while (playerAttempts < maxPlayerAttempts && spawnPositions.Count > 0)
+        {
+            int index = Random.Range(0, spawnPositions.Count);
+            Vector2Int candidatePos = spawnPositions[index];
+            playerAttempts++;
+            
+            bool tooCloseToSpawner = false;
+            
+            // Check distance to all interactables (rabbit spawners and predator dens)
+            foreach (var interactable in levelData.Interactables)
+            {
+                if (interactable.Type == InteractableType.RabbitSpawner || interactable.Type == InteractableType.PredatorDen)
+                {
+                    int distance = Mathf.Abs(candidatePos.x - interactable.X) + Mathf.Abs(candidatePos.y - interactable.Y);
+                    if (distance < MIN_DISTANCE_FROM_SPAWNERS)
+                    {
+                        tooCloseToSpawner = true;
+                        break;
+                    }
+                }
+            }
+            
+            // If position is valid (far enough from spawners), use it
+            if (!tooCloseToSpawner)
+            {
+                controllablePos = candidatePos;
+                foundValidPosition = true;
+                break;
+            }
+        }
+        
+        // If we couldn't find a position with the distance requirement, just use any available position
+        if (!foundValidPosition && spawnPositions.Count > 0)
+        {
+            controllablePos = spawnPositions[Random.Range(0, spawnPositions.Count)];
+            foundValidPosition = true;
+            Debug.LogWarning($"ProceduralLevelLoader: Could not find player spawn position {MIN_DISTANCE_FROM_SPAWNERS} tiles away from spawners. Using closest available position.");
+        }
+        
+        if (foundValidPosition)
+        {
+            // Remove this position from available spawn positions to avoid overlap
+            spawnPositions.Remove(controllablePos);
+            walkablePositions.Remove(controllablePos);
+            return controllablePos;
+        }
+        
+        return null;
+    }
+
+    /// <summary>
+    /// Checks if a multi-tile interactable position is too close to the player's den.
+    /// </summary>
+    private bool IsTooCloseToPlayerDen(Vector2Int interactablePos, InteractableType interactableType, Vector2Int? playerDenPosition, int minDistance)
+    {
+        if (!playerDenPosition.HasValue)
+        {
+            return false; // No player den position reserved yet, allow placement
+        }
+        
+        Vector2Int denPos = playerDenPosition.Value;
+        
+        // Determine the footprint size of the interactable
+        int footprintSize = 1;
+        if (interactableType == InteractableType.GrassPatch)
+        {
+            footprintSize = 3; // GrassPatch is 3x3
+        }
+        else if (interactableType == InteractableType.BeeTree)
+        {
+            // BeeTree has a radius of 3 world units (approximately 3 grid units)
+            // Check distance from center, accounting for the tree's effective radius
+            footprintSize = 3;
+        }
+        
+        // Calculate Manhattan distance from interactable center to player den
+        int distance = Mathf.Abs(interactablePos.x - denPos.x) + Mathf.Abs(interactablePos.y - denPos.y);
+        
+        // Account for the footprint - we need the closest edge of the interactable to be at least minDistance away
+        // For a footprint of size N, the farthest point from center is at Manhattan distance (N-1)
+        // For a 3x3 patch centered at (x,y), it occupies positions from (x-1,y-1) to (x+1,y+1)
+        // The corner at (x+1,y+1) is at Manhattan distance 2 from center (x,y)
+        // So footprintRadius = (N-1)
+        int footprintRadius = footprintSize - 1;
+        
+        // The closest edge of the interactable to the den must be at least minDistance away
+        // So: distance - footprintRadius >= minDistance
+        // Or: distance >= minDistance + footprintRadius
+        return distance < (minDistance + footprintRadius);
+    }
+
+    /// <summary>
     /// Spawns interactables based on the spawn configuration list.
     /// </summary>
-    private void SpawnInteractablesFromConfig(LevelData levelData, List<Vector2Int> spawnPositions, List<Vector2Int> walkablePositions)
+    private void SpawnInteractablesFromConfig(LevelData levelData, List<Vector2Int> spawnPositions, List<Vector2Int> walkablePositions, Vector2Int? reservedPlayerDenPosition)
     {
         foreach (var config in _interactableSpawnConfigs)
         {
@@ -379,14 +489,24 @@ public class ProceduralLevelLoader : MonoBehaviour
                                  config.interactableType == InteractableType.Grass ||
                                  config.interactableType == InteractableType.Tree;
 
-            // Check if this is a multi-tile interactable
+            // Check if this is a multi-tile interactable (or has a large footprint like BeeTree)
             bool isMultiTile = config.interactableType == InteractableType.GrassPatch;
+            bool hasLargeFootprint = config.interactableType == InteractableType.BeeTree || isMultiTile;
             int patchSize = isMultiTile ? 3 : 1; // GrassPatch is 3x3
+            
+            // Minimum distance from player den for multi-tile/large footprint interactables
+            const int MIN_DISTANCE_FROM_PLAYER_DEN = 8;
 
             // Collect valid positions for this interactable type
             List<Vector2Int> validPositions = new List<Vector2Int>();
             foreach (Vector2Int pos in spawnPositions)
             {
+                // For multi-tile or large footprint interactables (BeeTree, GrassPatch), check distance from player den
+                if (hasLargeFootprint && IsTooCloseToPlayerDen(pos, config.interactableType, reservedPlayerDenPosition, MIN_DISTANCE_FROM_PLAYER_DEN))
+                {
+                    continue;
+                }
+                
                 // For multi-tile interactables, check if the entire area is available
                 if (isMultiTile)
                 {
@@ -630,13 +750,21 @@ public class ProceduralLevelLoader : MonoBehaviour
         // Use preferred positions if available, otherwise fall back to all walkable positions
         List<Vector2Int> spawnPositions = preferredPositions.Count > 0 ? preferredPositions : walkablePositions;
         
-		// Spawn interactables from config list
-		SpawnInteractablesFromConfig(levelData, spawnPositions, walkablePositions);
+        // Determine player spawn position early so we can check distances when spawning multi-tile interactables
+        Vector2Int? reservedPlayerDenPosition = DeterminePlayerSpawnPosition(levelData, spawnPositions, walkablePositions);
+        if (!reservedPlayerDenPosition.HasValue)
+        {
+            Debug.LogWarning("ProceduralLevelLoader: No player spawn position found!");
+            return;
+        }
+        
+		// Spawn interactables from config list (with player den position check for multi-tile interactables)
+		SpawnInteractablesFromConfig(levelData, spawnPositions, walkablePositions, reservedPlayerDenPosition);
 
-		// Spawn items from config list
+        // Spawn items from config list
 		SpawnItemsFromConfig(levelData, spawnPositions);
 
-        // 2. Spawn predators in patches with predator dens
+        // 2. Spawn predators in patches with predator dens (these will respect reserved player den position)
         if (_predatorNames != null && _predatorNames.Length > 0 && spawnPositions.Count > 0)
         {
             // Create a list to ensure at least one of each predator type is assigned
@@ -658,10 +786,12 @@ public class ProceduralLevelLoader : MonoBehaviour
                 
                 // Pick a random center position for this patch (this will be the predator den location)
                 // Use spawnPositions to avoid water tiles, but also check for existing interactables
+                // Also check distance from reserved player den position
                 Vector2Int patchCenter = Vector2Int.zero;
                 bool foundValidPosition = false;
                 int patchAttempts = 0;
                 int maxPatchAttempts = spawnPositions.Count * 2;
+                const int MIN_DISTANCE_FROM_PLAYER_DEN = 10;
                 
                 while (patchAttempts < maxPatchAttempts && spawnPositions.Count > 0)
                 {
@@ -670,6 +800,17 @@ public class ProceduralLevelLoader : MonoBehaviour
                     
                     if (!IsPositionOccupiedByInteractable(patchCenter, levelData))
                     {
+                        // Check if too close to reserved player den position
+                        if (reservedPlayerDenPosition.HasValue)
+                        {
+                            int distance = Mathf.Abs(patchCenter.x - reservedPlayerDenPosition.Value.x) + 
+                                         Mathf.Abs(patchCenter.y - reservedPlayerDenPosition.Value.y);
+                            if (distance < MIN_DISTANCE_FROM_PLAYER_DEN)
+                            {
+                                continue; // Too close to player den, try another position
+                            }
+                        }
+                        
                         foundValidPosition = true;
                         break;
                     }
@@ -759,68 +900,96 @@ public class ProceduralLevelLoader : MonoBehaviour
             }
         }
         
-        // 3. Spawn controllable animal at a safe distance from spawners
-        if (!string.IsNullOrEmpty(_controllableAnimalName) && spawnPositions.Count > 0)
+        // 3. Verify player den position is still valid after predators spawned, then spawn controllable animal
+        Vector2Int finalPlayerDenPosition;
+        if (reservedPlayerDenPosition.HasValue)
         {
+            // Re-check distance from newly spawned predator dens
             const int MIN_DISTANCE_FROM_SPAWNERS = 10;
-            Vector2Int controllablePos = Vector2Int.zero;
-            bool foundValidPosition = false;
-            int playerAttempts = 0;
-            int maxPlayerAttempts = spawnPositions.Count * 3;
+            bool stillValid = true;
             
-            // Try to find a position at least 10 tiles away from all rabbit spawners and predator dens
-            while (playerAttempts < maxPlayerAttempts && spawnPositions.Count > 0)
+            foreach (var interactable in levelData.Interactables)
             {
-                int index = Random.Range(0, spawnPositions.Count);
-                Vector2Int candidatePos = spawnPositions[index];
-                playerAttempts++;
-                
-                bool tooCloseToSpawner = false;
-                
-                // Check distance to all interactables (rabbit spawners and predator dens)
-                foreach (var interactable in levelData.Interactables)
+                if (interactable.Type == InteractableType.PredatorDen)
                 {
-                    if (interactable.Type == InteractableType.RabbitSpawner || interactable.Type == InteractableType.PredatorDen)
+                    int distance = Mathf.Abs(reservedPlayerDenPosition.Value.x - interactable.X) + 
+                                 Mathf.Abs(reservedPlayerDenPosition.Value.y - interactable.Y);
+                    if (distance < MIN_DISTANCE_FROM_SPAWNERS)
                     {
-                        int distance = Mathf.Abs(candidatePos.x - interactable.X) + Mathf.Abs(candidatePos.y - interactable.Y);
-                        if (distance < MIN_DISTANCE_FROM_SPAWNERS)
+                        stillValid = false;
+                        break;
+                    }
+                }
+            }
+            
+            if (stillValid)
+            {
+                finalPlayerDenPosition = reservedPlayerDenPosition.Value;
+            }
+            else
+            {
+                // Find a new position far from all spawners and predator dens
+                finalPlayerDenPosition = Vector2Int.zero;
+                bool foundNewPosition = false;
+                int attempts = 0;
+                int maxAttempts = spawnPositions.Count * 3;
+                
+                while (attempts < maxAttempts && spawnPositions.Count > 0)
+                {
+                    int index = Random.Range(0, spawnPositions.Count);
+                    Vector2Int candidatePos = spawnPositions[index];
+                    attempts++;
+                    
+                    bool tooClose = false;
+                    foreach (var interactable in levelData.Interactables)
+                    {
+                        if (interactable.Type == InteractableType.RabbitSpawner || interactable.Type == InteractableType.PredatorDen)
                         {
-                            tooCloseToSpawner = true;
-                            break;
+                            int distance = Mathf.Abs(candidatePos.x - interactable.X) + Mathf.Abs(candidatePos.y - interactable.Y);
+                            if (distance < MIN_DISTANCE_FROM_SPAWNERS)
+                            {
+                                tooClose = true;
+                                break;
+                            }
                         }
+                    }
+                    
+                    if (!tooClose)
+                    {
+                        finalPlayerDenPosition = candidatePos;
+                        foundNewPosition = true;
+                        spawnPositions.Remove(candidatePos);
+                        walkablePositions.Remove(candidatePos);
+                        break;
                     }
                 }
                 
-                // If position is valid (far enough from spawners), use it
-                if (!tooCloseToSpawner)
+                if (!foundNewPosition && spawnPositions.Count > 0)
                 {
-                    controllablePos = candidatePos;
-                    foundValidPosition = true;
-                    break;
+                    finalPlayerDenPosition = spawnPositions[Random.Range(0, spawnPositions.Count)];
+                    spawnPositions.Remove(finalPlayerDenPosition);
+                    walkablePositions.Remove(finalPlayerDenPosition);
+                    Debug.LogWarning($"ProceduralLevelLoader: Original player position invalidated by predators. Using alternative position.");
                 }
             }
             
-            // If we couldn't find a position with the distance requirement, just use any available position
-            if (!foundValidPosition && spawnPositions.Count > 0)
+            if (!string.IsNullOrEmpty(_controllableAnimalName))
             {
-                controllablePos = spawnPositions[Random.Range(0, spawnPositions.Count)];
-                foundValidPosition = true;
-                Debug.LogWarning($"ProceduralLevelLoader: Could not find player spawn position {MIN_DISTANCE_FROM_SPAWNERS} tiles away from spawners. Using closest available position.");
-            }
-            
-            if (foundValidPosition)
-            {
-                levelData.Animals.Add((_controllableAnimalName, controllablePos.x, controllablePos.y, 1));
+                levelData.Animals.Add((_controllableAnimalName, finalPlayerDenPosition.x, finalPlayerDenPosition.y, 1));
                 
                 // Place den at the same position as the controllable animal
-                levelData.Interactables.Add(new InteractableData(InteractableType.Den, controllablePos.x, controllablePos.y));
+                levelData.Interactables.Add(new InteractableData(InteractableType.Den, finalPlayerDenPosition.x, finalPlayerDenPosition.y));
                 
-                // Remove this position from available spawn positions to avoid overlap
-                spawnPositions.Remove(controllablePos);
-                walkablePositions.Remove(controllablePos);
-                
-                Debug.Log($"ProceduralLevelLoader: Spawned player at ({controllablePos.x}, {controllablePos.y})");
+                Debug.Log($"ProceduralLevelLoader: Spawned player at ({finalPlayerDenPosition.x}, {finalPlayerDenPosition.y})");
             }
+        }
+        else if (!string.IsNullOrEmpty(_controllableAnimalName) && spawnPositions.Count > 0)
+        {
+            // Fallback: spawn player at any available position
+            Vector2Int fallbackPos = spawnPositions[Random.Range(0, spawnPositions.Count)];
+            levelData.Animals.Add((_controllableAnimalName, fallbackPos.x, fallbackPos.y, 1));
+            levelData.Interactables.Add(new InteractableData(InteractableType.Den, fallbackPos.x, fallbackPos.y));
+            Debug.LogWarning($"ProceduralLevelLoader: No reserved player position available. Spawned player at fallback position ({fallbackPos.x}, {fallbackPos.y})");
         }
         
     }
