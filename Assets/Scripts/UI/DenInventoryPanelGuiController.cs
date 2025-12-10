@@ -4,6 +4,7 @@ using System.Linq;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
+using static ItemId;
 
 public class DenInventoryPanelGuiController : MonoBehaviour {
   [Header("UI Elements")]
@@ -36,18 +37,18 @@ public class DenInventoryPanelGuiController : MonoBehaviour {
 
     // Get item names from inventory slots without destroying the items
     // Items should only be destroyed when actually removed from inventory
-    List<string> itemNames = new List<string>();
+    List<ItemId> itemIds = new List<ItemId>();
     foreach (InventorySlot slot in InventoryManager.Instance.GetInventorySlots()) {
       Item item = slot.GetItem();
       if (item != null && item.ItemName != null) {
-        itemNames.Add(item.ItemName);
+        itemIds.Add(item.ItemType);
       }
     }
-    itemNames.Reverse();
+    itemIds.Reverse();
 
-    foreach (string itemName in itemNames) {
+    foreach (ItemId itemId in itemIds) {
       DenMenuInventorySlotGui newSlot = Instantiate(inventorySlotPrefab, inventoryBar).GetComponent<DenMenuInventorySlotGui>();
-      newSlot.Setup(itemName);
+      newSlot.Setup(itemId);
       inventorySlots.Add(newSlot);
     }
   }

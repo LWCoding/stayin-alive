@@ -13,7 +13,7 @@ public class ItemManager : Singleton<ItemManager>
     [SerializeField] private Transform _itemParent;
     
     // Dictionary mapping item types (enum) to their ItemData
-    private Dictionary<ItemType, ItemData> _itemDataDictionary = new Dictionary<ItemType, ItemData>();
+    private Dictionary<ItemId, ItemData> _itemDataDictionary = new Dictionary<ItemId, ItemData>();
     
     // Track all items in the scene
     private List<Item> _items = new List<Item>();
@@ -69,13 +69,13 @@ public class ItemManager : Singleton<ItemManager>
                 continue;
             }
 
-            if (_itemDataDictionary.ContainsKey(itemData.itemType))
+            if (_itemDataDictionary.ContainsKey(itemData.itemId))
             {
-                Debug.LogWarning($"ItemManager: Duplicate item type '{itemData.itemType}' found. Keeping first occurrence.");
+                Debug.LogWarning($"ItemManager: Duplicate item type '{itemData.itemId}' found. Keeping first occurrence.");
                 continue;
             }
 
-            _itemDataDictionary[itemData.itemType] = itemData;
+            _itemDataDictionary[itemData.itemId] = itemData;
         }
 
         Debug.Log($"ItemManager: Loaded {_itemDataDictionary.Count} item data entries from Resources/Items/");
@@ -84,7 +84,7 @@ public class ItemManager : Singleton<ItemManager>
     /// <summary>
     /// Gets an ItemData by ItemType enum. Returns null if not found.
     /// </summary>
-    private ItemData GetItemData(ItemType itemType)
+    private ItemData GetItemData(ItemId itemType)
     {
         if (_itemDataDictionary.TryGetValue(itemType, out ItemData data))
         {
@@ -98,7 +98,7 @@ public class ItemManager : Singleton<ItemManager>
     /// <summary>
     /// Gets the item name string for a given ItemType. Returns the enum string as fallback if ItemData not found.
     /// </summary>
-    public string GetItemName(ItemType itemType)
+    public string GetItemName(ItemId itemType)
     {
         ItemData itemData = GetItemData(itemType);
         if (itemData != null && !string.IsNullOrEmpty(itemData.itemName))
@@ -116,7 +116,7 @@ public class ItemManager : Singleton<ItemManager>
     /// <param name="itemType">Type of the item to spawn</param>
     /// <param name="gridPosition">Grid position to spawn the item at</param>
     /// <returns>The spawned Item component, or null if ItemData or prefab is not found</returns>
-    public Item SpawnItem(ItemType itemType, Vector2Int gridPosition)
+    public Item SpawnItem(ItemId itemType, Vector2Int gridPosition)
     {
         ItemData itemData = GetItemData(itemType);
         if (itemData == null)
@@ -204,7 +204,7 @@ public class ItemManager : Singleton<ItemManager>
     /// </summary>
     /// <param name="itemType">Type of the item</param>
     /// <returns>The inventory sprite, or null if not found</returns>
-    public Sprite GetItemSprite(ItemType itemType)
+    public Sprite GetItemSprite(ItemId itemType)
     {
         ItemData itemData = GetItemData(itemType);
         if (itemData == null || itemData.prefab == null)
@@ -238,7 +238,7 @@ public class ItemManager : Singleton<ItemManager>
     /// </summary>
     /// <param name="itemType">Type of the item to create</param>
     /// <returns>The created Item, or null if ItemData or prefab is not found</returns>
-    public Item CreateItemForStorage(ItemType itemType)
+    public Item CreateItemForStorage(ItemId itemType)
     {
         ItemData itemData = GetItemData(itemType);
         if (itemData == null || itemData.prefab == null)

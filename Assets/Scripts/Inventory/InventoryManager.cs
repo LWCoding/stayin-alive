@@ -232,7 +232,7 @@ public class InventoryManager : Singleton<InventoryManager>
     /// Attempts to add an item to the inventory by type. Creates a new Item instance from the prefab.
     /// This is a convenience method for cases where only the item type is available.
     /// </summary>
-    public bool AddItem(ItemType itemType)
+    public bool AddItem(ItemId itemType)
     {
         if (ItemManager.Instance == null)
         {

@@ -5,7 +5,7 @@ using UnityEngine;
 /// Enumeration of item types in the game.
 /// Used instead of strings for type safety and better performance.
 /// </summary>
-public enum ItemType
+public enum ItemId
 {
     Grass,
     GrassSeeds,
@@ -21,7 +21,7 @@ public abstract class Item : MonoBehaviour, IItem
 {
     [Header("Item Settings")]
     [SerializeField] [Tooltip("Type of this item.")]
-    private ItemType _itemType;
+    private ItemId _itemType;
     
     [HideInInspector] [Tooltip("Grid position of this item")]
     private Vector2Int _gridPosition;
@@ -44,7 +44,7 @@ public abstract class Item : MonoBehaviour, IItem
     /// <summary>
     /// The type of this item.
     /// </summary>
-    public ItemType ItemType => _itemType;
+    public ItemId ItemType => _itemType;
     
     /// <summary>
     /// The name identifier for this item (for backward compatibility with IItem interface).
@@ -87,7 +87,7 @@ public abstract class Item : MonoBehaviour, IItem
     /// <summary>
     /// Initializes the item at the specified grid position with a specific item type.
     /// </summary>
-    public virtual void Initialize(Vector2Int gridPosition, ItemType itemType)
+    public virtual void Initialize(Vector2Int gridPosition, ItemId itemType)
     {
         _gridPosition = gridPosition;
         _itemType = itemType;

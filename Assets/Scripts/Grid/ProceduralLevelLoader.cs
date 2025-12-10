@@ -86,7 +86,7 @@ public class ProceduralLevelLoader : MonoBehaviour
 	public struct ItemSpawnConfig
 	{
 		[Tooltip("Type of item to spawn")]
-		public ItemType itemType;
+		public ItemId itemType;
 		
 		[Tooltip("Number of this item type to spawn")]
 		[Min(0)]
@@ -311,7 +311,7 @@ public class ProceduralLevelLoader : MonoBehaviour
 
         // Initialize lists
 		levelData.Animals = new List<(string animalName, int x, int y, int count)>();
-		levelData.Items = new List<(ItemType itemType, int x, int y)>();
+		levelData.Items = new List<(ItemId itemType, int x, int y)>();
 		levelData.Interactables = new List<InteractableData>();
         levelData.FoodCount = 0;
 
@@ -644,7 +644,7 @@ public class ProceduralLevelLoader : MonoBehaviour
                 continue;
 
             // Determine if this item requires grass tiles (e.g., Sticks)
-            bool requiresGrass = config.itemType == ItemType.Sticks;
+            bool requiresGrass = config.itemType == ItemId.Sticks;
 
             // Collect valid positions for this item type
             List<Vector2Int> validPositions = new List<Vector2Int>();

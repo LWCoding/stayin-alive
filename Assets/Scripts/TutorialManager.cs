@@ -437,7 +437,7 @@ public class TutorialManager : Singleton<TutorialManager>
     private void OnItemAddedToInventory(string itemName)
     {
         // Track if player picked up grass
-        if (itemName == ItemType.Grass.ToString())
+        if (itemName == ItemId.Grass.ToString())
         {
             _hasPickedUpGrass = true;
         }
@@ -517,11 +517,11 @@ public class TutorialManager : Singleton<TutorialManager>
                 if (InventoryManager.Instance != null)
                 {
                     InventoryManager.Instance.ResetInventorySlots();
-                    InventoryManager.Instance.AddItem(ItemType.Sticks);
-                    InventoryManager.Instance.AddItem(ItemType.Grass);
-                    InventoryManager.Instance.AddItem(ItemType.Grass);
-                    InventoryManager.Instance.AddItem(ItemType.Grass);
-                    InventoryManager.Instance.AddItem(ItemType.Grass);
+                    InventoryManager.Instance.AddItem(ItemId.Sticks);
+                    InventoryManager.Instance.AddItem(ItemId.Grass);
+                    InventoryManager.Instance.AddItem(ItemId.Grass);
+                    InventoryManager.Instance.AddItem(ItemId.Grass);
+                    InventoryManager.Instance.AddItem(ItemId.Grass);
                 }
                 
                 // Refresh den UI to show new items by closing and reopening the panel

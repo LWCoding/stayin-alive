@@ -9,7 +9,7 @@ public class Tree : Interactable
 {
 	[Header("Stick Spawner Settings")]
 	[Tooltip("Type of the sticks item to spawn.")]
-	[SerializeField] private ItemType _sticksItemType = ItemType.Sticks;
+	[SerializeField] private ItemId _sticksItemType = ItemId.Sticks;
 	[Tooltip("Number of turns between spawn attempts.")]
 	[SerializeField] private int _turnsBetweenSpawns = 10;
 	[Tooltip("Minimum distance from the tree that sticks can spawn (in grid tiles).")]

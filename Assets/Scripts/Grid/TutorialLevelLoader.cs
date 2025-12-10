@@ -95,7 +95,7 @@ public class TutorialLevelLoader : MonoBehaviour
 	public struct ItemSpawnConfig
 	{
 		[Tooltip("Type of item to spawn")]
-		public ItemType itemType;
+		public ItemId itemType;
 		
 		[Tooltip("Number of this item type to spawn")]
 		[Min(0)]
@@ -195,7 +195,7 @@ public class TutorialLevelLoader : MonoBehaviour
     public class ItemPlacement
     {
         [Tooltip("Type of item")]
-        public ItemType itemType = ItemType.Grass;
+        public ItemId itemType = ItemId.Grass;
         
         [Tooltip("Grid position (x, y)")]
         public Vector2Int position = Vector2Int.zero;
@@ -494,7 +494,7 @@ public class TutorialLevelLoader : MonoBehaviour
 
         // Initialize lists BEFORE any spawns are added
         levelData.Animals = new List<(string animalName, int x, int y, int count)>();
-        levelData.Items = new List<(ItemType itemType, int x, int y)>();
+        levelData.Items = new List<(ItemId itemType, int x, int y)>();
         levelData.Interactables = new List<InteractableData>();
         levelData.FoodCount = 0;
         
@@ -754,7 +754,7 @@ public class TutorialLevelLoader : MonoBehaviour
                 continue;
 
             // Determine if this item requires grass tiles (e.g., Sticks)
-            bool requiresGrass = config.itemType == ItemType.Sticks;
+            bool requiresGrass = config.itemType == ItemId.Sticks;
 
             // Use appropriate position list
             List<Vector2Int> validPositions = requiresGrass 

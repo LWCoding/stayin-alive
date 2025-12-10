@@ -1,4 +1,5 @@
 using UnityEngine;
+using UnityEngine.Serialization;
 
 /// <summary>
 /// ScriptableObject that stores data for an item type.
@@ -7,9 +8,11 @@ using UnityEngine;
 [CreateAssetMenu(fileName = "New Item Data", menuName = "Items/Item Data")]
 public class ItemData : ScriptableObject
 {
+    [FormerlySerializedAs("itemTd")]
+    [FormerlySerializedAs("itemType")]
     [Header("Item Info")]
-    [Tooltip("The ItemType enum value this ItemData represents")]
-    public ItemType itemType;
+    [Tooltip("The ItemId enum value this ItemData represents")]
+    public ItemId itemId;
 
     [Tooltip("Name of the item for this item type")]
     public string itemName;

@@ -47,7 +47,7 @@ public class Grass : Interactable
 
 	public const float SEED_DROP_RATE_FULL = 0.15f;  // Chance to drop from full layer to growing layer
 	public const float SEED_DROP_RATE_GROWING = 0.3f;  // Chance to drop from growing layer to destroyed layer
-  public const ItemType SEED_ITEM_TYPE = ItemType.GrassSeeds;
+  public const ItemId SEED_ITEM_TYPE = ItemId.GrassSeeds;
 
 
   public override string GetKnowledgeTitle() {
@@ -488,7 +488,7 @@ public class Grass : Interactable
 		// Try to add grass item to inventory
 		if (InventoryManager.Instance != null)
 		{
-			bool added = InventoryManager.Instance.AddItem(ItemType.Grass);
+			bool added = InventoryManager.Instance.AddItem(ItemId.Grass);
 			
 			if (added)
 			{

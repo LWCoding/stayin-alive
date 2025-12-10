@@ -44,7 +44,7 @@ public class LevelData
     public int Height { get; set; }
     public List<(int x, int y, TileType tileType)> Tiles { get; set; }
     public List<(string animalName, int x, int y, int count)> Animals { get; set; }
-    public List<(ItemType itemType, int x, int y)> Items { get; set; }
+    public List<(ItemId itemType, int x, int y)> Items { get; set; }
     public List<InteractableData> Interactables { get; set; }
     public int FoodCount { get; set; }
 
@@ -52,7 +52,7 @@ public class LevelData
     {
         Tiles = new List<(int x, int y, TileType tileType)>();
         Animals = new List<(string animalName, int x, int y, int count)>();
-        Items = new List<(ItemType itemType, int x, int y)>();
+        Items = new List<(ItemId itemType, int x, int y)>();
         Interactables = new List<InteractableData>();
         FoodCount = 0;
     }

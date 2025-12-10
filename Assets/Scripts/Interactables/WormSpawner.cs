@@ -9,7 +9,7 @@ public class WormSpawner : Interactable
 {
 	[Header("Spawner Settings")]
 	[Tooltip("Type of the worm item to spawn.")]
-	[SerializeField] private ItemType _wormItemType = ItemType.Worm;
+	[SerializeField] private ItemId _wormItemType = ItemId.Worm;
 	[Tooltip("Number of turns between spawn attempts.")]
 	[SerializeField] private int _turnsBetweenSpawns = 8;
 	[Tooltip("Radius of the spawn area around the spawner (in grid tiles).")]
