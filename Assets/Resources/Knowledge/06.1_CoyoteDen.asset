@@ -12,6 +12,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: aea5074eeed1c7545b2f872248beaa69, type: 3}
   m_Name: 06.1_CoyoteDen
   m_EditorClassIdentifier: 
-  sprite: {fileID: 21300000, guid: 5d034249c5af10a4b9f861cad507bcb0, type: 3}
+  sprite: {fileID: 21300000, guid: 90870eba794346a4e91ec21293bb6178, type: 3}
   title: CoyoteDen
   description: ' A hollow of danger. '
