@@ -108,6 +108,12 @@ public class ControllableAnimal : Animal
     /// </summary>
     public override bool CanShareTileWithOtherAnimal(Animal other, Vector2Int position)
     {
+        // Allow walking through any prey animal (includes workers)
+        if (other is PreyAnimal)
+        {
+            return true;
+        }
+
         // Allow sharing with workers when the player is in a den or when moving onto a den
         if (other != null && InteractableManager.Instance != null)
         {
