@@ -101,7 +101,7 @@ MonoBehaviour:
     volume: 0.56
   - type: 17
     clip: {fileID: 8300000, guid: ada533579d3289942a1931c0f0454de7, type: 3}
-    volume: 0.56
+    volume: 0.2
   musicList:
   - type: 2
     clip: {fileID: 8300000, guid: 92dcdf444428fc2409aadf95ef4aa9a0, type: 3}
