@@ -105,7 +105,7 @@ public class ParticleEffectManager : Singleton<ParticleEffectManager>
     /// <param name="effectName">Name of the particle effect to spawn</param>
     /// <param name="position">World position to spawn particles at</param>
     /// <param name="count">Number of particles to spawn</param>
-    public void SpawnParticleEffect(string effectName, Vector3 position, int count = 10)
+    public void SpawnParticleEffect(string effectName, Vector3 position, int count = 10, float spray = -1)
     {
         if (!_effectDictionary.TryGetValue(effectName, out ParticleEffectData effectData))
         {
@@ -130,7 +130,8 @@ public class ParticleEffectManager : Singleton<ParticleEffectManager>
 
             // Calculate random direction within spray angle
             Vector2 baseDirection = effectData.direction.normalized;
-            float randomAngle = Random.Range(-_sprayAngle / 2f, _sprayAngle / 2f) * Mathf.Deg2Rad;
+            spray = spray.Equals(-1f) ? _sprayAngle : spray;
+            float randomAngle = Random.Range(-spray / 2f, spray / 2f) * Mathf.Deg2Rad;
             float baseAngle = Mathf.Atan2(baseDirection.y, baseDirection.x);
             float finalAngle = baseAngle + randomAngle;
             Vector2 direction = new Vector2(Mathf.Cos(finalAngle), Mathf.Sin(finalAngle));

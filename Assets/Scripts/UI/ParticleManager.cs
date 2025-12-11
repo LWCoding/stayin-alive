@@ -200,8 +200,13 @@ public class ParticleManager : Singleton<ParticleManager>
         
         // Convert screen position to canvas position
         RectTransform canvasRect = canvasRectTransform == null ? targetCanvas.GetComponent<RectTransform>() : canvasRectTransform;
-        Vector2 canvasPosition = ScreenToCanvasPosition(screenPosition, canvasRect);
-        canvasPosition = canvasRect.position + new Vector3(canvasRect.rect.center.x, canvasRect.rect.center.y, 0f);
+        // Vector2 canvasPosition = ScreenToCanvasPosition(screenPosition, canvasRect);
+        Vector2 canvasPosition = screenPosition;
+        if (canvasRectTransform != null)
+        {
+          canvasPosition = canvasRect.position + new Vector3(canvasRect.rect.center.x, canvasRect.rect.center.y, 0f);
+        }
+        
         
         // Set position
         RectTransform fadeTextRect = fadeText.GetComponent<RectTransform>();

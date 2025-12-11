@@ -220,6 +220,7 @@ public class InteractableManager : Singleton<InteractableManager>
             }
             
             GameObject obj = Instantiate(prefab, _interactableParent);
+            InteractableKnowledgeGranterFactory.Instance.CreateInteractableKnowledgeGranter(obj);
             interactable = obj.GetComponent<T>();
             if (interactable == null)
             {

@@ -2,6 +2,7 @@ using System;
 using System.Collections;
 using UnityEngine;
 using TMPro;
+using UnityEngine.UI;
 
 /// <summary>
 /// Component that fades out and moves upwards over a set duration.
@@ -19,6 +20,10 @@ public class FadeText : MonoBehaviour
     [Tooltip("Easing curve for the animation")]
     [SerializeField] private AnimationCurve fadeCurve = AnimationCurve.EaseInOut(0f, 1f, 1f, 0f);
     
+    [Tooltip("I tried to get emoji support for like an hour with no luck, so it's an image")]
+    [SerializeField]
+    private Image brainImage;
+    
     private TextMeshProUGUI textMeshPro;
     private RectTransform rectTransform;
     private Vector3 startPosition;
@@ -28,6 +33,8 @@ public class FadeText : MonoBehaviour
     // Pooling support
     private System.Action<FadeText> onAnimationComplete;
     private bool isPooled = false;
+
+    private Vector3 startPositionWorld;
     
     /// <summary>
     /// Initializes the FadeText with custom settings and starts the animation.
@@ -55,11 +62,21 @@ public class FadeText : MonoBehaviour
         // Set text
         textMeshPro.text = text;
         
+        
+        
         // Store start values
         this.duration = duration;
         this.upwardMovementDistance = upwardMovementDistance;
         startPosition = rectTransform.anchoredPosition;
+        startPositionWorld = Camera.main.ScreenToWorldPoint(rectTransform.anchoredPosition);
         startColor = textMeshPro.color;
+        
+        if (text == "\U0001F9E0")
+        {
+          textMeshPro.text = "";
+          brainImage.color = Color.white;
+          startColor = brainImage.color;
+        }
         
         // Store callback for pooling
         onAnimationComplete = onComplete;
@@ -118,9 +135,18 @@ public class FadeText : MonoBehaviour
             Color currentColor = startColor;
             currentColor.a = startColor.a * curveValue;
             textMeshPro.color = currentColor;
-            
+            if (brainImage.color.a > 0f)
+            {
+              brainImage.color = new Color(currentColor.r, currentColor.g, currentColor.b, currentColor.a);
+            }
             // Update position
             rectTransform.anchoredPosition = Vector3.Lerp(startPosition, endPosition, t);
+
+            if (true)
+            {
+              Vector3 worldDisplacement = Camera.main.WorldToScreenPoint(startPositionWorld) - startPosition;
+              // rectTransform.anchoredPosition -= new Vector2(worldDisplacement.x/2, worldDisplacement.y/2);
+            }
             
             yield return null;
         }
@@ -129,7 +155,7 @@ public class FadeText : MonoBehaviour
         Color finalColor = startColor;
         finalColor.a = 0f;
         textMeshPro.color = finalColor;
-        rectTransform.anchoredPosition = endPosition;
+        rectTransform.position = endPosition;
         
         // Return to pool or destroy
         if (isPooled && onAnimationComplete != null)

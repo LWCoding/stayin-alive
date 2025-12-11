@@ -23,12 +23,12 @@ public class InteractableOrAnimalKnowledgeGranter : MonoBehaviour {
     if (other.gameObject.CompareTag("Player")) {
       if (interactable != null)
       {
-        KnowledgeManager.Instance.LearnKnowledgeData(interactable.GetKnowledgeTitle());
+        KnowledgeManager.Instance.LearnKnowledgeData(interactable.GetKnowledgeTitle(), transform.position);
       }
 
       if (animal != null)
       {
-        KnowledgeManager.Instance.LearnKnowledgeData(animal.AnimalData.KnowledgeTitle);
+        KnowledgeManager.Instance.LearnKnowledgeData(animal.AnimalData.KnowledgeTitle, transform.position);
       }
       
     }

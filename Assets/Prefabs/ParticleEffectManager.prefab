@@ -57,6 +57,12 @@ MonoBehaviour:
       direction: {x: 0, y: 2}
       fadeDelay: 0.3
       scale: 0.05
+  - name: Brain
+    data:
+      sprite: {fileID: 21300000, guid: 3bed3b6f0551d544b9873cc2d667431a, type: 3}
+      direction: {x: 0, y: 4}
+      fadeDelay: 0.3
+      scale: 0.025
   _initialPoolSize: 20
   _maxPoolSize: 100
   _sprayAngle: 45

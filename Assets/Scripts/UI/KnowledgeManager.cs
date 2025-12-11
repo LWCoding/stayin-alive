@@ -27,6 +27,8 @@ public class KnowledgeManager : Singleton<KnowledgeManager> {
   public void InvokeOnNewKnowledgeFlagChange(bool flag) {
     OnNewKnowledgeFlagChange?.Invoke(flag);
   }
+  
+  private static Vector2 defaultPos = new Vector2(-1, -1);
 
   private List<KnowledgeData> _allKnowledgeData = new List<KnowledgeData>();
   private Dictionary<string, KnowledgeData> _allknowledgeDataDictionary = new Dictionary<string, KnowledgeData>();
@@ -95,7 +97,7 @@ public class KnowledgeManager : Singleton<KnowledgeManager> {
   /// <see cref="KnowledgeOperationResult.KNOWLEDGE_DOES_NOT_EXIST">KNOWLEDGE_DOES_NOT_EXIST</see><br/>
   /// <see cref="KnowledgeOperationResult.UNEXPECTED_ERROR">UNEXPECTED_ERROR</see>
   /// </returns>
-  public KnowledgeOperationResult LearnKnowledgeData(string title) {
+  public KnowledgeOperationResult LearnKnowledgeData(string title, Vector3? worldCoords = null) {
     if (string.IsNullOrEmpty(title)) {
       return KnowledgeOperationResult.UNEXPECTED_ERROR;
     }
@@ -113,6 +115,18 @@ public class KnowledgeManager : Singleton<KnowledgeManager> {
         // Don't play sound during tutorial
         if (TutorialManager.Instance == null)
         {
+          if (ParticleManager.Instance != null && DenSystemManager.Instance != null)
+          {
+            // Get player's world position - use transform position for accuracy
+            // Vector3 playerWorldPos = DenSystemManager.Instance.CurrentDenAdministrator.Animal.transform.position;
+            Vector3 particleCoords = worldCoords == null ? UIManager.Instance.TrackedAnimal.transform.position : worldCoords.Value;
+            
+            // Convert world position to screen position
+            Camera mainCamera = Camera.main;
+            
+            ParticleEffectManager.Instance.SpawnParticleEffect("Brain",  particleCoords + Vector3.up, 1, 0);
+          }
+          
           AudioManager.Instance?.PlaySFX(AudioManager.SFXType.NewKnowledgeDiscovered);
         }
         return KnowledgeOperationResult.KNOWLEDGE_LEARNED;
