@@ -12,7 +12,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: aea5074eeed1c7545b2f872248beaa69, type: 3}
   m_Name: 02_GrassSeeds Knowledge Data
   m_EditorClassIdentifier: 
-  sprite: {fileID: 21300000, guid: e4b09442ef04a1e42ac8eb71b9c149da, type: 3}
+  sprite: {fileID: 21300000, guid: 5795dfb85abb883429f865ea2dbed745, type: 3}
   title: Grass Seeds
   description: Some of these fell out of that grass! Plant them and, with time and
     safety, we have new grass.
+  knowledgeCategory: 0
