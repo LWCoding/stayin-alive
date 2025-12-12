@@ -61,6 +61,24 @@ public class ParticleManager : Singleton<ParticleManager>
     
     private void Start()
     {
+      if (targetCanvas == null)
+      {
+        targetCanvas = UIManager.Instance.GetRootCanvas();
+        if (targetCanvas == null)
+        {
+          Debug.LogError("ParticleManager: No Canvas found! Please assign a Canvas in the Inspector.");
+          return;
+        }
+        // Create parent for UI particles
+        GameObject parentObj = new GameObject("UIParticles");
+        parentObj.transform.SetParent(targetCanvas.transform, false);
+        RectTransform parentRect = parentObj.AddComponent<RectTransform>();
+        parentRect.anchorMin = Vector2.zero;
+        parentRect.anchorMax = Vector2.one;
+        parentRect.sizeDelta = Vector2.zero;
+        parentRect.anchoredPosition = Vector2.zero;
+        particleParent = parentObj.transform;
+      }
         // Pre-pool particles at game start/level loading
         PrePoolParticles();
     }
