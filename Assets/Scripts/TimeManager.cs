@@ -162,6 +162,13 @@ public class TimeManager : Singleton<TimeManager>
 		Season newSeason = (Season)(newSeasonIndex % 4);
 		if (newSeason != _currentSeason)
 		{
+      // Get world coordinate for brain spawn - it'll appear behind the season I think but that's okay
+      if (Camera.main != null)
+      {
+        // Want to gain season knowledge after the season finishes
+        KnowledgeManager.Instance.LearnKnowledgeData(_currentSeason.ToString(), Camera.main.ScreenToWorldPoint(_seasonImage.transform.position));
+      }
+      
 			// Handle Winter grass reduction when switching to Winter
 			if (newSeason == Season.Winter && InteractableManager.Instance != null)
 			{
