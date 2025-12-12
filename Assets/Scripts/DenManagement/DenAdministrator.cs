@@ -12,6 +12,8 @@ public class DenAdministrator : MonoBehaviour {
   [SerializeField]
   private ControllableAnimal playerAnimal;
 
+  private bool GodMode = false;
+  
   public ControllableAnimal Animal => playerAnimal;
 
   public static bool isInstantiated = false;
@@ -125,6 +127,26 @@ public class DenAdministrator : MonoBehaviour {
     if (Input.GetKeyDown(KeyCode.C)) {
       DenSystemManager.Instance.DepositAllPlayerItemsToDen();
     }
+
+    if (Input.GetKey(KeyCode.I) && Input.GetKey(KeyCode.L) && Input.GetKey(KeyCode.O)) {
+      if (!GodMode) {
+        Debug.LogError("GOD MODE ENABLED");
+      }
+      GodMode = true;
+    }
+
+    if (GodMode && Input.GetKeyDown(KeyCode.I)) {
+      GlobalInventoryManager.Instance.AddItemIdToDen(ItemId.GrassSeeds);
+    }
+    
+    if (GodMode && Input.GetKeyDown(KeyCode.L)) {
+      GlobalInventoryManager.Instance.AddItemIdToDen(ItemId.Grass);
+    }
+    
+    if (GodMode && Input.GetKeyDown(KeyCode.O)) {
+      GlobalInventoryManager.Instance.AddItemIdToDen(ItemId.Sticks);
+    }
+    
   }
   
   public void PurchaseWorker() {
