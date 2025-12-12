@@ -97,6 +97,11 @@ public static class Globals
 	/// </summary>
 	public static int WormSpawnerMinDistance = 8;
 
+	/// <summary>
+	/// Chance (0.0 to 1.0) each grass tile downgrades when winter begins.
+	/// </summary>
+	public static float WinterGrassReductionChance = 0.5f;
+
   public static ItemId GRASS_ITEM_TYPE_FOR_WORKER_HARDCODE = ItemId.Grass;
 }
 

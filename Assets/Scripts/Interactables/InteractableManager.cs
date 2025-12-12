@@ -1466,8 +1466,8 @@ public class InteractableManager : Singleton<InteractableManager>
 				continue;
 			}
 
-		// 80% chance to reduce grass level
-		if (UnityEngine.Random.Range(0f, 1f) < 0.8f)
+		// Chance to reduce grass level (configured via Globals)
+		if (UnityEngine.Random.Range(0f, 1f) < Globals.WinterGrassReductionChance)
 		{
 			grass.ReduceLevelWithoutHarvest();
 		}
