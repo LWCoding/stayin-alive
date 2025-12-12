@@ -99,8 +99,8 @@ public class DenAdministrator : MonoBehaviour {
         // In tutorial, require 1 den built (not counting starting den) before allowing panel to open
         if (TutorialManager.Instance != null && DenSystemManager.Instance != null) {
           if (DenSystemManager.Instance.DensBuiltWithSticks < 1) {
-            // In tutorial and haven't built den yet, transfer items instead
-            DenSystemManager.Instance.TransferOtherItemToPlayerByIndex();
+            // In tutorial and haven't built den yet, do nothing
+            // DenSystemManager.Instance.TransferOtherItemToPlayerByIndex();
             return;
           }
         }
@@ -112,10 +112,10 @@ public class DenAdministrator : MonoBehaviour {
         
         DenSystemManager.Instance.OpenPanel();
       }
-      // If panel is closed and player is not in den, transfer items
-      else {
-        DenSystemManager.Instance.TransferOtherItemToPlayerByIndex();
-      }
+      // If panel is closed and player is not in den, do nothing
+      // else {
+      //   DenSystemManager.Instance.TransferOtherItemToPlayerByIndex();
+      // }
     }
 
     if (Input.GetKeyDown(KeyCode.Z)) {
