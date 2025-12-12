@@ -84,7 +84,7 @@ public class ItemManager : Singleton<ItemManager>
     /// <summary>
     /// Gets an ItemData by ItemType enum. Returns null if not found.
     /// </summary>
-    private ItemData GetItemData(ItemId itemType)
+    public ItemData GetItemData(ItemId itemType)
     {
         if (_itemDataDictionary.TryGetValue(itemType, out ItemData data))
         {
