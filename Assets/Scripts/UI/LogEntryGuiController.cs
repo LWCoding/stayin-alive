@@ -108,15 +108,15 @@ public class LogEntryGuiController : MonoBehaviour {
       logText.text =  string.Format(GetLogString(logType), num1, num2);
     }
     logText.color = GetLogColor(logType);
-    if (logText.color == badColor)
-    {
-      StartCoroutine(Shaker.ShakeCoroutine(transform));
-    }
     StartCoroutine(WaitThenKillSelf());
   }
 
   private IEnumerator WaitThenKillSelf() {
     float logHalfLife = logLifetime / 2f;
+    if (logText.color == badColor)
+    {
+      StartCoroutine(Shaker.ShakeCoroutine(transform, _shakeDuration: logHalfLife));
+    }
     yield return new WaitForSeconds(logHalfLife);
     for (int i = 0; i < numAlphaSteps; i++) {
       yield return new WaitForSeconds(logHalfLife/numAlphaSteps);
