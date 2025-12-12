@@ -1502,6 +1502,9 @@ public class InteractableManager : Singleton<InteractableManager>
 				case InteractableType.RabbitSpawner:
 					SpawnRabbitSpawner(gridPos);
 					break;
+				case InteractableType.WormSpawner:
+					SpawnWormSpawner(gridPos);
+					break;
 				case InteractableType.Bush:
 					SpawnBush(gridPos);
 					break;

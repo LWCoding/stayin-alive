@@ -774,6 +774,9 @@ MonoBehaviour:
   - interactableType: 8
     count: 3
     predatorType: 
+  - interactableType: 3
+    count: 8
+    predatorType: 
   _itemSpawnConfigs:
   - itemType: 2
     count: 6

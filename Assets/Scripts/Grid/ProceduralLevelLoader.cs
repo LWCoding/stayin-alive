@@ -336,6 +336,42 @@ public class ProceduralLevelLoader : MonoBehaviour
     }
 
     /// <summary>
+    /// Checks if a position is adjacent to any water tile (4-directional).
+    /// </summary>
+    private bool IsAdjacentToWater(LevelData levelData, Vector2Int pos)
+    {
+        // Check all 4 adjacent positions (up, down, left, right)
+        Vector2Int[] directions = new Vector2Int[]
+        {
+            new Vector2Int(0, 1),  // Up
+            new Vector2Int(0, -1), // Down
+            new Vector2Int(1, 0),  // Right
+            new Vector2Int(-1, 0)  // Left
+        };
+
+        foreach (Vector2Int dir in directions)
+        {
+            Vector2Int adjacentPos = pos + dir;
+            
+            // Check if position is within bounds
+            if (adjacentPos.x < 0 || adjacentPos.x >= _levelWidth ||
+                adjacentPos.y < 0 || adjacentPos.y >= _levelHeight)
+            {
+                continue;
+            }
+
+            // Check if adjacent tile is water
+            TileType tileType = GetTileTypeAt(levelData, adjacentPos.x, adjacentPos.y);
+            if (tileType == TileType.Water)
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    /// <summary>
     /// Checks if a position is already occupied by any item.
     /// </summary>
     private bool IsPositionOccupiedByItem(Vector2Int pos, LevelData levelData)
@@ -487,7 +523,11 @@ public class ProceduralLevelLoader : MonoBehaviour
             // Determine if this interactable requires grass tiles
             bool requiresGrass = config.interactableType == InteractableType.Bush ||
                                  config.interactableType == InteractableType.Grass ||
-                                 config.interactableType == InteractableType.Tree;
+                                 config.interactableType == InteractableType.Tree ||
+                                 config.interactableType == InteractableType.WormSpawner;
+
+            // Special handling for WormSpawner: must be on grass adjacent to water
+            bool isWormSpawner = config.interactableType == InteractableType.WormSpawner;
 
             // Check if this is a multi-tile interactable (or has a large footprint like BeeTree)
             bool isMultiTile = config.interactableType == InteractableType.GrassPatch;
@@ -558,6 +598,12 @@ public class ProceduralLevelLoader : MonoBehaviour
                         if (tileType != TileType.Grass)
                             continue;
                     }
+
+                    // Special requirement for WormSpawner: must be adjacent to water
+                    if (isWormSpawner && !IsAdjacentToWater(levelData, pos))
+                    {
+                        continue;
+                    }
                 }
 
                 validPositions.Add(pos);
@@ -574,14 +620,43 @@ public class ProceduralLevelLoader : MonoBehaviour
             int attempts = 0;
             int maxAttempts = validPositions.Count * 2;
 
+            // Track spawned worm spawner positions for minimum distance checking
+            List<Vector2Int> spawnedWormSpawnerPositions = new List<Vector2Int>();
+
             while (spawned < config.count && validPositions.Count > 0 && attempts < maxAttempts)
             {
                 attempts++;
                 int index = Random.Range(0, validPositions.Count);
                 Vector2Int spawnPos = validPositions[index];
 
+                // For WormSpawner, check minimum distance from other worm spawners
+                if (isWormSpawner)
+                {
+                    bool tooClose = false;
+                    foreach (Vector2Int existingPos in spawnedWormSpawnerPositions)
+                    {
+                        int distance = Mathf.Abs(spawnPos.x - existingPos.x) + Mathf.Abs(spawnPos.y - existingPos.y);
+                        if (distance < Globals.WormSpawnerMinDistance)
+                        {
+                            tooClose = true;
+                            break;
+                        }
+                    }
+                    if (tooClose)
+                    {
+                        validPositions.RemoveAt(index);
+                        continue;
+                    }
+                }
+
                 // Add to Interactables list
                 levelData.Interactables.Add(new InteractableData(config.interactableType, spawnPos.x, spawnPos.y, config.predatorType));
+
+                // Track worm spawner position for distance checking
+                if (isWormSpawner)
+                {
+                    spawnedWormSpawnerPositions.Add(spawnPos);
+                }
 
                 // Remove occupied positions from available spawn positions
                 if (isMultiTile)
