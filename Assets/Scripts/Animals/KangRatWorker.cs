@@ -386,6 +386,11 @@ public class KangRatWorker : WorkerAnimal
 			int baseHungerRestored = (item as FoodItem).HungerRestored;
 			hungerRestored = Mathf.RoundToInt(baseHungerRestored * 1.5f);
 		}
+		else if (item != null)
+		{
+			// Non-food items still provide a hunger boost on pickup
+			hungerRestored = Globals.WorkerItemPickupHungerRestoration;
+		}
 		
 		if (hungerRestored > 0)
 		{

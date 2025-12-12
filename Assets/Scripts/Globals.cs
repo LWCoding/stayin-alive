@@ -102,6 +102,11 @@ public static class Globals
 	/// </summary>
 	public static float WinterGrassReductionChance = 0.5f;
 
+	/// <summary>
+	/// Hunger restored when a worker picks up a non-food item.
+	/// </summary>
+	public static int WorkerItemPickupHungerRestoration = 30;
+
   public static ItemId GRASS_ITEM_TYPE_FOR_WORKER_HARDCODE = ItemId.Grass;
 }
 
