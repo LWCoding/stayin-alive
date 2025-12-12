@@ -270,7 +270,7 @@ public class ControllableAnimal : Animal
         // Trigger lose condition before destroying
         if (GameManager.Instance != null)
         {
-            GameManager.Instance.TriggerLose();
+            GameManager.Instance.TriggerLose(IsDyingFromStarvation);
         }
 
         base.Die();

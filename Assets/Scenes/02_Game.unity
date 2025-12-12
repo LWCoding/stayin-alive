@@ -1602,6 +1602,17 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   _gridComponent: {fileID: 915587716}
   MiniMapRenderer: {fileID: 26111015}
+--- !u!114 &1517088180 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 7346666586223628796, guid: 18142a8288a9a4033a51e9219bb3def1, type: 3}
+  m_PrefabInstance: {fileID: 8075978373475571779}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f4688fdb7df04437aeb418b961361dc5, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1 &1555208135
 GameObject:
   m_ObjectHideFlags: 0
@@ -2171,6 +2182,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   _winScreen: {fileID: 480649642}
   _loseScreen: {fileID: 343417315}
+  _causeOfDeathText: {fileID: 1517088180}
   _sceneTransitionDelay: 1.5
   _winSceneName: 05_Cutscene_2
   _loseSceneName: 06_Cutscene_3

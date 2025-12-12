@@ -1,6 +1,8 @@
 using System.Collections;
+using TMPro;
 using UnityEngine;
 using UnityEngine.SceneManagement;
+using UnityEngine.Serialization;
 
 /// <summary>
 /// Manages the overall game state and initialization.
@@ -16,6 +18,9 @@ public class GameManager : Singleton<GameManager>
     [Tooltip("UI GameObject that displays the lose screen. Should be inactive by default.")]
     [SerializeField] private GameObject _loseScreen;
     
+    [SerializeField]
+    private TextMeshProUGUI _causeOfDeathText;
+    
     [Header("Scene Transitions")]
     [Tooltip("Time in seconds to wait after showing win/lose screen before switching scenes.")]
     [SerializeField] private float _sceneTransitionDelay = 1.5f;
@@ -25,6 +30,10 @@ public class GameManager : Singleton<GameManager>
     
     [Tooltip("Scene name to load after losing the game.")]
     [SerializeField] private string _loseSceneName = "06_Cutscene_3";
+
+    private string genericGameOver = "You Went Extinct.";
+    private string eatenGameOver = "You Were Eaten.";
+    private string starvedGameOver = "You Starved.";
     
     private ProceduralLevelLoader _proceduralLevelLoader;
 
@@ -52,7 +61,7 @@ public class GameManager : Singleton<GameManager>
     /// Triggers the lose condition when a controllable animal dies.
     /// Shows lose screen and pauses time.
     /// </summary>
-    public void TriggerLose()
+    public void TriggerLose(bool starved = false)
     {
         if (_hasWon || _hasLost)
         {
@@ -65,6 +74,10 @@ public class GameManager : Singleton<GameManager>
         if (_loseScreen != null)
         {
             _loseScreen.SetActive(true);
+            if (_causeOfDeathText != null)
+            {
+              _causeOfDeathText.text = starved ? starvedGameOver : eatenGameOver;
+            }
             Debug.Log("GameManager: Lose condition triggered! Showing lose screen.");
         }
         else
