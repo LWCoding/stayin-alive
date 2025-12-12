@@ -43,6 +43,9 @@ public class Enforce16x9Scale : MonoBehaviour {
   private void Update() {
     if (prevScreenWidth != Screen.width || prevScreenHeight != Screen.height) {
       FixAspectRatio();
+    } else if (!rectTransform.rect.width.Equals(Screen.width) && !rectTransform.rect.height.Equals(Screen.height))
+    {
+      FixAspectRatio();
     }
   }
 }
