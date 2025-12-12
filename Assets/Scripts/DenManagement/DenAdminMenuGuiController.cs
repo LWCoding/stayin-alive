@@ -104,6 +104,7 @@ public class DenAdminMenuGuiController : MonoBehaviour {
     rectTransform.anchoredPosition = Vector3.zero;
     visibilityController.alpha = 1;
     visibilityController.interactable = true;
+    visibilityController.blocksRaycasts = true;
     UpdateGui();
   }
 
@@ -111,6 +112,8 @@ public class DenAdminMenuGuiController : MonoBehaviour {
     rectTransform.anchoredPosition = Vector3.one * 10000;
     visibilityController.alpha = 0;
     visibilityController.interactable = false;
+    // Prevent this hidden panel from intercepting clicks
+    visibilityController.blocksRaycasts = false;
   }
 
   public void UpdateDenMapIcons() {
