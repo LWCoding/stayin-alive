@@ -55,8 +55,14 @@ public class KnowledgeMenuGuiController : MonoBehaviour
     [SerializeField]
     private Button worldButton;
     
+    [Header("Button Colors")]
     [SerializeField]
-    private TextMeshProUGUI headerText;
+    [Tooltip("Color to use for the active tab button")]
+    private Color activeButtonColor = Color.magenta;
+    
+    [SerializeField]
+    [Tooltip("Color to use for inactive tab buttons")]
+    private Color inactiveButtonColor = Color.white;
     
     [Header("Prefabs")]
     [SerializeField]
@@ -79,6 +85,7 @@ public class KnowledgeMenuGuiController : MonoBehaviour
     private void setKnowledgeCategory(KnowledgeManager.KnowledgeCategory kc)
     {
       knowledgeCategory = kc;
+      UpdateButtonColorsAndVisibility();
     }
 
     private void setCategoryItem()
@@ -104,6 +111,10 @@ public class KnowledgeMenuGuiController : MonoBehaviour
         animalButton.onClick.AddListener(setCategoryAnimal);
         worldButton.onClick.AddListener(setCategoryWorld);
         
+        // Initialize default category and update UI
+        knowledgeCategory = ITEM;
+        UpdateButtonColorsAndVisibility();
+        
         InitializeKnowledgeItems();
         Hide();
     }
@@ -122,37 +133,6 @@ public class KnowledgeMenuGuiController : MonoBehaviour
         // {
         //     topGradient.color = new Color(topGradient.color.r, topGradient.color.g, topGradient.color.b, 1f);
         // }
-
-        switch (knowledgeCategory)
-        {
-          case ITEM:
-            itemButton.targetGraphic.color = Color.magenta;
-            animalButton.targetGraphic.color = Color.white;
-            worldButton.targetGraphic.color = Color.white;
-            
-            itemVisibilityController.alpha = 1f;
-            animalVisibilityController.alpha = 0f;
-            worldVisibilityController.alpha = 0f;
-            break;
-          case ANIMAL:
-            itemButton.targetGraphic.color = Color.white;
-            animalButton.targetGraphic.color = Color.magenta;
-            worldButton.targetGraphic.color = Color.white;
-            
-            itemVisibilityController.alpha = 0f;
-            animalVisibilityController.alpha = 1f;
-            worldVisibilityController.alpha = 0f;
-            break;
-          case WORLD:
-            itemButton.targetGraphic.color = Color.white;
-            animalButton.targetGraphic.color = Color.white;
-            worldButton.targetGraphic.color = Color.magenta;
-            
-            itemVisibilityController.alpha = 0f;
-            animalVisibilityController.alpha = 0f;
-            worldVisibilityController.alpha = 1f;
-            break;
-        }
     }
 
     private void LateUpdate()
@@ -241,6 +221,44 @@ public class KnowledgeMenuGuiController : MonoBehaviour
         if (TimeManager.Instance != null)
         {
             TimeManager.Instance.Resume();
+        }
+    }
+
+    /// <summary>
+    /// Updates button colors and visibility based on the current knowledge category.
+    /// Called when the category changes, not every frame.
+    /// </summary>
+    private void UpdateButtonColorsAndVisibility()
+    {
+        switch (knowledgeCategory)
+        {
+          case ITEM:
+            itemButton.targetGraphic.color = activeButtonColor;
+            animalButton.targetGraphic.color = inactiveButtonColor;
+            worldButton.targetGraphic.color = inactiveButtonColor;
+            
+            itemVisibilityController.alpha = 1f;
+            animalVisibilityController.alpha = 0f;
+            worldVisibilityController.alpha = 0f;
+            break;
+          case ANIMAL:
+            itemButton.targetGraphic.color = inactiveButtonColor;
+            animalButton.targetGraphic.color = activeButtonColor;
+            worldButton.targetGraphic.color = inactiveButtonColor;
+            
+            itemVisibilityController.alpha = 0f;
+            animalVisibilityController.alpha = 1f;
+            worldVisibilityController.alpha = 0f;
+            break;
+          case WORLD:
+            itemButton.targetGraphic.color = inactiveButtonColor;
+            animalButton.targetGraphic.color = inactiveButtonColor;
+            worldButton.targetGraphic.color = activeButtonColor;
+            
+            itemVisibilityController.alpha = 0f;
+            animalVisibilityController.alpha = 0f;
+            worldVisibilityController.alpha = 1f;
+            break;
         }
     }
 
