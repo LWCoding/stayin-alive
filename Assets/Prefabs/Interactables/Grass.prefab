@@ -98,19 +98,19 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 1e272ad1e506e0743ad8a2a3156d75b4, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _averageTurnsBetweenSpawns: 50
+  _averageTurnsBetweenSpawns: 55
   _turnsVariance: 0.1
   _foodItemPrefab: {fileID: 900334190961524197, guid: e84f021d7e9761a49bce026045791447, type: 3}
   _fullSprite: {fileID: 21300000, guid: cf35d0151da58d147ba16daa14ce8119, type: 3}
   _growingSprite: {fileID: 21300000, guid: ab5dfb7be7b722147baa3d1b9aa09e8f, type: 3}
   _spriteRenderer: {fileID: 3958714295006606625}
   _interactionIndicator: {fileID: 8458072717035361229}
-  _springGrowthMultiplier: 1
-  _summerGrowthMultiplier: 0.6
-  _fallGrowthMultiplier: 0.4
+  _springGrowthMultiplier: 1.5
+  _summerGrowthMultiplier: 0.75
+  _fallGrowthMultiplier: 0.5
   _winterGrowthMultiplier: 0
-  _averageTurnsBetweenSpreads: 90
-  _spreadVariance: 0.25
+  _averageTurnsBetweenSpreads: 100
+  _spreadVariance: 0.15
   _waterProximityMultiplier: 1.25
 --- !u!1001 &3398099433449485630
 PrefabInstance:
