@@ -353,7 +353,7 @@ public class UIManager : Singleton<UIManager>
             return;
         }
         
-        int currentPoints = DenSystemManager.Instance.FoodInDen;
+        int currentPoints = GlobalInventoryManager.Instance.FoodInDen;
         
         if (_pointsText != null)
         {

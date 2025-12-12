@@ -12,9 +12,9 @@ public class ItemPanelItemController : MonoBehaviour, IPointerEnterHandler, IPoi
   
   [SerializeField]
   private Button transferToPlayer;
-
-  private Item itemRepresented;
-  public Item ItemRepresented => itemRepresented;
+  
+  private GlobalInventoryManager.InventoryItem inventoryItemRepresented;
+  public GlobalInventoryManager.InventoryItem InventoryItemRepresented => inventoryItemRepresented;
   
   private Color itemBackgroundDefaultColor = Color.white;
   private Color itemBackgroundHoverColor = Color.yellow;
@@ -41,14 +41,15 @@ public class ItemPanelItemController : MonoBehaviour, IPointerEnterHandler, IPoi
     itemBackground.color = itemBackgroundDefaultColor;
   }
 
-  public void Setup(Item item) {
-    itemRepresented = item;
-    Sprite itemSprite = ItemManager.Instance.GetItemSprite(itemRepresented.ItemType);
+  public void Setup(GlobalInventoryManager.InventoryItem inventoryItem) {
+    inventoryItemRepresented = inventoryItem;
+    Sprite itemSprite = ItemManager.Instance.GetItemSprite(inventoryItemRepresented.id);
     itemIcon.sprite = itemSprite;
   }
 
   public void TransferToPlayer() {
-    DenSystemManager.Instance.TransferItemToPlayer(itemRepresented);
+    // DenSystemManager.Instance.TransferItemToPlayer(itemRepresented);
+    GlobalInventoryManager.Instance.TransferItemToPlayer(inventoryItemRepresented);
   }
   
   

@@ -43,7 +43,7 @@ public class GlobalInventoryManager : Singleton<GlobalInventoryManager> {
       return !lhs.Equals(rhs);
     }
   }
-
+  
   private static int count = 0;
   
   private List<InventoryItem> foodItemsInDen;
@@ -52,6 +52,7 @@ public class GlobalInventoryManager : Singleton<GlobalInventoryManager> {
   public List<InventoryItem> FoodItemsInDen => foodItemsInDen;
   public List<InventoryItem> OtherItemsInDen => otherItemsInDen;
   
+  public int FoodInDen => foodItemsInDen.Count;
   public int NumFoodItems => foodItemsInDen.Count;
 
   private int startingDenFood = 0;
@@ -65,6 +66,16 @@ public class GlobalInventoryManager : Singleton<GlobalInventoryManager> {
   private static Item GetPrefabItemFromId(ItemId id) {
     ItemData itemData = ItemManager.Instance.GetItemData(id);
     return itemData.prefab.GetComponent<Item>();
+  }
+
+  protected override void Awake() {
+    base.Awake();
+    InitializeState();
+  }
+  
+  private void InitializeState() {
+    foodItemsInDen ??= new List<InventoryItem>();
+    otherItemsInDen ??= new List<InventoryItem>();
   }
   
   public InventoryOperationResult AddItemIdToDen(ItemId id) {
@@ -167,6 +178,14 @@ public class GlobalInventoryManager : Singleton<GlobalInventoryManager> {
     return TransferOtherToPlayer(inventoryItem);
   }
 
+  public InventoryOperationResult PopListToPlayer(List<InventoryItem> list) {
+    if (list.Count <= 0) {
+      return UNEXPECTED_ERROR;
+    }
+    InventoryItem item = list[0];
+    return TransferListToPlayer(item, list);
+  }
+  
   // If override amount is set, will clear out food and add grass foods to the passed amount
   public void ResetDenFood(int? overrideAmount = null) {
     int target = overrideAmount.HasValue ? overrideAmount.Value : startingDenFood;

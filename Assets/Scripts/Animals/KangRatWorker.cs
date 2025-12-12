@@ -339,7 +339,7 @@ public class KangRatWorker : WorkerAnimal
 				return;
 			}
 			
-			item = ItemManager.Instance.CreateItemForStorage(originalItem.ItemType);
+			item = ItemManager.Instance.CreateItemForStorage(originalItem.ItemId);
 			
 			if (originalItem != null) {
 				originalItem.DestroyItem();
@@ -607,7 +607,7 @@ public class KangRatWorker : WorkerAnimal
 	/// </summary>
 	private bool HasStoredDenFoodAvailable()
 	{
-		return DenSystemManager.Instance != null && DenSystemManager.Instance.FoodInDen > 0;
+		return GlobalInventoryManager.Instance != null && GlobalInventoryManager.Instance.FoodInDen > 0;
 	}
 
 	/// <summary>
@@ -657,7 +657,8 @@ public class KangRatWorker : WorkerAnimal
 			return false;
 		}
     
-    int hungerRestoredResult = DenSystemManager.Instance.SpendFoodFromDen();
+    // int hungerRestoredResult = DenSystemManager.Instance.SpendFoodFromDen();
+    int hungerRestoredResult = GlobalInventoryManager.Instance.SpendSingleFood();
     
 
 		int hungerRestored = Mathf.Max(0, hungerRestoredResult);
@@ -666,7 +667,7 @@ public class KangRatWorker : WorkerAnimal
 			IncreaseHunger(hungerRestored);
 		}
     DenSystemManager.Instance.LogHolder.SpawnLog(LogEntryGuiController.DenLogType.TAKE_FOOD);
-		Debug.Log($"KangRatWorker '{name}' consumed stored den food. Hunger restored by {hungerRestored}. Current hunger: {CurrentHunger}. Remaining den food: {DenSystemManager.Instance.FoodInDen}");
+		Debug.Log($"KangRatWorker '{name}' consumed stored den food. Hunger restored by {hungerRestored}. Current hunger: {CurrentHunger}. Remaining den food: {GlobalInventoryManager.Instance.FoodInDen}");
 		return true;
 	}
 

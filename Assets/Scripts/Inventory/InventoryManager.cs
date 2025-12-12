@@ -179,7 +179,7 @@ public class InventoryManager : Singleton<InventoryManager>
             return false;
         }
         
-        Item inventoryItem = ItemManager.Instance.CreateItemForStorage(item.ItemType);
+        Item inventoryItem = ItemManager.Instance.CreateItemForStorage(item.ItemId);
         if (inventoryItem == null)
         {
             Debug.LogWarning($"InventoryManager: Failed to create inventory item '{item.ItemName}'.");

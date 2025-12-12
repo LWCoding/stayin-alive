@@ -208,10 +208,17 @@ public class ProceduralLevelLoader : MonoBehaviour
             Debug.LogWarning("ProceduralLevelLoader: ItemManager instance not found! Items will not be spawned.");
         }
 
+        //TODO: Delete
+        // // Reset stored den food
+        // if (DenSystemManager.Instance != null)
+        // {
+        //     DenSystemManager.Instance.ResetDenFood();
+        // }
+        
         // Reset stored den food
-        if (DenSystemManager.Instance != null)
+        if (GlobalInventoryManager.Instance != null)
         {
-            DenSystemManager.Instance.ResetDenFood();
+          GlobalInventoryManager.Instance.ResetDenFood();
         }
 
         // Register any animals that are already on dens (safety check)

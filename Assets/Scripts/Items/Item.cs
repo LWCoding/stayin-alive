@@ -10,7 +10,8 @@ public enum ItemId
     Grass,
     GrassSeeds,
     Worm,
-    Sticks
+    Sticks,
+    NULL_ITEM
 }
 
 /// <summary>
@@ -44,7 +45,7 @@ public abstract class Item : MonoBehaviour, IItem
     /// <summary>
     /// The type of this item.
     /// </summary>
-    public ItemId ItemType => _itemType;
+    public ItemId ItemId => _itemType;
     
     /// <summary>
     /// The name identifier for this item (for backward compatibility with IItem interface).

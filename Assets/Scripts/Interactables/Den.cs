@@ -220,10 +220,12 @@ public class Den : Interactable, IHideable
                 int inventoryItemsCount = inventoryItems.Count;
                 
                 // Add stored food to the den (+1 per item)
-                if (DenSystemManager.Instance != null)
+                if (GlobalInventoryManager.Instance != null)
                 {
                   foreach (Item inventoryItem in inventoryItems) {
-                    DenSystemManager.Instance.AddItemToDenInventory(inventoryItem);
+                    // DenSystemManager.Instance.AddItemToDenInventory(inventoryItem);
+                    GlobalInventoryManager.Instance.AddItemIdToDen(inventoryItem.ItemId);
+                    Destroy(inventoryItem.gameObject);
                   }
                 }
                 

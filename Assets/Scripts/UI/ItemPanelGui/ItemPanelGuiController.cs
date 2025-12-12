@@ -35,33 +35,33 @@ public class ItemPanelGuiController : MonoBehaviour {
   private GameObject itemPrefab;
   
   // Internal Backing Structures
-  private List<Item> items;
-  private Dictionary<Item, ItemPanelItemController> itemPanelUiItems = new Dictionary<Item, ItemPanelItemController>();
+  private List<GlobalInventoryManager.InventoryItem> items;
+  private Dictionary<GlobalInventoryManager.InventoryItem, ItemPanelItemController> itemPanelUiItems = new Dictionary<GlobalInventoryManager.InventoryItem, ItemPanelItemController>();
   
   private void Start() {
     itemPanelNameTMP.text = itemPanelNameString;
     items = itemPanelType switch {
-      ItemPanelType.FOOD_ITEMS => DenSystemManager.Instance.FoodItemsInDen,
-      ItemPanelType.OTHER_ITEMS => DenSystemManager.Instance.OtherItemsInDen,
-      _ => new List<Item>()
+      ItemPanelType.FOOD_ITEMS => GlobalInventoryManager.Instance.FoodItemsInDen,
+      ItemPanelType.OTHER_ITEMS => GlobalInventoryManager.Instance.OtherItemsInDen,
+      _ => new List<GlobalInventoryManager.InventoryItem>()
     };
   }
 
   private void Update() {
     itemPanelCountTMP.text = items.Count.ToString();
     
-    foreach (Item item in items) {
-      if (!itemPanelUiItems.ContainsKey(item)) {
+    foreach (GlobalInventoryManager.InventoryItem inventoryItem in items) {
+      if (!itemPanelUiItems.ContainsKey(inventoryItem)) {
         ItemPanelItemController newItem = Instantiate(itemPrefab, itemSpawnTransform).GetComponent<ItemPanelItemController>();
-        newItem.Setup(item);
-        itemPanelUiItems.Add(item, newItem);
+        newItem.Setup(inventoryItem);
+        itemPanelUiItems.Add(inventoryItem, newItem);
       }
     }
 
-    foreach (Item item in itemPanelUiItems.Keys.ToList()) {
-      if (!items.Contains(item)) {
-        Destroy(itemPanelUiItems[item].gameObject);
-        itemPanelUiItems.Remove(item);
+    foreach (GlobalInventoryManager.InventoryItem inventoryItem in itemPanelUiItems.Keys.ToList()) {
+      if (!items.Contains(inventoryItem)) {
+        Destroy(itemPanelUiItems[inventoryItem].gameObject);
+        itemPanelUiItems.Remove(inventoryItem);
       }
     }
   }

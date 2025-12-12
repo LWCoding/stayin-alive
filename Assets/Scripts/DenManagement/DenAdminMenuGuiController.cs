@@ -193,7 +193,8 @@ public class DenAdminMenuGuiController : MonoBehaviour {
     
     // Only check if player can afford - allow breeding even if den is full (workers go to unassigned pool)
     // JUST KIDDING! Do NOT allow if den is full
-    bool canAfford = DenSystemManager.Instance.FoodInDen >= currentWorkerPrice;
+    // JUST KIDDING AGAIN! Do allow, and they'll overflow to unassigned
+    bool canAfford = GlobalInventoryManager.Instance.FoodInDen >= currentWorkerPrice;
     bool hasRoom = WorkerManager.Instance.HaveRoomToCreateWorker();
     if (!hasRoom) {
       buttonText.text = denFullButtonText.Replace("\\n", "\n");

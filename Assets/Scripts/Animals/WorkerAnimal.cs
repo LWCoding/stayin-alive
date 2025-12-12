@@ -124,8 +124,9 @@ public class WorkerAnimal : PreyAnimal
               // Workers have a chance to deposit extra food based on number of assigned workers
               float rng = Random.Range(0f, 1f);
               if (rng <= WorkerManager.Instance.CurrentWorkerBonusFoodDropRate) {
-                Item duplicatedItem = ItemManager.Instance.CreateItemForStorage(workerItems[i].ItemType);
-                DenSystemManager.Instance.AddItemToDenInventory(duplicatedItem);
+                ItemId duplicatedItemId = workerItems[i].ItemId;
+                // DenSystemManager.Instance.AddItemToDenInventory(duplicatedItemId);
+                GlobalInventoryManager.Instance.AddItemIdToDen(duplicatedItemId);
                 foodCount++;
               }
               
@@ -135,7 +136,9 @@ public class WorkerAnimal : PreyAnimal
               otherItemCount++;
             }
             
-            DenSystemManager.Instance.AddItemToDenInventory(workerItems[i]);
+            // DenSystemManager.Instance.AddItemToDenInventory(workerItems[i]);
+            GlobalInventoryManager.Instance.AddItemIdToDen(workerItems[i].ItemId);
+            Destroy(workerItems[i].gameObject);
           }
         }
 

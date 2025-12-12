@@ -234,7 +234,7 @@ public class WormSpawner : Interactable
 			if (existingItem != null)
 			{
 				// Specifically check if it's a worm - ensure we don't spawn on top of other worms
-				if (existingItem.ItemType == _wormItemType)
+				if (existingItem.ItemId == _wormItemType)
 				{
 					continue; // Don't spawn worm on top of another worm
 				}

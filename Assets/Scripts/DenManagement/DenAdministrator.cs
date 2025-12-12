@@ -118,9 +118,9 @@ public class DenAdministrator : MonoBehaviour {
       // }
     }
 
-    if (Input.GetKeyDown(KeyCode.Z)) {
-      DenSystemManager.Instance.TransferFoodItemToPlayerByIndex();
-    }
+    // if (Input.GetKeyDown(KeyCode.Z)) {
+    //   DenSystemManager.Instance.TransferFoodItemToPlayerByIndex();
+    // }
 
     if (Input.GetKeyDown(KeyCode.C)) {
       DenSystemManager.Instance.DepositAllPlayerItemsToDen();
@@ -129,7 +129,7 @@ public class DenAdministrator : MonoBehaviour {
   
   public void PurchaseWorker() {
     int currentWorkerPrice = WorkerManager.Instance.CurrentWorkerPrice;
-    if (DenSystemManager.Instance.FoodInDen < currentWorkerPrice) {
+    if (GlobalInventoryManager.Instance.FoodInDen < currentWorkerPrice) {
       Debug.Log("Not Enough Food To Make Worker");
       return;
     }
@@ -140,7 +140,8 @@ public class DenAdministrator : MonoBehaviour {
       return;
     }
     
-    DenSystemManager.Instance.SpendFoodFromDen(currentWorkerPrice);
+    // DenSystemManager.Instance.SpendFoodFromDen(currentWorkerPrice);
+    GlobalInventoryManager.Instance.SpendFood(currentWorkerPrice);
   }
 
   public void DenTeleport(int DenId) {

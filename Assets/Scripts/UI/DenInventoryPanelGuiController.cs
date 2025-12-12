@@ -41,7 +41,7 @@ public class DenInventoryPanelGuiController : MonoBehaviour {
     foreach (InventorySlot slot in InventoryManager.Instance.GetInventorySlots()) {
       Item item = slot.GetItem();
       if (item != null && item.ItemName != null) {
-        itemIds.Add(item.ItemType);
+        itemIds.Add(item.ItemId);
       }
     }
     itemIds.Reverse();

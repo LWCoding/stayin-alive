@@ -225,7 +225,7 @@ public class HawkDen : PredatorDen
 			if (existingItem != null)
 			{
 				// Specifically check if it's a stick - ensure we don't spawn on top of other sticks
-				if (existingItem.ItemType == _sticksItemType)
+				if (existingItem.ItemId == _sticksItemType)
 				{
 					continue; // Don't spawn stick on top of another stick
 				}

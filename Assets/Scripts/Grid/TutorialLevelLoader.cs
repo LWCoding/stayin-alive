@@ -311,11 +311,16 @@ public class TutorialLevelLoader : MonoBehaviour
         {
             Debug.LogWarning("TutorialLevelLoader: ItemManager instance not found! Items will not be spawned.");
         }
+        
+        //TODO: Delete
+        // // Reset stored den food
+        // if (DenSystemManager.Instance != null)
+        // {
+        //     DenSystemManager.Instance.ResetDenFood();
+        // }
 
-        // Reset stored den food
-        if (DenSystemManager.Instance != null)
-        {
-            DenSystemManager.Instance.ResetDenFood();
+        if (GlobalInventoryManager.Instance != null) {
+          GlobalInventoryManager.Instance.ResetDenFood();
         }
 
         // Register any animals that are already on dens (safety check)
