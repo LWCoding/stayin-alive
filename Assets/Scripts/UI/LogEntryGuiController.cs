@@ -108,6 +108,10 @@ public class LogEntryGuiController : MonoBehaviour {
       logText.text =  string.Format(GetLogString(logType), num1, num2);
     }
     logText.color = GetLogColor(logType);
+    if (logText.color == badColor)
+    {
+      StartCoroutine(Shaker.ShakeCoroutine(transform));
+    }
     StartCoroutine(WaitThenKillSelf());
   }
 
