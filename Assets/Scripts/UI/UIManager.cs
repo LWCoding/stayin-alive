@@ -410,6 +410,14 @@ public class UIManager : Singleton<UIManager>
     }
 
     /// <summary>
+    /// Checks if the knowledge panel is currently visible.
+    /// </summary>
+    public bool IsKnowledgePanelVisible()
+    {
+        return _knowledgeMenuGuiController != null && _knowledgeMenuGuiController.IsVisible();
+    }
+
+    /// <summary>
     /// Hides the knowledge panel if it is currently visible.
     /// </summary>
     public void HideKnowledgePanelIfVisible()

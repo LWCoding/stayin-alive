@@ -80,6 +80,12 @@ public class DenAdministrator : MonoBehaviour {
 
   private void Update() {
     if (Input.GetKeyDown(KeyCode.E)) {
+      // Check if knowledge menu is visible - if so, don't handle E key here
+      // (the knowledge menu will handle closing itself)
+      if (UIManager.Instance != null && UIManager.Instance.IsKnowledgePanelVisible()) {
+        return;
+      }
+      
       // If panel is open, close it
       if (DenSystemManager.Instance.PanelOpen) {
         // Don't allow closing panel if tutorial UI is active

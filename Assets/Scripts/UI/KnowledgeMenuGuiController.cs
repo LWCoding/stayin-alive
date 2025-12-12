@@ -110,15 +110,6 @@ public class KnowledgeMenuGuiController : MonoBehaviour
 
     private void Update()
     {
-        // Close panel with E key when visible
-        if (Input.GetKeyDown(KeyCode.E))
-        {
-            if (IsVisible())
-            {
-                Hide();
-            }
-        }
-        
         bottomGradient.color = new Color(bottomGradient.color.r, bottomGradient.color.g, bottomGradient.color.b, 0f);
         topGradient.color = new Color(topGradient.color.r, topGradient.color.g, topGradient.color.b, 0f);
 
@@ -162,8 +153,20 @@ public class KnowledgeMenuGuiController : MonoBehaviour
             worldVisibilityController.alpha = 1f;
             break;
         }
-        
-        
+    }
+
+    private void LateUpdate()
+    {
+        // Close panel with E key when visible
+        // Run in LateUpdate to ensure this runs after DenAdministrator.Update()
+        // so that DenAdministrator can check if the knowledge menu is visible first; this is hacky - Lucas
+        if (Input.GetKeyDown(KeyCode.E))
+        {
+            if (IsVisible())
+            {
+                Hide();
+            }
+        }
     }
 
     /// <summary>
