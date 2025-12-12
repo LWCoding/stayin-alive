@@ -36,50 +36,11 @@ public class ParticleManager : Singleton<ParticleManager>
     protected override void Awake()
     {
         base.Awake();
-        
-        // Find or create canvas
-        if (targetCanvas == null)
-        {
-            targetCanvas = UIManager.Instance.GetRootCanvas();
-            if (targetCanvas == null)
-            {
-                Debug.LogError("ParticleManager: No Canvas found! Please assign a Canvas in the Inspector.");
-                return;
-            }
-        }
-        
-        // Create parent for UI particles
-        GameObject parentObj = new GameObject("UIParticles");
-        parentObj.transform.SetParent(targetCanvas.transform, false);
-        RectTransform parentRect = parentObj.AddComponent<RectTransform>();
-        parentRect.anchorMin = Vector2.zero;
-        parentRect.anchorMax = Vector2.one;
-        parentRect.sizeDelta = Vector2.zero;
-        parentRect.anchoredPosition = Vector2.zero;
-        particleParent = parentObj.transform;
     }
     
     private void Start()
     {
-      if (targetCanvas == null)
-      {
-        targetCanvas = UIManager.Instance.GetRootCanvas();
-        if (targetCanvas == null)
-        {
-          Debug.LogError("ParticleManager: No Canvas found! Please assign a Canvas in the Inspector.");
-          return;
-        }
-        // Create parent for UI particles
-        GameObject parentObj = new GameObject("UIParticles");
-        parentObj.transform.SetParent(targetCanvas.transform, false);
-        RectTransform parentRect = parentObj.AddComponent<RectTransform>();
-        parentRect.anchorMin = Vector2.zero;
-        parentRect.anchorMax = Vector2.one;
-        parentRect.sizeDelta = Vector2.zero;
-        parentRect.anchoredPosition = Vector2.zero;
-        particleParent = parentObj.transform;
-      }
-        // Pre-pool particles at game start/level loading
+        // Pre-pool particles at game start/level loading (if canvas is ready)
         PrePoolParticles();
     }
     
@@ -91,6 +52,12 @@ public class ParticleManager : Singleton<ParticleManager>
         if (fadeTextPrefab == null)
         {
             Debug.LogWarning("ParticleManager: Cannot pre-pool - fadeTextPrefab is not assigned. Particles will be created on-demand.");
+            return;
+        }
+        
+        if (particleParent == null)
+        {
+            // Canvas not ready yet - will pool when first particle is spawned
             return;
         }
         
@@ -202,10 +169,37 @@ public class ParticleManager : Singleton<ParticleManager>
     /// <returns>The spawned FadeText component, or null if spawning failed</returns>
     public FadeText SpawnFadeText(string text, Vector2 screenPosition, float? duration = null, float? upwardMovementDistance = null, RectTransform canvasRectTransform = null)
     {
+        // Lazy initialization: retry getting canvas from UIManager if not set (handles WebGL timing issues)
         if (targetCanvas == null)
         {
-            Debug.LogWarning("ParticleManager: Cannot spawn FadeText - Canvas is not assigned!");
-            return null;
+            if (UIManager.Instance != null)
+            {
+                targetCanvas = UIManager.Instance.GetRootCanvas();
+            }
+            if (targetCanvas == null)
+            {
+                Debug.LogWarning("ParticleManager: Cannot spawn FadeText - Canvas is not assigned!");
+                return null;
+            }
+        }
+        
+        // Ensure particle parent exists
+        if (particleParent == null)
+        {
+            GameObject parentObj = new GameObject("UIParticles");
+            parentObj.transform.SetParent(targetCanvas.transform, false);
+            RectTransform parentRect = parentObj.AddComponent<RectTransform>();
+            parentRect.anchorMin = Vector2.zero;
+            parentRect.anchorMax = Vector2.one;
+            parentRect.sizeDelta = Vector2.zero;
+            parentRect.anchoredPosition = Vector2.zero;
+            particleParent = parentObj.transform;
+            
+            // If we just created the parent, try to pre-pool now
+            if (fadeTextPool.Count == 0)
+            {
+                PrePoolParticles();
+            }
         }
         
         // Get FadeText from pool
