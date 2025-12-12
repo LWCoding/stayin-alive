@@ -788,8 +788,10 @@ public class InteractableManager : Singleton<InteractableManager>
 	{
 		if (predatorDen != null && _predatorDens != null)
 		{
+      
 			if (!_predatorDens.Contains(predatorDen))
 			{
+        InteractableKnowledgeGranterFactory.Instance.CreateInteractableKnowledgeGranter(predatorDen.gameObject);
 				_predatorDens.Add(predatorDen);
 				_allInteractables.Add(predatorDen);
 			}

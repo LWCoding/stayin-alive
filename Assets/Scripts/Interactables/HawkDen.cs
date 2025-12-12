@@ -35,7 +35,7 @@ public class HawkDen : PredatorDen
 	private List<Item> _spawnedSticks = new List<Item>();
 
   public override string GetKnowledgeTitle() {
-    return "HawkDen";
+    return "Hawk Den";
   }
   
 	private void OnEnable()

@@ -13,6 +13,6 @@ MonoBehaviour:
   m_Name: 05.5_HawkDen
   m_EditorClassIdentifier: 
   sprite: {fileID: 21300000, guid: 64e9c209493ae21409edfae3db51e692, type: 3}
-  title: HawkDen
+  title: Hawk Den
   description: From its branches they launch their hunts.
   knowledgeCategory: 2

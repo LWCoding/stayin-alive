@@ -8,7 +8,7 @@ public class CoyoteDen : PredatorDen
     private bool _populationSystemInitialized;
 
     public override string GetKnowledgeTitle() {
-      return "CoyoteDen";
+      return "Coyote Den";
     }
     
     private void OnEnable()
