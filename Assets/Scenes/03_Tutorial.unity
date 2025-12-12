@@ -372,7 +372,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: -505, y: 27}
+  m_AnchoredPosition: {x: -505, y: 16}
   m_SizeDelta: {x: 800, y: 200}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &82266027
@@ -1980,6 +1980,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   _winScreen: {fileID: 1684751489}
   _loseScreen: {fileID: 1334544641}
+  _causeOfDeathText: {fileID: 0}
   _sceneTransitionDelay: 1.5
   _winSceneName: 05_Cutscene_2
   _loseSceneName: 06_Cutscene_3
@@ -7555,11 +7556,11 @@ MonoBehaviour:
 
 
     <color="lightblue">Unassigned
-    workers</color> follow you around. Your babies will be eaten before you do.
+    workers</color> follow you. Your babies are eaten before you are.
 
 
-    Try
-    assigning a worker!'
+    Try assigning
+    a worker!'
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 80af2cc7cd196b3488b78ec5f6d8a3b8, type: 2}
   m_sharedMaterial: {fileID: 3129977671062793659, guid: 80af2cc7cd196b3488b78ec5f6d8a3b8, type: 2}
@@ -7749,7 +7750,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: -505, y: -99}
+  m_AnchoredPosition: {x: -505, y: -110}
   m_SizeDelta: {x: 160, y: 30}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &1292703357
@@ -8193,7 +8194,7 @@ RectTransform:
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 1, y: 0}
   m_AnchoredPosition: {x: -750, y: 0}
-  m_SizeDelta: {x: -1500, y: 750}
+  m_SizeDelta: {x: -1500, y: 680}
   m_Pivot: {x: 0.5, y: 0}
 --- !u!114 &1385562145
 MonoBehaviour:
