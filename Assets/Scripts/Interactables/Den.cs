@@ -223,7 +223,6 @@ public class Den : Interactable, IHideable
                 if (GlobalInventoryManager.Instance != null)
                 {
                   foreach (Item inventoryItem in inventoryItems) {
-                    // DenSystemManager.Instance.AddItemToDenInventory(inventoryItem);
                     GlobalInventoryManager.Instance.AddItemIdToDen(inventoryItem.ItemId);
                     Destroy(inventoryItem.gameObject);
                   }
