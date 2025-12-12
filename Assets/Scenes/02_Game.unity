@@ -763,7 +763,7 @@ MonoBehaviour:
     count: 12
     predatorType: 
   - interactableType: 5
-    count: 20
+    count: 22
     predatorType: 
   - interactableType: 6
     count: 3
