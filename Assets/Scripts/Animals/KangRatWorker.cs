@@ -51,6 +51,7 @@ public class KangRatWorker : WorkerAnimal
 		bool isHungry = CurrentHunger < hungerThreshold;
 		bool hasStoredDenFood = HasHomeHideable && HasStoredDenFoodAvailable();
 		bool shouldUseDenStoredFood = isCriticallyHungry && hasStoredDenFood;
+		bool hasCarriedItems = WorkerItemsCopy.Count > 0;
 		
 		// If we're hiding in our den and critically hungry, consume stored food if available.
         // Otherwise, force exit from den.
@@ -126,6 +127,27 @@ public class KangRatWorker : WorkerAnimal
 		// If hungry, check if we should seek food
 		if (isHungry)
 		{
+			// If carrying anything, prioritize returning to den to deposit first
+			if (hasCarriedItems && HasHomeHideable)
+			{
+				_foodDestination = null;
+				_wanderingDestination = null;
+
+				Vector2Int homePos = HomeHideable.GridPosition;
+				
+				if (IsAtHomeHideable)
+				{
+					if (!IsHidingInHome)
+					{
+						TryHideInHome();
+					}
+					return;
+				}
+
+				MoveOneStepTowards(homePos);
+				return;
+			}
+
 			if (shouldUseDenStoredFood)
 			{
 				ReturnToDenForStoredFood();
@@ -417,21 +439,21 @@ public class KangRatWorker : WorkerAnimal
 	{
 		// Get candidates from base-class search helpers
 		Vector2Int? nearestGrass = FindNearestFullyGrownGrass();
-		Vector2Int? nearestFoodItem = FindNearestFoodItem();
+		Vector2Int? nearestPickupItem = FindNearestPickupItem();
 		Vector2Int? nearestItem = FindNearestItem();
 
 		// If we're hungry, prioritize grass OR food items (choose the nearest one)
 		if (IsHungry)
 		{
-			// Find the nearest between grass and food items
-			if (nearestGrass.HasValue && nearestFoodItem.HasValue)
+			// Find the nearest between grass and items
+			if (nearestGrass.HasValue && nearestPickupItem.HasValue)
 			{
 				// Both available - choose the closer one
 				Vector2Int myPos = GridPosition;
 				int grassDistance = Mathf.Abs(nearestGrass.Value.x - myPos.x) + Mathf.Abs(nearestGrass.Value.y - myPos.y);
-				int foodItemDistance = Mathf.Abs(nearestFoodItem.Value.x - myPos.x) + Mathf.Abs(nearestFoodItem.Value.y - myPos.y);
+				int pickupItemDistance = Mathf.Abs(nearestPickupItem.Value.x - myPos.x) + Mathf.Abs(nearestPickupItem.Value.y - myPos.y);
 				
-				return grassDistance <= foodItemDistance ? nearestGrass : nearestFoodItem;
+				return grassDistance <= pickupItemDistance ? nearestGrass : nearestPickupItem;
 			}
 			
 			// Only one available - use that one
@@ -440,9 +462,9 @@ public class KangRatWorker : WorkerAnimal
 				return nearestGrass;
 			}
 			
-			if (nearestFoodItem.HasValue)
+			if (nearestPickupItem.HasValue)
 			{
-				return nearestFoodItem;
+				return nearestPickupItem;
 			}
 			
 			// No grass or food items - return null (don't seek non-food items when hungry)
@@ -459,10 +481,10 @@ public class KangRatWorker : WorkerAnimal
 	}
 	
 	/// <summary>
-	/// Finds the nearest FoodItem within detection radius.
+	/// Finds the nearest item (any type) within detection radius.
 	/// If critically hungry, searches with infinite range (ignores detection radius).
 	/// </summary>
-	private Vector2Int? FindNearestFoodItem()
+	private Vector2Int? FindNearestPickupItem()
 	{
 		if (ItemManager.Instance == null)
 		{
@@ -476,7 +498,7 @@ public class KangRatWorker : WorkerAnimal
 		}
 
 		Vector2Int myPos = GridPosition;
-		FoodItem nearest = null;
+		Item nearest = null;
 		int bestDistance = int.MaxValue;
 		
 		// Check if at critical hunger - if so, ignore detection radius (infinite range)
@@ -486,12 +508,6 @@ public class KangRatWorker : WorkerAnimal
 		{
 			Item item = allItems[i];
 			if (item == null)
-			{
-				continue;
-			}
-
-			// Only consider FoodItems
-			if (!(item is FoodItem))
 			{
 				continue;
 			}
@@ -506,7 +522,7 @@ public class KangRatWorker : WorkerAnimal
 				if (distance < bestDistance)
 				{
 					bestDistance = distance;
-					nearest = item as FoodItem;
+					nearest = item;
 				}
 			}
 			else
@@ -516,7 +532,7 @@ public class KangRatWorker : WorkerAnimal
 				if (distance <= _grassDetectionRadius && distance < bestDistance)
 				{
 					bestDistance = distance;
-					nearest = item as FoodItem;
+					nearest = item;
 				}
 			}
 		}
