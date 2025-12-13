@@ -4512,6 +4512,10 @@ PrefabInstance:
       value: FoodItemPanel
       objectReference: {fileID: 0}
     - target: {fileID: 1802831520147338216, guid: 2a3f0cedbc55e445681fa0c29ba68ca8, type: 3}
+      propertyPath: m_text
+      value: Food Items
+      objectReference: {fileID: 0}
+    - target: {fileID: 1802831520147338216, guid: 2a3f0cedbc55e445681fa0c29ba68ca8, type: 3}
       propertyPath: m_ActiveFontFeatures.Array.data[0]
       value: 1801810542
       objectReference: {fileID: 0}
