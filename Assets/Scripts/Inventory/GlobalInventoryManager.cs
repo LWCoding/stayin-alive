@@ -76,6 +76,7 @@ public class GlobalInventoryManager : Singleton<GlobalInventoryManager> {
   private void InitializeState() {
     foodItemsInDen ??= new List<InventoryItem>();
     otherItemsInDen ??= new List<InventoryItem>();
+    ResetDenFood();
   }
   
   public InventoryOperationResult AddItemIdToDen(ItemId id) {

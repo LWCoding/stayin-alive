@@ -78,7 +78,7 @@ public class GameManager : Singleton<GameManager>
             {
               _causeOfDeathText.text = starved ? starvedGameOver : eatenGameOver;
             }
-            Debug.Log("GameManager: Lose condition triggered! Showing lose screen.");
+            // Debug.Log("GameManager: Lose condition triggered! Showing lose screen.");
         }
         else
         {
@@ -116,7 +116,7 @@ public class GameManager : Singleton<GameManager>
         if (_winScreen != null)
         {
             _winScreen.SetActive(true);
-            Debug.Log("GameManager: Win condition triggered! Showing win screen.");
+            // Debug.Log("GameManager: Win condition triggered! Showing win screen.");
         }
         else
         {

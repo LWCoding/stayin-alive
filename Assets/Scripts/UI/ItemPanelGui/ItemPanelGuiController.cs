@@ -36,7 +36,10 @@ public class ItemPanelGuiController : MonoBehaviour {
   
   // Internal Backing Structures
   private List<GlobalInventoryManager.InventoryItem> items;
-  private Dictionary<GlobalInventoryManager.InventoryItem, ItemPanelItemController> itemPanelUiItems = new Dictionary<GlobalInventoryManager.InventoryItem, ItemPanelItemController>();
+  private List<GlobalInventoryManager.InventoryItem> nonDisplayedItems;
+  private Dictionary<GlobalInventoryManager.InventoryItem, ItemPanelItemController> displayedItemPanelUiItems = new Dictionary<GlobalInventoryManager.InventoryItem, ItemPanelItemController>();
+
+  private int renderCap = 60;
   
   private void Start() {
     itemPanelNameTMP.text = itemPanelNameString;
@@ -45,23 +48,37 @@ public class ItemPanelGuiController : MonoBehaviour {
       ItemPanelType.OTHER_ITEMS => GlobalInventoryManager.Instance.OtherItemsInDen,
       _ => new List<GlobalInventoryManager.InventoryItem>()
     };
+    nonDisplayedItems = new List<GlobalInventoryManager.InventoryItem>();
   }
 
   private void Update() {
     itemPanelCountTMP.text = items.Count.ToString();
     
     foreach (GlobalInventoryManager.InventoryItem inventoryItem in items) {
-      if (!itemPanelUiItems.ContainsKey(inventoryItem)) {
-        ItemPanelItemController newItem = Instantiate(itemPrefab, itemSpawnTransform).GetComponent<ItemPanelItemController>();
-        newItem.Setup(inventoryItem);
-        itemPanelUiItems.Add(inventoryItem, newItem);
+      if (!displayedItemPanelUiItems.ContainsKey(inventoryItem)) {
+        // Not already rendered, and we are over the cap
+        if (displayedItemPanelUiItems.Count >= renderCap) {
+          if (!nonDisplayedItems.Contains(inventoryItem)) {
+            nonDisplayedItems.Add(inventoryItem);
+          }
+        }
+        // Not already rendered and we are under the cap
+        else {
+          if (nonDisplayedItems.Contains(inventoryItem)) {
+            nonDisplayedItems.Remove(inventoryItem);
+          }
+          ItemPanelItemController newItem =
+            Instantiate(itemPrefab, itemSpawnTransform).GetComponent<ItemPanelItemController>();
+          newItem.Setup(inventoryItem);
+          displayedItemPanelUiItems.Add(inventoryItem, newItem);
+        }
       }
     }
 
-    foreach (GlobalInventoryManager.InventoryItem inventoryItem in itemPanelUiItems.Keys.ToList()) {
+    foreach (GlobalInventoryManager.InventoryItem inventoryItem in displayedItemPanelUiItems.Keys.ToList()) {
       if (!items.Contains(inventoryItem)) {
-        Destroy(itemPanelUiItems[inventoryItem].gameObject);
-        itemPanelUiItems.Remove(inventoryItem);
+        Destroy(displayedItemPanelUiItems[inventoryItem].gameObject);
+        displayedItemPanelUiItems.Remove(inventoryItem);
       }
     }
   }
