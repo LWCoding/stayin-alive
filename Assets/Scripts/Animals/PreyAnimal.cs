@@ -339,8 +339,12 @@ public class PreyAnimal : Animal
         AstarPath.StartPath(path, true);
         path.BlockUntilCalculated();
 
+        // Claim the path so we can release it later
+        path.Claim(this);
+
         if (path.error || path.vectorPath == null || path.vectorPath.Count == 0)
         {
+            path.Release(this);
             return false;
         }
 
@@ -370,6 +374,9 @@ public class PreyAnimal : Animal
                 axisAlignedGrid.Add(currentGrid);
             }
         }
+
+        // Release the path now that we've extracted the data we need
+        path.Release(this);
 
         if (axisAlignedGrid.Count < 2)
         {
