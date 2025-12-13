@@ -668,6 +668,22 @@ public class PredatorAnimal : Animal
             return;
         }
 
+        // Only play audio if the predator is within one fog of war radius distance from the player
+        if (AnimalManager.Instance != null)
+        {
+            ControllableAnimal player = AnimalManager.Instance.GetPlayer();
+            if (player != null)
+            {
+                Vector2Int myPos = GridPosition;
+                Vector2Int playerPos = player.GridPosition;
+                int distance = Mathf.Abs(playerPos.x - myPos.x) + Mathf.Abs(playerPos.y - myPos.y);
+                if (distance > Globals.FogOfWarRadius)
+                {
+                    return; // Too far away from player, don't play audio
+                }
+            }
+        }
+
         AudioManager.SFXType chasingType = AnimalData.chasingSFX;
         if (chasingType == AudioManager.SFXType.None)
         {
