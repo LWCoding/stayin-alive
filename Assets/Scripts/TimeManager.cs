@@ -17,7 +17,7 @@ public class TimeManager : Singleton<TimeManager>
 	[SerializeField] private int _turnsPerSeason = 50;
 
 	[Header("UI")]
-	[Tooltip("Progress bar Image that shows progress through the current season. Scales from 0 (start of season) to 1 (end of season).")]
+	[Tooltip("Progress bar Image that shows progress through the current season. fillAmount goes from 0 (start of season) to 1 (end of season). Image type should be set to Filled.")]
 	[SerializeField] private Image _progressBarImage;
 	[Tooltip("Image that displays the current season icon.")]
 	[SerializeField] private Image _seasonImage;
@@ -325,7 +325,7 @@ public class TimeManager : Singleton<TimeManager>
 
 	/// <summary>
 	/// Updates the progress bar to show progress through the current season.
-	/// The bar scales from 0 (start of season) to 1 (end of season).
+	/// The bar fillAmount goes from 0 (start of season) to 1 (end of season).
 	/// </summary>
 	private void UpdateProgressBar()
 	{
@@ -340,15 +340,10 @@ public class TimeManager : Singleton<TimeManager>
 		float progress = (float)turnsIntoCurrentSeason / _turnsPerSeason;
 
 		// Clamp to ensure it's between 0 and 1
-		float scale = Mathf.Clamp01(progress);
+		float fillAmount = Mathf.Clamp01(progress);
 
-		// Update the Image's scale (using localScale on the RectTransform)
-		// Scale only the X axis (width) from 0 to 1, preserving Y and Z
-		RectTransform rectTransform = _progressBarImage.rectTransform;
-		if (rectTransform != null)
-		{
-			rectTransform.localScale = new Vector3(scale, 1f, 1f);
-		}
+		// Update the Image's fillAmount
+		_progressBarImage.fillAmount = fillAmount;
 	}
 
 	/// <summary>

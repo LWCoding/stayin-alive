@@ -11,7 +11,7 @@ using TMPro;
 public class UIManager : Singleton<UIManager>
 {
     [Header("Hunger Bar")]
-    [Tooltip("Image component that displays the hunger bar. The Y scale will be set based on hunger ratio (0 = dead, 1 = full).")]
+    [Tooltip("Image component that displays the hunger bar. The fillAmount will be set based on hunger ratio (0 = dead, 1 = full). Image type should be set to Filled.")]
     [SerializeField] private Image _hungerBarImage;
     
     [Tooltip("Hunger ratio threshold below which the bar will turn red (0.0 to 1.0).")]
@@ -239,7 +239,7 @@ public class UIManager : Singleton<UIManager>
 
     /// <summary>
     /// Updates the hunger bar display based on the tracked animal's hunger.
-    /// Sets the Y scale of the bar (0 = dead, 1 = full).
+    /// Sets the fillAmount of the bar (0 = dead, 1 = full).
     /// </summary>
     public void UpdateHungerBar()
     {
@@ -257,13 +257,8 @@ public class UIManager : Singleton<UIManager>
         // Clamp to 0-1 range
         hungerRatio = Mathf.Clamp01(hungerRatio);
 
-        // Update the Y scale of the hunger bar
-        RectTransform rectTransform = _hungerBarImage.rectTransform;
-        if (rectTransform != null)
-        {
-            Vector3 currentScale = rectTransform.localScale;
-            rectTransform.localScale = new Vector3(hungerRatio, currentScale.y, currentScale.z);
-        }
+        // Update the fillAmount of the hunger bar
+        _hungerBarImage.fillAmount = hungerRatio;
 
         if (hungerRatio <= _lowHungerThreshold)
         {
