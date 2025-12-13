@@ -100,7 +100,7 @@ public static class Globals
 	/// <summary>
 	/// Chance (0.0 to 1.0) each grass tile downgrades when winter begins.
 	/// </summary>
-	public static float WinterGrassReductionChance = 0.5f;
+	public static float WinterGrassReductionChance = 0.7f;
 
 	/// <summary>
 	/// Hunger restored when a worker picks up a non-food item.
