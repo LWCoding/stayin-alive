@@ -57,6 +57,9 @@ public class GrassPatch : Interactable
         
         // Initialize child grass objects that are already in the prefab
         InitializeChildGrass();
+        
+        // Detach children and destroy this GrassPatch GameObject
+        DetachChildrenAndDestroySelf();
     }
     
     private void UpdateWorldPosition()
@@ -171,23 +174,58 @@ public class GrassPatch : Interactable
         Debug.Log($"GrassPatch: Initialized {_childGrass.Count} child grass interactables in patch at ({_gridPosition.x}, {_gridPosition.y})");
     }
     
-    private void OnDestroy()
+    /// <summary>
+    /// Detaches all child Grass objects from this GrassPatch and moves them to the InteractableManager's parent.
+    /// Then destroys this GrassPatch GameObject.
+    /// </summary>
+    private void DetachChildrenAndDestroySelf()
     {
-        // Clean up child grass when patch is destroyed
-        // The grass children will be destroyed automatically as part of the parent GameObject
-        // But we should remove them from InteractableManager's tracking
-        foreach (Grass grass in _childGrass)
-        {
-            if (grass != null && InteractableManager.Instance != null)
-            {
-                InteractableManager.Instance.RemoveGrass(grass);
-            }
-        }
-        _childGrass.Clear();
-        
+        // Get the parent transform for interactables (where child grass should be moved to)
+        Transform targetParent = null;
         if (InteractableManager.Instance != null)
         {
-            InteractableManager.Instance.RemoveGrassPatch(this);
+            targetParent = InteractableManager.Instance.InteractableParent;
         }
+        
+        // Detach all child Grass objects from this parent
+        // We need to create a list first because we'll be modifying the transform hierarchy
+        List<Transform> childrenToDetach = new List<Transform>();
+        foreach (Grass grass in _childGrass)
+        {
+            if (grass != null && grass.transform != null)
+            {
+                childrenToDetach.Add(grass.transform);
+            }
+        }
+        
+        // Move each child to the target parent (or root if no target parent)
+        foreach (Transform child in childrenToDetach)
+        {
+            if (child != null)
+            {
+                child.SetParent(targetParent, true); // worldPositionStays = true to preserve world positions
+            }
+        }
+        
+        // Clear the child list since they're no longer children
+        _childGrass.Clear();
+        
+        // Remove this GrassPatch from InteractableManager's tracking lists
+        // (We use RemoveInteractable instead of RemoveGrassPatch to avoid pooling, since we're destroying it)
+        if (InteractableManager.Instance != null)
+        {
+            InteractableManager.Instance.RemoveInteractable(this);
+        }
+        
+        // Destroy this GrassPatch GameObject immediately
+        Destroy(gameObject);
+    }
+    
+    private void OnDestroy()
+    {
+        // Note: Children are already detached before this is called (in DetachChildrenAndDestroySelf)
+        // and this GrassPatch is already removed from InteractableManager's tracking lists.
+        // This method is called by Unity when the GameObject is destroyed, but cleanup is already done.
+        // No additional cleanup needed here.
     }
 }
