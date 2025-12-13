@@ -29,6 +29,9 @@ public class AnimalManager : Singleton<AnimalManager>
     // Track when viewport needs updating (throttle updates)
     private int _viewportUpdateFrameCounter = 0;
     private const int VIEWPORT_UPDATE_INTERVAL = 3; // Update every 3 frames instead of every frame
+    
+    // Cached list to avoid allocations in GetAllAnimals() - reused each call
+    private List<Animal> _cachedAnimalsList = new List<Animal>();
 
     public Animal CurrentlySelectedAnimal => _currentlySelectedAnimal;
     
@@ -438,8 +441,9 @@ public class AnimalManager : Singleton<AnimalManager>
     /// </summary>
     public List<Animal> GetAllAnimals()
     {
+        _cachedAnimalsList.Clear();
+        
         // Filter out null references in case any animals were destroyed but not yet removed
-        List<Animal> validAnimals = new List<Animal>();
         for (int i = _animals.Count - 1; i >= 0; i--)
         {
             if (_animals[i] == null)
@@ -448,10 +452,10 @@ public class AnimalManager : Singleton<AnimalManager>
             }
             else
             {
-                validAnimals.Add(_animals[i]);
+                _cachedAnimalsList.Add(_animals[i]);
             }
         }
-        return validAnimals;
+        return _cachedAnimalsList;
     }
 
     /// <summary>
