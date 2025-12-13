@@ -286,8 +286,8 @@ public class Den : Interactable, IHideable
             
             yield return new WaitForSeconds(Globals.DenTimeProgressionDelay);
             
-            // Only progress time if TimeManager exists and is not paused
-            if (TimeManager.Instance != null && !TimeManager.Instance.IsPaused)
+            // Only progress time if TimeManager exists, is not paused, and not waiting for first move
+            if (TimeManager.Instance != null && !TimeManager.Instance.IsPaused && !TimeManager.Instance.IsWaitingForFirstMove)
             {
                 TimeManager.Instance.NextTurn();
             }

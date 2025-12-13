@@ -158,7 +158,13 @@ public class DenSystemManager : Singleton<DenSystemManager> {
     DenAdminMenu.Hide();
     Debug.LogWarning("Panel Closed");
     validTeleports.Clear();
-    TimeManager.Instance.Resume();
+    
+    // Resume TimeManager, but only if it's not waiting for first move
+    // (TimeManager handles its own first move pause state)
+    if (TimeManager.Instance != null && !TimeManager.Instance.IsWaitingForFirstMove)
+    {
+      TimeManager.Instance.Resume();
+    }
     
     // Fire event for panel closed
     OnPanelClosed?.Invoke();
