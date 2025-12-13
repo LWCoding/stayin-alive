@@ -126,14 +126,15 @@ public class DenSystemManager : Singleton<DenSystemManager> {
 
   protected override void Awake() {
     base.Awake();
+#if !(UNITY_EDITOR || DEVELOPMENT_BUILD)
+    Debug.unityLogger.logEnabled = false;
+#endif
     InitializeState();
   }
 
   private void InitializeState() {
     validTeleports ??= new Dictionary<int, DenInformation>();
     denInformations ??= new Dictionary<int, DenInformation>();
-    
-    GlobalInventoryManager.Instance.ResetDenFood();
   }
   
   public void OpenPanel() {
